@@ -1,0 +1,10 @@
+*.pyc
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+node_modules/
+dist/
+build/
+.coverage
+coverage.xml
