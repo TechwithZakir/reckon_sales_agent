@@ -138,14 +138,22 @@ File. That can take a while on large sites.
 
 ## Use
 
-1. Open **Sales Agent** (`/desk/sales-agent`) and create a Discovery Campaign
-   (start with the *Demo data* connector).
-2. Click **Preview Plan**, then **Start**. The job runs in the background and
+1. Open **Sales Agent** (`/desk/sales-agent`) and create a Discovery Campaign.
+   Start with the *Demo data* connector.
+2. Click **Preview Plan**, then **Start Discovery**. The job runs in the
+   background (watch it on the job form, which can also **Cancel Job**) and
    researches new prospects automatically.
-3. Review prospects in **Prospect Review**. Approved ones appear in `/crm/leads`.
-4. Create a **Sales Campaign** with steps, submit it, and have a manager
-   approve it. Approve the drafted messages. Sending runs hourly, or use
-   **Send approved** (see `api.py`).
+3. Review prospects in **Prospect Review** (bulk approve, defer, reject,
+   research again) or on each prospect: **Review → Merge Into…**,
+   **Research Website**, **Score Again**, **Create CRM Lead**. Approved
+   prospects appear in `/crm/leads`.
+4. Create a **Sales Campaign**. It starts with a two-step template.
+   1. **Submit for Approval**; a manager clicks **Approve and Start**.
+   2. Approve drafts from the message list (bulk **Approve**) or the form.
+   3. Sending runs hourly, or use **Actions → Send Approved Now**.
+   4. **Stop Sequence** on a member stops follow-up, for example after a
+      phone reply.
+5. Managers can **Override Result** on a qualification, with a reason.
 
 ## Tests
 
@@ -169,6 +177,28 @@ They cover:
 - the Claude request shape and refusal handling;
 - CRM Company isolation;
 - DocType definitions and safe defaults.
+
+### End-to-end tests (Playwright)
+
+These run against a **test or staging** bench site with background workers
+running. They log in as two tenant Companies and check:
+- isolation of CRM and Sales Agent data;
+- read-only site settings and plan limits;
+- the Desk guard;
+- the full pipeline: demo discovery → deduplication → review → CRM lead →
+  campaign approval → dry-run send → unsubscribe confirmation.
+
+```bash
+bench --site sales-agent-test.localhost execute reckon_sales_agent.e2e.setup_fixtures --kwargs "{'password': '<test password>'}"
+cd apps/reckon_sales_agent/e2e
+npm install
+npx playwright install chromium
+SITE_URL=http://sales-agent-test.localhost:8000 E2E_PASSWORD='<test password>' npx playwright test
+```
+
+`setup_fixtures` refuses to run unless the site name contains `test`,
+`staging`, `e2e` or `.localhost`. It creates two Companies, *SA E2E Alpha*
+and *SA E2E Beta*, on a free trial plan, each with a Company Admin user.
 
 ## Security notes
 

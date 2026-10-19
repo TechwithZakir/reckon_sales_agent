@@ -25,3 +25,5 @@ jobs:
         run: python -c "import glob, json; [json.load(open(p, encoding='utf-8')) for p in glob.glob('reckon_sales_agent/**/*.json', recursive=True)]"
       - name: Unit tests (no bench needed)
         run: python -m unittest discover -s tests -v
+      - name: JavaScript syntax
+        run: for f in $(git ls-files '*.js'); do node --check "$f"; done

@@ -20,10 +20,11 @@ VENDOR_ROLES = ("System Manager", "Reckon Vendor Superuser")
 
 # Frappe CRM's own roles carry the CRM document permissions; tenant isolation
 # comes from crm_tenancy, not from roles.
+# Keys are Tenant User Assignment role profiles; any other profile on a Sales
+# Agent Company gets the "Sales User" roles.
 PROFILE_ROLES: dict[str, tuple[str, ...]] = {
     "Company Admin": (ADMIN_ROLE, "Sales Manager", "Sales User"),
     "Company Manager": (MANAGER_ROLE, "Sales Manager", "Sales User"),
-    "Sales Manager": (MANAGER_ROLE, "Sales Manager", "Sales User"),
     "Sales User": (USER_ROLE, "Sales User"),
 }
 MANAGED_ROLES = frozenset(role for roles in PROFILE_ROLES.values() for role in roles)

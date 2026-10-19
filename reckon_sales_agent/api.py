@@ -56,6 +56,7 @@ def preview_plan(campaign: str) -> list[dict]:
         frappe.throw(_("The campaign is running."))
     build_plan(doc)
     doc.save()
+    doc.db_set("status", "Planned")  # status is server-managed; save() keeps the stored value
     return [row.as_dict() for row in doc.planned_queries]
 
 
