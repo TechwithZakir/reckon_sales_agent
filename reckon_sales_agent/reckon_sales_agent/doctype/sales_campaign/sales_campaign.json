@@ -1,0 +1,254 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Campaign",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-10-19 12:00:00.000000",
+ "modified": "2026-10-19 12:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 0,
+ "issingle": 0,
+ "editable_grid": 0,
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "field_order": [
+  "company",
+  "campaign_name",
+  "status",
+  "channel",
+  "offer",
+  "head_col",
+  "discovery_campaign",
+  "minimum_fit_score",
+  "daily_limit",
+  "start_date",
+  "end_date",
+  "steps_section",
+  "steps",
+  "approval_section",
+  "approved_by",
+  "approved_on",
+  "metrics_section",
+  "member_count",
+  "sent_count",
+  "reply_count",
+  "metrics_col",
+  "unsubscribe_count",
+  "bounce_count",
+  "converted_count"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "search_index": 1,
+   "remember_last_selected_value": 1
+  },
+  {
+   "fieldname": "campaign_name",
+   "fieldtype": "Data",
+   "label": "Campaign Name",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nPending Approval\nApproved\nActive\nPaused\nCompleted",
+   "default": "Draft",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "channel",
+   "fieldtype": "Select",
+   "label": "Channel",
+   "options": "Email",
+   "default": "Email"
+  },
+  {
+   "fieldname": "offer",
+   "fieldtype": "Small Text",
+   "label": "Offer"
+  },
+  {
+   "fieldname": "head_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "discovery_campaign",
+   "fieldtype": "Link",
+   "label": "Discovery Campaign",
+   "options": "Sales Discovery Campaign",
+   "description": "Optional: audience is qualified prospects of this discovery campaign."
+  },
+  {
+   "fieldname": "minimum_fit_score",
+   "fieldtype": "Float",
+   "label": "Minimum Fit Score",
+   "default": "60"
+  },
+  {
+   "fieldname": "daily_limit",
+   "fieldtype": "Int",
+   "label": "Daily Limit",
+   "default": "25"
+  },
+  {
+   "fieldname": "start_date",
+   "fieldtype": "Date",
+   "label": "Start Date"
+  },
+  {
+   "fieldname": "end_date",
+   "fieldtype": "Date",
+   "label": "End Date"
+  },
+  {
+   "fieldname": "steps_section",
+   "fieldtype": "Section Break",
+   "label": "Sequence"
+  },
+  {
+   "fieldname": "steps",
+   "fieldtype": "Table",
+   "label": "Steps",
+   "options": "Sales Campaign Step",
+   "reqd": 1
+  },
+  {
+   "fieldname": "approval_section",
+   "fieldtype": "Section Break",
+   "label": "Approval"
+  },
+  {
+   "fieldname": "approved_by",
+   "fieldtype": "Link",
+   "label": "Approved By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "approved_on",
+   "fieldtype": "Datetime",
+   "label": "Approved On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "metrics_section",
+   "fieldtype": "Section Break",
+   "label": "Outcomes"
+  },
+  {
+   "fieldname": "member_count",
+   "fieldtype": "Int",
+   "label": "Member Count",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sent_count",
+   "fieldtype": "Int",
+   "label": "Sent Count",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reply_count",
+   "fieldtype": "Int",
+   "label": "Reply Count",
+   "read_only": 1
+  },
+  {
+   "fieldname": "metrics_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "unsubscribe_count",
+   "fieldtype": "Int",
+   "label": "Unsubscribe Count",
+   "read_only": 1
+  },
+  {
+   "fieldname": "bounce_count",
+   "fieldtype": "Int",
+   "label": "Bounce Count",
+   "read_only": 1
+  },
+  {
+   "fieldname": "converted_count",
+   "fieldtype": "Int",
+   "label": "Converted Count",
+   "read_only": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Vendor Superuser",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Admin",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "Reckon Sales Agent User",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1
+  }
+ ],
+ "autoname": "format:CAMP-{#####}",
+ "naming_rule": "Expression",
+ "title_field": "campaign_name",
+ "show_title_field_in_link": 1
+}

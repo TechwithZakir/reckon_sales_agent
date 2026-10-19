@@ -1,0 +1,228 @@
+{
+ "doctype": "Workspace Sidebar",
+ "name": "Sales Agent",
+ "title": "Sales Agent",
+ "app": "reckon_sales_agent",
+ "module": "Reckon Sales Agent",
+ "header_icon": "users",
+ "standard": 1,
+ "items": [
+  {
+   "type": "Link",
+   "label": "Home",
+   "link_to": "sales-agent",
+   "link_type": "Page",
+   "icon": "house",
+   "child": 0,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Prospect Review",
+   "link_to": "sales-review",
+   "link_type": "Page",
+   "icon": "check-square",
+   "child": 0,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Section Break",
+   "label": "Discovery",
+   "icon": "search",
+   "child": 0,
+   "indent": 0,
+   "collapsible": 1,
+   "keep_closed": 0,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Discovery Campaigns",
+   "link_to": "Sales Discovery Campaign",
+   "link_type": "DocType",
+   "icon": "target",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Prospects",
+   "link_to": "Sales Prospect",
+   "link_type": "DocType",
+   "icon": "building",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Research Reports",
+   "link_to": "Sales Research Report",
+   "link_type": "DocType",
+   "icon": "file-search",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Qualifications",
+   "link_to": "Sales Qualification",
+   "link_type": "DocType",
+   "icon": "gauge",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Jobs",
+   "link_to": "Sales Discovery Job",
+   "link_type": "DocType",
+   "icon": "loader",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Section Break",
+   "label": "Outreach",
+   "icon": "send",
+   "child": 0,
+   "indent": 0,
+   "collapsible": 1,
+   "keep_closed": 0,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Campaigns",
+   "link_to": "Sales Campaign",
+   "link_type": "DocType",
+   "icon": "megaphone",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Messages",
+   "link_to": "Sales Outreach Message",
+   "link_type": "DocType",
+   "icon": "mail",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Campaign Members",
+   "link_to": "Sales Campaign Member",
+   "link_type": "DocType",
+   "icon": "users",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Events",
+   "link_to": "Sales Communication Event",
+   "link_type": "DocType",
+   "icon": "activity",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Suppression List",
+   "link_to": "Sales Suppression Entry",
+   "link_type": "DocType",
+   "icon": "ban",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Section Break",
+   "label": "Setup",
+   "icon": "settings",
+   "child": 0,
+   "indent": 0,
+   "collapsible": 1,
+   "keep_closed": 0,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Settings",
+   "link_to": "Sales Agent Settings",
+   "link_type": "DocType",
+   "icon": "settings",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Qualification Profiles",
+   "link_to": "Sales Qualification Profile",
+   "link_type": "DocType",
+   "icon": "sliders",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Source Connectors",
+   "link_to": "Sales Source Connector",
+   "link_type": "DocType",
+   "icon": "plug",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Usage",
+   "link_to": "Sales Usage Ledger",
+   "link_type": "DocType",
+   "icon": "bar-chart",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Audit Trail",
+   "link_to": "Sales Agent Activity",
+   "link_type": "DocType",
+   "icon": "history",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  }
+ ]
+}

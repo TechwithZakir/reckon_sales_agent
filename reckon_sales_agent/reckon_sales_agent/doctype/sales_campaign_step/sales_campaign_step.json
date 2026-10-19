@@ -1,0 +1,63 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Campaign Step",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-10-19 12:00:00.000000",
+ "modified": "2026-10-19 12:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 1,
+ "issingle": 0,
+ "editable_grid": 1,
+ "track_changes": 0,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "field_order": [
+  "step_no",
+  "delay_days",
+  "subject_template",
+  "body_template",
+  "use_ai_personalisation"
+ ],
+ "fields": [
+  {
+   "fieldname": "step_no",
+   "fieldtype": "Int",
+   "label": "Step No",
+   "in_list_view": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "delay_days",
+   "fieldtype": "Int",
+   "label": "Delay Days",
+   "in_list_view": 1,
+   "default": "0",
+   "description": "Days after the previous step (business days are not modelled)."
+  },
+  {
+   "fieldname": "subject_template",
+   "fieldtype": "Data",
+   "label": "Subject Template",
+   "in_list_view": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "body_template",
+   "fieldtype": "Text",
+   "label": "Body Template",
+   "reqd": 1,
+   "description": "Placeholders: {{business_name}}, {{city}}, {{industry}}, {{sender_name}}, {{offer}}, {{personal_line}}"
+  },
+  {
+   "fieldname": "use_ai_personalisation",
+   "fieldtype": "Check",
+   "label": "Personalise with AI",
+   "default": "0"
+  }
+ ],
+ "permissions": []
+}

@@ -1,0 +1,174 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Campaign Member",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-10-19 12:00:00.000000",
+ "modified": "2026-10-19 12:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 0,
+ "issingle": 0,
+ "editable_grid": 0,
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "field_order": [
+  "company",
+  "campaign",
+  "prospect",
+  "crm_lead",
+  "email",
+  "status",
+  "head_col",
+  "eligibility_reason",
+  "sequence_position",
+  "next_action_on",
+  "last_event",
+  "stop_reason",
+  "idempotency_key",
+  "unsubscribe_token"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "search_index": 1,
+   "remember_last_selected_value": 1
+  },
+  {
+   "fieldname": "campaign",
+   "fieldtype": "Link",
+   "label": "Campaign",
+   "options": "Sales Campaign",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "prospect",
+   "fieldtype": "Link",
+   "label": "Prospect",
+   "options": "Sales Prospect",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "crm_lead",
+   "fieldtype": "Link",
+   "label": "CRM Lead",
+   "options": "CRM Lead"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Eligible\nIneligible\nActive\nCompleted\nStopped\nConverted",
+   "default": "Eligible",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "head_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "eligibility_reason",
+   "fieldtype": "Small Text",
+   "label": "Eligibility Reason"
+  },
+  {
+   "fieldname": "sequence_position",
+   "fieldtype": "Int",
+   "label": "Sequence Position",
+   "default": "0"
+  },
+  {
+   "fieldname": "next_action_on",
+   "fieldtype": "Date",
+   "label": "Next Action On"
+  },
+  {
+   "fieldname": "last_event",
+   "fieldtype": "Data",
+   "label": "Last Event"
+  },
+  {
+   "fieldname": "stop_reason",
+   "fieldtype": "Data",
+   "label": "Stop Reason"
+  },
+  {
+   "fieldname": "idempotency_key",
+   "fieldtype": "Data",
+   "label": "Idempotency Key",
+   "unique": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "unsubscribe_token",
+   "fieldtype": "Data",
+   "label": "Unsubscribe Token",
+   "unique": 1,
+   "read_only": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Vendor Superuser",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Admin",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  },
+  {
+   "role": "Reckon Sales Agent Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  },
+  {
+   "role": "Reckon Sales Agent User",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  }
+ ],
+ "autoname": "format:SCM-{######}",
+ "naming_rule": "Expression"
+}

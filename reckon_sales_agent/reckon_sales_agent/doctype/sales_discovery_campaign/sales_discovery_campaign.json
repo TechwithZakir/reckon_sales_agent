@@ -1,0 +1,252 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Discovery Campaign",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-10-19 12:00:00.000000",
+ "modified": "2026-10-19 12:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 0,
+ "issingle": 0,
+ "editable_grid": 0,
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "field_order": [
+  "company",
+  "campaign_name",
+  "status",
+  "source_connector",
+  "qualification_profile",
+  "target_section",
+  "industries",
+  "keywords",
+  "target_col",
+  "locations",
+  "ideal_customer_profile",
+  "offer",
+  "limits_section",
+  "target_count",
+  "per_query_limit",
+  "auto_research",
+  "plan_section",
+  "planned_queries",
+  "results_section",
+  "prospects_found",
+  "duplicates_found",
+  "results_col",
+  "qualified_count",
+  "last_job"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "search_index": 1,
+   "remember_last_selected_value": 1
+  },
+  {
+   "fieldname": "campaign_name",
+   "fieldtype": "Data",
+   "label": "Campaign Name",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nPlanned\nRunning\nCompleted\nCancelled",
+   "default": "Draft",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_connector",
+   "fieldtype": "Link",
+   "label": "Source Connector",
+   "options": "Sales Source Connector",
+   "reqd": 1
+  },
+  {
+   "fieldname": "qualification_profile",
+   "fieldtype": "Link",
+   "label": "Qualification Profile",
+   "options": "Sales Qualification Profile"
+  },
+  {
+   "fieldname": "target_section",
+   "fieldtype": "Section Break",
+   "label": "Target"
+  },
+  {
+   "fieldname": "industries",
+   "fieldtype": "Small Text",
+   "label": "Industries / Categories",
+   "description": "One per line."
+  },
+  {
+   "fieldname": "keywords",
+   "fieldtype": "Small Text",
+   "label": "Keywords",
+   "description": "One per line, e.g. 'pharmacy', 'garments buying house'."
+  },
+  {
+   "fieldname": "target_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "locations",
+   "fieldtype": "Small Text",
+   "label": "Locations",
+   "description": "One per line, e.g. 'Dhaka', 'Gulshan, Dhaka'."
+  },
+  {
+   "fieldname": "ideal_customer_profile",
+   "fieldtype": "Small Text",
+   "label": "Ideal Customer Profile"
+  },
+  {
+   "fieldname": "offer",
+   "fieldtype": "Small Text",
+   "label": "Offer / Product"
+  },
+  {
+   "fieldname": "limits_section",
+   "fieldtype": "Section Break",
+   "label": "Limits"
+  },
+  {
+   "fieldname": "target_count",
+   "fieldtype": "Int",
+   "label": "Target Count",
+   "default": "100"
+  },
+  {
+   "fieldname": "per_query_limit",
+   "fieldtype": "Int",
+   "label": "Per Query Limit",
+   "default": "20"
+  },
+  {
+   "fieldname": "auto_research",
+   "fieldtype": "Check",
+   "label": "Research New Prospects Automatically",
+   "default": "1"
+  },
+  {
+   "fieldname": "plan_section",
+   "fieldtype": "Section Break",
+   "label": "Planned Searches"
+  },
+  {
+   "fieldname": "planned_queries",
+   "fieldtype": "Table",
+   "label": "Planned Queries",
+   "options": "Sales Planned Query"
+  },
+  {
+   "fieldname": "results_section",
+   "fieldtype": "Section Break",
+   "label": "Results"
+  },
+  {
+   "fieldname": "prospects_found",
+   "fieldtype": "Int",
+   "label": "Prospects Found",
+   "read_only": 1
+  },
+  {
+   "fieldname": "duplicates_found",
+   "fieldtype": "Int",
+   "label": "Duplicates Found",
+   "read_only": 1
+  },
+  {
+   "fieldname": "results_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "qualified_count",
+   "fieldtype": "Int",
+   "label": "Qualified Count",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_job",
+   "fieldtype": "Link",
+   "label": "Last Job",
+   "options": "Sales Discovery Job",
+   "read_only": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Vendor Superuser",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Admin",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "Reckon Sales Agent User",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1
+  }
+ ],
+ "autoname": "format:DISC-{#####}",
+ "naming_rule": "Expression",
+ "title_field": "campaign_name",
+ "show_title_field_in_link": 1
+}

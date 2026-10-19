@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import frappe
 
+from reckon_sales_agent.constants import LEAD_SOURCE, SAAS_ROLES, WORKSPACE_SIDEBAR
 from reckon_sales_agent.crm_tenancy import (
     COMPANY_FIELD,
     DATA_DOCTYPES,
@@ -37,12 +41,54 @@ REFERENCE_COLUMNS = {
 }
 
 
+SIDEBAR_FILE = Path(__file__).parent / "workspace_sidebar" / "sales_agent.json"
+
+
 def after_install() -> None:
-    ensure_crm_company_fields()
+    after_migrate()
 
 
 def after_migrate() -> None:
+    setup_roles()
     ensure_crm_company_fields()
+    ensure_shared_lead_source()
+    ensure_workspace_sidebar()
+    from reckon_sales_agent.access import backfill_users
+
+    backfill_users()
+
+
+def setup_roles() -> None:
+    for role in SAAS_ROLES:
+        if not frappe.db.exists("Role", role):
+            frappe.get_doc({"doctype": "Role", "role_name": role, "desk_access": 1, "is_custom": 1}).insert(
+                ignore_permissions=True)
+
+
+def ensure_shared_lead_source() -> None:
+    """A shared (unowned) "Sales Agent" lead source every Company can pick."""
+    if frappe.db.exists("DocType", "CRM Lead Source") and not frappe.db.exists("CRM Lead Source", LEAD_SOURCE):
+        frappe.get_doc({"doctype": "CRM Lead Source", "source_name": LEAD_SOURCE,
+                        "details": "Prospects found and approved through Reckon Sales Agent."}).insert(
+            ignore_permissions=True)
+
+
+def ensure_workspace_sidebar() -> None:
+    """Frappe v16 left rail, kept in step with the shipped file."""
+    if not frappe.db.exists("DocType", "Workspace Sidebar"):
+        return
+    definition = json.loads(SIDEBAR_FILE.read_text(encoding="utf-8"))
+    definition["items"] = [
+        item for item in definition["items"]
+        if item["type"] != "Link" or frappe.db.exists(item["link_type"], item["link_to"])
+    ]
+    if frappe.db.exists("Workspace Sidebar", WORKSPACE_SIDEBAR):
+        sidebar = frappe.get_doc("Workspace Sidebar", WORKSPACE_SIDEBAR)
+        sidebar.set("items", definition["items"])
+        sidebar.header_icon = definition["header_icon"]
+        sidebar.save(ignore_permissions=True)
+    else:
+        frappe.get_doc(definition).insert(ignore_permissions=True, ignore_links=True)
 
 
 def ensure_crm_company_fields() -> None:

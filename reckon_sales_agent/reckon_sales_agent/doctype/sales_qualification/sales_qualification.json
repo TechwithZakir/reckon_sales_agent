@@ -1,0 +1,262 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Qualification",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-10-19 12:00:00.000000",
+ "modified": "2026-10-19 12:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 0,
+ "issingle": 0,
+ "editable_grid": 0,
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "field_order": [
+  "company",
+  "prospect",
+  "profile",
+  "profile_version",
+  "scoring_version",
+  "result",
+  "scores_section",
+  "industry_fit",
+  "operational_complexity",
+  "need_signal",
+  "scores_col",
+  "scale",
+  "evidence_quality",
+  "dimensions_section",
+  "fit_score",
+  "buying_signal_score",
+  "dimensions_col",
+  "evidence_confidence",
+  "contactability",
+  "explain_section",
+  "explanation",
+  "unknowns",
+  "override_section",
+  "override_result",
+  "override_reason",
+  "overridden_by"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "search_index": 1,
+   "remember_last_selected_value": 1
+  },
+  {
+   "fieldname": "prospect",
+   "fieldtype": "Link",
+   "label": "Prospect",
+   "options": "Sales Prospect",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "profile",
+   "fieldtype": "Link",
+   "label": "Profile",
+   "options": "Sales Qualification Profile"
+  },
+  {
+   "fieldname": "profile_version",
+   "fieldtype": "Int",
+   "label": "Profile Version",
+   "read_only": 1
+  },
+  {
+   "fieldname": "scoring_version",
+   "fieldtype": "Data",
+   "label": "Scoring Version",
+   "read_only": 1
+  },
+  {
+   "fieldname": "result",
+   "fieldtype": "Select",
+   "label": "Result",
+   "options": "Qualified\nNot Qualified\nNeeds Review",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "scores_section",
+   "fieldtype": "Section Break",
+   "label": "Scores (0-100)"
+  },
+  {
+   "fieldname": "industry_fit",
+   "fieldtype": "Float",
+   "label": "Industry Fit",
+   "read_only": 1
+  },
+  {
+   "fieldname": "operational_complexity",
+   "fieldtype": "Float",
+   "label": "Operational Complexity",
+   "read_only": 1
+  },
+  {
+   "fieldname": "need_signal",
+   "fieldtype": "Float",
+   "label": "Need Signal",
+   "read_only": 1
+  },
+  {
+   "fieldname": "scores_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "scale",
+   "fieldtype": "Float",
+   "label": "Scale",
+   "read_only": 1
+  },
+  {
+   "fieldname": "evidence_quality",
+   "fieldtype": "Float",
+   "label": "Evidence Quality",
+   "read_only": 1
+  },
+  {
+   "fieldname": "dimensions_section",
+   "fieldtype": "Section Break",
+   "label": "Separate Dimensions"
+  },
+  {
+   "fieldname": "fit_score",
+   "fieldtype": "Float",
+   "label": "Fit Score",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "buying_signal_score",
+   "fieldtype": "Float",
+   "label": "Buying Signal Score",
+   "read_only": 1
+  },
+  {
+   "fieldname": "dimensions_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "evidence_confidence",
+   "fieldtype": "Float",
+   "label": "Evidence Confidence",
+   "read_only": 1
+  },
+  {
+   "fieldname": "contactability",
+   "fieldtype": "Data",
+   "label": "Contactability",
+   "read_only": 1
+  },
+  {
+   "fieldname": "explain_section",
+   "fieldtype": "Section Break",
+   "label": "Explanation"
+  },
+  {
+   "fieldname": "explanation",
+   "fieldtype": "Small Text",
+   "label": "Explanation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "unknowns",
+   "fieldtype": "Small Text",
+   "label": "Unknowns",
+   "read_only": 1
+  },
+  {
+   "fieldname": "override_section",
+   "fieldtype": "Section Break",
+   "label": "Human Override"
+  },
+  {
+   "fieldname": "override_result",
+   "fieldtype": "Select",
+   "label": "Override Result",
+   "options": "\nQualified\nNot Qualified"
+  },
+  {
+   "fieldname": "override_reason",
+   "fieldtype": "Small Text",
+   "label": "Override Reason"
+  },
+  {
+   "fieldname": "overridden_by",
+   "fieldtype": "Link",
+   "label": "Overridden By",
+   "options": "User",
+   "read_only": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Vendor Superuser",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Admin",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "Reckon Sales Agent User",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  }
+ ],
+ "autoname": "format:SQ-{######}",
+ "naming_rule": "Expression"
+}

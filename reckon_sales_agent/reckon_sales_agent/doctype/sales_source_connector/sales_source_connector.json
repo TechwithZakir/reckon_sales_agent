@@ -1,0 +1,174 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Source Connector",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-10-19 12:00:00.000000",
+ "modified": "2026-10-19 12:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 0,
+ "issingle": 0,
+ "editable_grid": 0,
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "field_order": [
+  "company",
+  "connector_name",
+  "connector_type",
+  "enabled",
+  "policy_reviewed",
+  "rate_limit_per_minute",
+  "policy_section",
+  "field_policy",
+  "config_json",
+  "health_section",
+  "last_health_status",
+  "last_error"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "search_index": 1,
+   "remember_last_selected_value": 1
+  },
+  {
+   "fieldname": "connector_name",
+   "fieldtype": "Data",
+   "label": "Connector Name",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "connector_type",
+   "fieldtype": "Select",
+   "label": "Connector Type",
+   "options": "fixture\ngoogle_places_api\npermitted_directory\nmanual_import",
+   "reqd": 1,
+   "in_list_view": 1,
+   "default": "fixture"
+  },
+  {
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled",
+   "default": "0",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "policy_reviewed",
+   "fieldtype": "Check",
+   "label": "Source Policy Reviewed",
+   "default": "0",
+   "description": "Required before any external source runs."
+  },
+  {
+   "fieldname": "rate_limit_per_minute",
+   "fieldtype": "Int",
+   "label": "Rate Limit Per Minute",
+   "default": "30"
+  },
+  {
+   "fieldname": "policy_section",
+   "fieldtype": "Section Break",
+   "label": "Field Storage Policy"
+  },
+  {
+   "fieldname": "field_policy",
+   "fieldtype": "Code",
+   "label": "Field Policy",
+   "options": "JSON",
+   "description": "Per field: {\"business_name\": {\"persist\": true, \"retention_days\": 30, \"crm_sync\": true, \"attribution\": \"Google Maps\"}}. Blank uses the connector default."
+  },
+  {
+   "fieldname": "config_json",
+   "fieldtype": "Code",
+   "label": "Configuration",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "health_section",
+   "fieldtype": "Section Break",
+   "label": "Health"
+  },
+  {
+   "fieldname": "last_health_status",
+   "fieldtype": "Data",
+   "label": "Last Health Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_error",
+   "fieldtype": "Small Text",
+   "label": "Last Error",
+   "read_only": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Vendor Superuser",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Admin",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "Reckon Sales Agent User",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  }
+ ],
+ "autoname": "hash",
+ "naming_rule": "Random",
+ "title_field": "connector_name",
+ "show_title_field_in_link": 1
+}

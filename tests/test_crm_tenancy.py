@@ -468,20 +468,24 @@ class CRMTenancyTests(unittest.TestCase):
     # Hooks
 
     def test_hooks_match_the_tenancy_registry(self):
+        sys.path.insert(0, str(APP.parent))
+        self.addCleanup(sys.path.remove, str(APP.parent))
         hooks = {}
         exec((APP / "hooks.py").read_text(encoding="utf-8"), hooks)
-        self.assertEqual(set(hooks["SCOPED_DOCTYPES"]), set(self.t.SCOPED_DOCTYPES))
-        self.assertEqual(set(hooks["VENDOR_CONFIG_DOCTYPES"]), set(self.t.VENDOR_CONFIG_DOCTYPES))
-        self.assertEqual(set(hooks["NAMED_BY_FIELD"]), set(self.t.NAME_FIELDS))
+        self.assertEqual(set(hooks["_CRM_SCOPED"]), set(self.t.SCOPED_DOCTYPES))
+        self.assertEqual(set(hooks["_CRM_CONFIG"]), set(self.t.VENDOR_CONFIG_DOCTYPES))
+        self.assertEqual(set(hooks["_NAMED_BY_FIELD"]), set(self.t.NAME_FIELDS))
         for doctype in self.t.SCOPED_DOCTYPES:
-            self.assertIn(doctype, hooks["permission_query_conditions"])
-            self.assertIn(doctype, hooks["has_permission"])
-            events = {"before_insert", "validate"}
-            if doctype in self.t.NAME_FIELDS:
-                events.add("autoname")
-            self.assertEqual(set(hooks["doc_events"][doctype]), events)
+            self.assertTrue(hooks["permission_query_conditions"][doctype].endswith("crm_tenancy.get_query_conditions"))
+            self.assertTrue(hooks["has_permission"][doctype].endswith("crm_tenancy.has_permission"))
+            events = hooks["doc_events"][doctype]
+            self.assertTrue(events["before_insert"].endswith("bind_company"))
+            self.assertTrue(events["validate"].endswith("validate_company"))
+            self.assertEqual("autoname" in events, doctype in self.t.NAME_FIELDS)
         for doctype in self.t.VENDOR_CONFIG_DOCTYPES:
             self.assertTrue(hooks["has_permission"][doctype].endswith("has_config_permission"))
+        public = [k for k in hooks if not k.startswith("_") and k.isupper()]
+        self.assertEqual(public, [], "hooks.py must not expose constants as hooks")
 
 
 if __name__ == "__main__":

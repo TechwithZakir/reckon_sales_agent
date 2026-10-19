@@ -1,0 +1,67 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Planned Query",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-10-19 12:00:00.000000",
+ "modified": "2026-10-19 12:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 1,
+ "issingle": 0,
+ "editable_grid": 1,
+ "track_changes": 0,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "field_order": [
+  "keyword",
+  "location",
+  "query_text",
+  "max_results",
+  "status",
+  "results"
+ ],
+ "fields": [
+  {
+   "fieldname": "keyword",
+   "fieldtype": "Data",
+   "label": "Keyword",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "label": "Location",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "query_text",
+   "fieldtype": "Data",
+   "label": "Query Text",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "max_results",
+   "fieldtype": "Int",
+   "label": "Max Results",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Planned\nDone\nFailed\nSkipped",
+   "default": "Planned",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "results",
+   "fieldtype": "Int",
+   "label": "Results",
+   "read_only": 1
+  }
+ ],
+ "permissions": []
+}

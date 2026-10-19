@@ -1,0 +1,207 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Qualification Profile",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-10-19 12:00:00.000000",
+ "modified": "2026-10-19 12:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 0,
+ "issingle": 0,
+ "editable_grid": 0,
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "field_order": [
+  "company",
+  "profile_name",
+  "version",
+  "qualify_threshold",
+  "review_threshold",
+  "target_section",
+  "target_industries",
+  "fit_keywords",
+  "target_col",
+  "need_keywords",
+  "negative_keywords",
+  "weights_section",
+  "weight_industry",
+  "weight_complexity",
+  "weight_need",
+  "weights_col",
+  "weight_scale",
+  "weight_evidence"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "search_index": 1,
+   "remember_last_selected_value": 1
+  },
+  {
+   "fieldname": "profile_name",
+   "fieldtype": "Data",
+   "label": "Profile Name",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "version",
+   "fieldtype": "Int",
+   "label": "Version",
+   "default": "1",
+   "read_only": 1
+  },
+  {
+   "fieldname": "qualify_threshold",
+   "fieldtype": "Float",
+   "label": "Qualify Threshold",
+   "default": "60"
+  },
+  {
+   "fieldname": "review_threshold",
+   "fieldtype": "Float",
+   "label": "Review Threshold",
+   "default": "40"
+  },
+  {
+   "fieldname": "target_section",
+   "fieldtype": "Section Break",
+   "label": "What a Good Fit Looks Like"
+  },
+  {
+   "fieldname": "target_industries",
+   "fieldtype": "Small Text",
+   "label": "Target Industries",
+   "description": "One per line."
+  },
+  {
+   "fieldname": "fit_keywords",
+   "fieldtype": "Small Text",
+   "label": "Fit Keywords",
+   "description": "Words that show a good fit, one per line."
+  },
+  {
+   "fieldname": "target_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "need_keywords",
+   "fieldtype": "Small Text",
+   "label": "Need Keywords",
+   "description": "Words that show a current need (hiring, expansion, new branch), one per line."
+  },
+  {
+   "fieldname": "negative_keywords",
+   "fieldtype": "Small Text",
+   "label": "Negative Keywords",
+   "description": "Words that rule a company out, one per line."
+  },
+  {
+   "fieldname": "weights_section",
+   "fieldtype": "Section Break",
+   "label": "Weights (total 100)"
+  },
+  {
+   "fieldname": "weight_industry",
+   "fieldtype": "Float",
+   "label": "Weight Industry",
+   "default": "25"
+  },
+  {
+   "fieldname": "weight_complexity",
+   "fieldtype": "Float",
+   "label": "Weight Complexity",
+   "default": "25"
+  },
+  {
+   "fieldname": "weight_need",
+   "fieldtype": "Float",
+   "label": "Weight Need",
+   "default": "25"
+  },
+  {
+   "fieldname": "weights_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "weight_scale",
+   "fieldtype": "Float",
+   "label": "Weight Scale",
+   "default": "15"
+  },
+  {
+   "fieldname": "weight_evidence",
+   "fieldtype": "Float",
+   "label": "Weight Evidence",
+   "default": "10"
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Vendor Superuser",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Admin",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "Reckon Sales Agent User",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  }
+ ],
+ "autoname": "hash",
+ "naming_rule": "Random",
+ "title_field": "profile_name",
+ "show_title_field_in_link": 1
+}

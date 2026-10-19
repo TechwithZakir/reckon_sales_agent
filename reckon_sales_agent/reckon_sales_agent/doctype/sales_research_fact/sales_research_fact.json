@@ -1,0 +1,65 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Research Fact",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-10-19 12:00:00.000000",
+ "modified": "2026-10-19 12:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 1,
+ "issingle": 0,
+ "editable_grid": 1,
+ "track_changes": 0,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "field_order": [
+  "fact_type",
+  "statement",
+  "is_inference",
+  "confidence",
+  "evidence_url",
+  "evidence_excerpt"
+ ],
+ "fields": [
+  {
+   "fieldname": "fact_type",
+   "fieldtype": "Select",
+   "label": "Fact Type",
+   "options": "industry\nservice\nproduct\nlocation\nsize\ntechnology\nneed_signal\ncontact\nother",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "statement",
+   "fieldtype": "Small Text",
+   "label": "Statement",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "is_inference",
+   "fieldtype": "Check",
+   "label": "Is Inference",
+   "default": "0",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "confidence",
+   "fieldtype": "Float",
+   "label": "Confidence",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "evidence_url",
+   "fieldtype": "Data",
+   "label": "Evidence Url"
+  },
+  {
+   "fieldname": "evidence_excerpt",
+   "fieldtype": "Small Text",
+   "label": "Evidence Excerpt"
+  }
+ ],
+ "permissions": []
+}

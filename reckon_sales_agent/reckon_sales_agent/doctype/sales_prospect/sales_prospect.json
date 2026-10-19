@@ -1,0 +1,411 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Prospect",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-10-19 12:00:00.000000",
+ "modified": "2026-10-19 12:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 0,
+ "issingle": 0,
+ "editable_grid": 0,
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "field_order": [
+  "company",
+  "business_name",
+  "review_status",
+  "qualification_status",
+  "fit_score",
+  "head_col",
+  "industry",
+  "website",
+  "domain",
+  "email",
+  "phone",
+  "location_section",
+  "address",
+  "city",
+  "location_col",
+  "country",
+  "source_section",
+  "discovery_campaign",
+  "source_connector",
+  "source_type",
+  "external_id",
+  "source_url",
+  "source_col",
+  "first_seen",
+  "last_seen",
+  "retention_until",
+  "normalized_name",
+  "normalized_phone",
+  "provenance_json",
+  "possible_duplicate_of",
+  "merged_into",
+  "scoring_section",
+  "research_status",
+  "latest_research",
+  "latest_qualification",
+  "scoring_col",
+  "buying_signal_score",
+  "evidence_confidence",
+  "contactability",
+  "crm_section",
+  "crm_organization",
+  "crm_lead",
+  "crm_col",
+  "do_not_contact",
+  "review_notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "search_index": 1,
+   "remember_last_selected_value": 1
+  },
+  {
+   "fieldname": "business_name",
+   "fieldtype": "Data",
+   "label": "Business Name",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_global_search": 1
+  },
+  {
+   "fieldname": "review_status",
+   "fieldtype": "Select",
+   "label": "Review Status",
+   "options": "Pending\nApproved\nRejected\nDeferred\nMerged",
+   "default": "Pending",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "qualification_status",
+   "fieldtype": "Select",
+   "label": "Qualification Status",
+   "options": "\nQualified\nNot Qualified\nNeeds Review",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "fit_score",
+   "fieldtype": "Float",
+   "label": "Fit Score",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "head_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "industry",
+   "fieldtype": "Data",
+   "label": "Industry"
+  },
+  {
+   "fieldname": "website",
+   "fieldtype": "Data",
+   "label": "Website",
+   "options": "URL"
+  },
+  {
+   "fieldname": "domain",
+   "fieldtype": "Data",
+   "label": "Domain",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Public Business Email"
+  },
+  {
+   "fieldname": "phone",
+   "fieldtype": "Data",
+   "label": "Public Business Phone"
+  },
+  {
+   "fieldname": "location_section",
+   "fieldtype": "Section Break",
+   "label": "Location"
+  },
+  {
+   "fieldname": "address",
+   "fieldtype": "Small Text",
+   "label": "Address"
+  },
+  {
+   "fieldname": "city",
+   "fieldtype": "Data",
+   "label": "City",
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "location_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "country",
+   "fieldtype": "Data",
+   "label": "Country",
+   "default": "Bangladesh"
+  },
+  {
+   "fieldname": "source_section",
+   "fieldtype": "Section Break",
+   "label": "Source & Provenance",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "discovery_campaign",
+   "fieldtype": "Link",
+   "label": "Discovery Campaign",
+   "options": "Sales Discovery Campaign",
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "source_connector",
+   "fieldtype": "Link",
+   "label": "Source Connector",
+   "options": "Sales Source Connector",
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_type",
+   "fieldtype": "Data",
+   "label": "Source Type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "external_id",
+   "fieldtype": "Data",
+   "label": "Source Reference",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "source_url",
+   "fieldtype": "Data",
+   "label": "Source Url",
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "first_seen",
+   "fieldtype": "Datetime",
+   "label": "First Seen",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_seen",
+   "fieldtype": "Datetime",
+   "label": "Last Seen",
+   "read_only": 1
+  },
+  {
+   "fieldname": "retention_until",
+   "fieldtype": "Date",
+   "label": "Restricted Fields Expire On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "normalized_name",
+   "fieldtype": "Data",
+   "label": "Normalized Name",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "normalized_phone",
+   "fieldtype": "Data",
+   "label": "Normalized Phone",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "provenance_json",
+   "fieldtype": "Code",
+   "label": "Field Provenance",
+   "options": "JSON",
+   "read_only": 1
+  },
+  {
+   "fieldname": "possible_duplicate_of",
+   "fieldtype": "Link",
+   "label": "Possible Duplicate Of",
+   "options": "Sales Prospect",
+   "read_only": 1
+  },
+  {
+   "fieldname": "merged_into",
+   "fieldtype": "Link",
+   "label": "Merged Into",
+   "options": "Sales Prospect",
+   "read_only": 1
+  },
+  {
+   "fieldname": "scoring_section",
+   "fieldtype": "Section Break",
+   "label": "Research & Qualification"
+  },
+  {
+   "fieldname": "research_status",
+   "fieldtype": "Select",
+   "label": "Research Status",
+   "options": "\nQueued\nDone\nFailed\nSkipped",
+   "read_only": 1
+  },
+  {
+   "fieldname": "latest_research",
+   "fieldtype": "Link",
+   "label": "Latest Research",
+   "options": "Sales Research Report",
+   "read_only": 1
+  },
+  {
+   "fieldname": "latest_qualification",
+   "fieldtype": "Link",
+   "label": "Latest Qualification",
+   "options": "Sales Qualification",
+   "read_only": 1
+  },
+  {
+   "fieldname": "scoring_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "buying_signal_score",
+   "fieldtype": "Float",
+   "label": "Buying Signal Score",
+   "read_only": 1
+  },
+  {
+   "fieldname": "evidence_confidence",
+   "fieldtype": "Float",
+   "label": "Evidence Confidence",
+   "read_only": 1
+  },
+  {
+   "fieldname": "contactability",
+   "fieldtype": "Select",
+   "label": "Contactability",
+   "options": "\nContactable\nNo Contact Channel\nSuppressed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "crm_section",
+   "fieldtype": "Section Break",
+   "label": "CRM"
+  },
+  {
+   "fieldname": "crm_organization",
+   "fieldtype": "Link",
+   "label": "CRM Organization",
+   "options": "CRM Organization",
+   "read_only": 1
+  },
+  {
+   "fieldname": "crm_lead",
+   "fieldtype": "Link",
+   "label": "CRM Lead",
+   "options": "CRM Lead",
+   "read_only": 1
+  },
+  {
+   "fieldname": "crm_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "do_not_contact",
+   "fieldtype": "Check",
+   "label": "Do Not Contact",
+   "default": "0"
+  },
+  {
+   "fieldname": "review_notes",
+   "fieldtype": "Small Text",
+   "label": "Review Notes"
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Vendor Superuser",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Admin",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "Reckon Sales Agent User",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1
+  }
+ ],
+ "autoname": "format:PROS-{######}",
+ "naming_rule": "Expression",
+ "title_field": "business_name",
+ "show_title_field_in_link": 1,
+ "search_fields": "domain,city,industry"
+}

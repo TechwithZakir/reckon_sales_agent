@@ -325,7 +325,11 @@ def validate_company(doc, method=None) -> None:
     if not doc.get(COMPANY_FIELD) and doc.doctype in DATA_DOCTYPES and _is_system_actor():
         # Emails and attachments are often linked to their record after insert.
         doc.set(COMPANY_FIELD, inherited_company(doc))
-    company = doc.get(COMPANY_FIELD)
+    assert_links_in_company(doc, doc.get(COMPANY_FIELD))
+
+
+def assert_links_in_company(doc, company: str | None) -> None:
+    """Every record ``doc`` links to must belong to ``company`` (or be shared/unowned)."""
     for doctype, name in linked_records(doc):
         owner = get_record_company(doctype, name)
         if owner == company:
