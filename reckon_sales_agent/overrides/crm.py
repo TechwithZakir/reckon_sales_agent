@@ -13,6 +13,8 @@ from frappe import _
 
 from reckon_sales_agent.crm_tenancy import (
     COMPANY_FIELD,
+    assert_same_company,
+    find_contact_by_email,
     find_organization,
     is_scoping_active,
     unique_organization_name,
@@ -20,6 +22,27 @@ from reckon_sales_agent.crm_tenancy import (
 
 
 class TenantCRMLead(CRMLead):
+    def contact_exists(self, throw=True):
+        """Only an existing Contact of the lead's own Company counts as a match.
+
+        Upstream matches the email across the whole site, which either refuses
+        the conversion (revealing another tenant's contact) or links to it.
+        """
+        if not is_scoping_active():
+            return super().contact_exists(throw)
+        contact = find_contact_by_email(self.email, self.get(COMPANY_FIELD))
+        if contact and throw:
+            frappe.throw(
+                _("Contact already exists with Email: {0}").format(self.email),
+                title=_("Contact Already Exists"),
+            )
+        return contact or False
+
+    def create_contact(self, existing_contact=None, throw=True):
+        if existing_contact and is_scoping_active():
+            assert_same_company("Contact", existing_contact, self.get(COMPANY_FIELD))
+        return super().create_contact(existing_contact, throw)
+
     def create_organization(self, existing_organization=None):
         """Never link a converted lead to another tenant's organization.
 
@@ -31,12 +54,7 @@ class TenantCRMLead(CRMLead):
 
         company = self.get(COMPANY_FIELD)
         if existing_organization:
-            owner = frappe.db.get_value("CRM Organization", existing_organization, COMPANY_FIELD)
-            if owner != company:
-                frappe.throw(
-                    _("Organization {0} belongs to a different Company.").format(existing_organization),
-                    frappe.PermissionError,
-                )
+            assert_same_company("CRM Organization", existing_organization, company)
             return super().create_organization(existing_organization)
 
         if not self.organization:

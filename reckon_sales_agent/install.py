@@ -5,12 +5,20 @@ import frappe
 from reckon_sales_agent.crm_tenancy import (
     COMPANY_FIELD,
     SCOPED_DOCTYPES,
-    _inherited_company,
+    inherited_company,
     is_scoping_active,
 )
 
-# Parents first so Deals and Tasks can inherit their Company during backfill.
-BACKFILL_ORDER = ("CRM Organization", "CRM Lead", "CRM Deal", "CRM Task")
+# Parents first so children can inherit their Company during backfill.
+BACKFILL_ORDER = (
+    "CRM Organization",
+    "CRM Lead",
+    "CRM Deal",
+    "Contact",
+    "CRM Task",
+    "FCRM Note",
+    "CRM Call Log",
+)
 
 
 def after_install() -> None:
@@ -52,8 +60,9 @@ def ensure_crm_company_fields() -> None:
 def backfill_crm_companies() -> dict[str, int]:
     """Give unowned CRM records a Company where it is unambiguous.
 
-    Deals and Tasks inherit from their lead, organization or reference record;
-    anything else takes the owner's single active Company. Records that still
+    Records inherit from what they are attached to: a Deal's lead or
+    organization, a Contact's links and Deals, a Task, Note or Call Log's
+    reference. Anything else takes the owner's single active Company. Records that still
     have no Company stay hidden from tenants and are reported in the Error Log.
     """
     from reckon_saas_platform.tenant_security import get_user_companies
@@ -67,7 +76,7 @@ def backfill_crm_companies() -> dict[str, int]:
         missing = 0
         for name in names:
             doc = frappe.get_doc(doctype, name)
-            company = _inherited_company(doc)
+            company = inherited_company(doc)
             if not company:
                 if doc.owner not in owner_companies:
                     owner_companies[doc.owner] = get_user_companies(doc.owner)

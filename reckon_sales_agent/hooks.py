@@ -6,7 +6,15 @@ milestones.
 """
 
 # Keep in step with crm_tenancy.SCOPED_DOCTYPES (hooks.py must not import app code).
-SCOPED_DOCTYPES = ("CRM Lead", "CRM Deal", "CRM Organization", "CRM Task")
+SCOPED_DOCTYPES = (
+    "CRM Lead",
+    "CRM Deal",
+    "CRM Organization",
+    "Contact",
+    "CRM Task",
+    "FCRM Note",
+    "CRM Call Log",
+)
 
 app_name = "reckon_sales_agent"
 app_title = "Reckon Sales Agent"

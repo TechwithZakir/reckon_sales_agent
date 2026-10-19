@@ -18,6 +18,7 @@ class FakeDB:
 
     def __init__(self, tables):
         self.tables = tables
+        self.missing_columns = set()
 
     def _match(self, doctype, filters):
         rows = self.tables.get(doctype, {})
@@ -36,7 +37,13 @@ class FakeDB:
         return found[0] if field == "name" else self.tables[doctype][found[0]].get(field)
 
     def has_column(self, doctype, column):
-        return True
+        return (doctype, column) not in self.missing_columns
+
+    def get_all(self, doctype, filters=None, pluck=None):
+        return [self.tables[doctype][n].get(pluck, n) for n in self._match(doctype, filters or {})]
+
+    def set_value(self, doctype, name, field, value, update_modified=True):
+        self.tables[doctype][name][field] = value
 
     @staticmethod
     def escape(value):
@@ -69,6 +76,20 @@ class CRMTenancyTests(unittest.TestCase):
                 "CRM Organization": {
                     "Globex": {"organization_name": "Globex", "rsa_company": "Beta"},
                 },
+                "CRM Deal": {"DEAL-B": {"rsa_company": "Beta"}},
+                "FCRM Note": {"NOTE-B": {"rsa_company": "Beta"}},
+                "Contact": {
+                    "Ann": {"rsa_company": "Acme"},
+                    "Bob": {"rsa_company": "Beta"},
+                    "Sys": {},
+                },
+                "Contact Email": {
+                    "E1": {"email_id": "x@shared.example", "parenttype": "Contact", "parent": "Bob"},
+                },
+                "CRM Contacts": {
+                    "R1": {"contact": "Bob", "parenttype": "CRM Deal", "parent": "DEAL-B"},
+                },
+                "Customer": {"Shop A": {"rd_company": "Acme"}, "Shop B": {"rd_company": "Beta"}},
             }
         )
         frappe = ModuleType("frappe")
@@ -77,6 +98,7 @@ class CRMTenancyTests(unittest.TestCase):
         frappe.throw = Mock(side_effect=lambda msg, exc=Exception: (_ for _ in ()).throw(exc(msg)))
         frappe.session = SimpleNamespace(user="a@acme.example")
         frappe.db = self.db
+        frappe.get_all = self.db.get_all
         frappe.get_installed_apps = Mock(return_value=["frappe", "crm", "reckon_saas_platform"])
         self.frappe = frappe
 
@@ -208,6 +230,69 @@ class CRMTenancyTests(unittest.TestCase):
         self.db.tables["CRM Organization"]["Globex - AC"] = {"rsa_company": "Acme"}
         self.assertEqual(self.t.unique_organization_name("Globex", "Acme"), "Globex - AC-2")
         self.assertEqual(self.t.unique_organization_name("Initech", "Acme"), "Initech")
+
+    # Notes, call logs and contacts
+
+    def test_webhook_call_log_inherits_reference_company(self):
+        self.as_user("Guest")
+        log = Doc("CRM Call Log", new=True, reference_doctype="CRM Deal", reference_docname="DEAL-B")
+        self.t.bind_company(log)
+        self.assertEqual(log.rsa_company, "Beta")
+
+    def test_note_cannot_reference_other_company_deal(self):
+        note = Doc("FCRM Note", new=True, rsa_company="Acme",
+                   reference_doctype="CRM Deal", reference_docname="DEAL-B")
+        with self.assertRaises(PermissionError):
+            self.t.validate_company(note)
+
+    def test_call_log_cannot_attach_other_company_note(self):
+        log = Doc("CRM Call Log", new=True, rsa_company="Acme", note="NOTE-B")
+        with self.assertRaises(PermissionError):
+            self.t.validate_company(log)
+
+    def test_contact_cannot_link_other_company_customer(self):
+        links = [{"link_doctype": "Customer", "link_name": "Shop B"}]
+        contact = Doc("Contact", new=True, rsa_company="Acme", links=links)
+        with self.assertRaises(PermissionError):
+            self.t.validate_company(contact)
+        contact.links = [{"link_doctype": "Customer", "link_name": "Shop A"}]
+        self.t.validate_company(contact)
+
+    def test_customer_links_are_ignored_without_distribution(self):
+        self.db.missing_columns.add(("Customer", "rd_company"))
+        links = [{"link_doctype": "Customer", "link_name": "Shop B"}]
+        self.t.validate_company(Doc("Contact", new=True, rsa_company="Acme", links=links))
+
+    def test_system_contact_inherits_customer_company(self):
+        self.as_user("Administrator")
+        links = [{"link_doctype": "Customer", "link_name": "Shop A"}]
+        contact = Doc("Contact", new=True, links=links)
+        self.t.bind_company(contact)
+        self.assertEqual(contact.rsa_company, "Acme")
+
+    def test_existing_contact_inherits_company_of_its_deal(self):
+        self.assertEqual(self.t.inherited_company(Doc("Contact", "Bob")), "Beta")
+
+    def test_deal_cannot_add_other_company_contact(self):
+        deal = Doc("CRM Deal", new=True, rsa_company="Acme", contacts=[{"contact": "Bob"}])
+        with self.assertRaises(PermissionError):
+            self.t.validate_company(deal)
+
+    def test_tenant_cannot_claim_unowned_contact(self):
+        deal = Doc("CRM Deal", new=True, rsa_company="Acme", contacts=[{"contact": "Sys"}])
+        with self.assertRaises(PermissionError):
+            self.t.validate_company(deal)
+        self.assertNotIn("rsa_company", self.db.tables["Contact"]["Sys"])
+
+    def test_system_conversion_adopts_its_new_unowned_contact(self):
+        self.as_user("Administrator")
+        deal = Doc("CRM Deal", new=True, rsa_company="Acme", contacts=[{"contact": "Sys"}])
+        self.t.validate_company(deal)
+        self.assertEqual(self.db.tables["Contact"]["Sys"]["rsa_company"], "Acme")
+
+    def test_contact_email_lookup_is_company_scoped(self):
+        self.assertIsNone(self.t.find_contact_by_email("x@shared.example", "Acme"))
+        self.assertEqual(self.t.find_contact_by_email("x@shared.example", "Beta"), "Bob")
 
 
 class HooksTests(unittest.TestCase):

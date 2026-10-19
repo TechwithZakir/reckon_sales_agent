@@ -15,18 +15,23 @@ this app every tenant on the site would see every other tenant's leads and deals
 ## What M0 adds
 
 - A read-only **Company** field (`rsa_company`) on CRM Lead, CRM Deal,
-  CRM Organization and CRM Task.
+  CRM Organization, Contact, CRM Task, FCRM Note (CRM notes) and CRM Call Log.
 - The creator's Company is stamped on every new record. Tenant users cannot
-  pick or change it. Records created by system jobs inherit the Company from
-  their parent (a Task's reference, a Deal's lead or organization), or stay
-  unowned and hidden from all tenants.
+  pick or change it. Records created by system users, background jobs or Guest
+  webhooks (telephony) inherit the Company of what they are attached to: a
+  Task, Note or Call Log's Lead or Deal, a Deal's lead or organization, or a
+  Contact's linked CRM record or Distribution Customer/Supplier. Otherwise they
+  stay unowned and hidden from all tenants.
 - List, report, link-search and document permission hooks limit tenant users
   to their own Company. A user with no active Company assignment sees nothing.
   CRM's own org-hierarchy hooks still apply, and both must allow access.
-- Links must stay inside one Company: a Deal's organization and lead, and a
-  Task's referenced Lead or Deal.
-- Lead conversion only reuses an organization from the lead's own Company.
-  Upstream CRM matches organization names across the whole site.
+- Links must stay inside one Company: a Deal's organization, lead and contacts;
+  a Task, Note or Call Log's Lead or Deal; a Call Log's note; and a Contact's
+  links to CRM records and, with Distribution installed, Customers and Suppliers.
+- Lead conversion only reuses an organization or contact (matched by email) from
+  the lead's own Company. Upstream CRM matches both across the whole site.
+- A contact created unowned during a conversion run by a system user is adopted
+  by the Deal's Company. Tenant users cannot claim unowned contacts.
 - A second tenant's organization with an existing name is saved as
   `<name> - <Company abbr>` instead of failing with a duplicate error that
   reveals the other tenant's customer.
@@ -59,7 +64,18 @@ python -m unittest discover -s tests
 
 ## Known limitations
 
-- Contact, CRM Note, CRM Call Log and Communication are not Company-scoped yet.
+- Communication (CRM email timeline), Address, ToDo (assignments) and
+  attachments are not Company-scoped yet.
+- Contact is a Frappe core DocType shared with ERPNext. On SaaS sites its
+  scoping also applies to Distribution users. ERPNext contacts are backfilled
+  from their Customer/Supplier link. System contacts such as each User's own
+  contact stay unowned and hidden from tenants.
+- Upstream's Deal-side contact lookup (`crm_deal.contact_exists`, used when a
+  Deal is created directly) still matches contacts site-wide. It cannot link to
+  another tenant's contact, because Deal validation refuses it, but the error
+  confirms that the contact exists.
+- Telephony (Twilio/Exotel) is configured per site, so incoming calls are
+  matched to leads and deals across all tenants.
 - Some upstream CRM endpoints read with `frappe.get_all`, which skips
   permission hooks (for example dashboard counts and group-by options). They
   need an audit on a real site.
