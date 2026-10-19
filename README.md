@@ -45,7 +45,9 @@ bench --site <site> install-app reckon_sales_agent
 bench --site <site> migrate
 ```
 
-Install `crm` (and `reckon_saas_platform` on SaaS sites) first.
+Install upstream Frappe CRM ([frappe/crm](https://github.com/frappe/crm)) first,
+plus `reckon_saas_platform` on SaaS sites. No fork or other CRM extension app is
+required.
 
 ## Tests
 
@@ -57,8 +59,7 @@ python -m unittest discover -s tests
 
 ## Known limitations
 
-- Contact, CRM Note, CRM Call Log, Communication and `reckon_crm`'s Field Visit
-  and Customer Location records are not Company-scoped yet.
+- Contact, CRM Note, CRM Call Log and Communication are not Company-scoped yet.
 - Some upstream CRM endpoints read with `frappe.get_all`, which skips
   permission hooks (for example dashboard counts and group-by options). They
   need an audit on a real site.
