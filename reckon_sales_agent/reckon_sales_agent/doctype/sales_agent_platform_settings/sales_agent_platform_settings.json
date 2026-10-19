@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-19 12:00:00.000000",
+ "modified": "2026-10-21 10:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -26,6 +26,23 @@
   "google_places_api_key",
   "places_terms_reviewed",
   "places_retention_days",
+  "maps_section",
+  "maps_terms_ack",
+  "maps_data_retention_days",
+  "maps_col",
+  "serpapi_enabled",
+  "serpapi_api_key",
+  "apify_enabled",
+  "apify_api_token",
+  "apify_actor",
+  "scrapingdog_enabled",
+  "scrapingdog_api_key",
+  "maps_browser_section",
+  "maps_browser_enabled",
+  "maps_browser_max_results",
+  "maps_browser_col",
+  "maps_browser_delay",
+  "maps_browser_language",
   "research_section",
   "research_enabled",
   "user_agent",
@@ -97,6 +114,103 @@
    "fieldtype": "Int",
    "label": "Places Field Retention (Days)",
    "default": "30"
+  },
+  {
+   "fieldname": "maps_section",
+   "fieldtype": "Section Break",
+   "label": "Google Maps Lead Sources",
+   "description": "Google's Terms of Service restrict scraping Google Maps. Enable these only after your own legal review."
+  },
+  {
+   "fieldname": "maps_terms_ack",
+   "fieldtype": "Check",
+   "label": "I Accept Responsibility for Google Maps Data Use",
+   "default": "0"
+  },
+  {
+   "fieldname": "maps_data_retention_days",
+   "fieldtype": "Int",
+   "label": "Maps Data Retention (Days)",
+   "default": "30",
+   "description": "How long Maps-derived fields are kept unless the company's own website confirms them. 0 keeps them."
+  },
+  {
+   "fieldname": "maps_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "serpapi_enabled",
+   "fieldtype": "Check",
+   "label": "Enable SerpAPI (Google Maps)",
+   "default": "0"
+  },
+  {
+   "fieldname": "serpapi_api_key",
+   "fieldtype": "Password",
+   "label": "SerpAPI Key"
+  },
+  {
+   "fieldname": "apify_enabled",
+   "fieldtype": "Check",
+   "label": "Enable Apify (Google Maps Scraper)",
+   "default": "0"
+  },
+  {
+   "fieldname": "apify_api_token",
+   "fieldtype": "Password",
+   "label": "Apify API Token"
+  },
+  {
+   "fieldname": "apify_actor",
+   "fieldtype": "Data",
+   "label": "Apify Actor",
+   "default": "compass~crawler-google-places"
+  },
+  {
+   "fieldname": "scrapingdog_enabled",
+   "fieldtype": "Check",
+   "label": "Enable Scrapingdog (Google Maps)",
+   "default": "0"
+  },
+  {
+   "fieldname": "scrapingdog_api_key",
+   "fieldtype": "Password",
+   "label": "Scrapingdog API Key"
+  },
+  {
+   "fieldname": "maps_browser_section",
+   "fieldtype": "Section Break",
+   "label": "Experimental: Headless Browser (Playwright)",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "maps_browser_enabled",
+   "fieldtype": "Check",
+   "label": "Enable google_maps_browser_experimental",
+   "default": "0",
+   "description": "Unstable and unsupported by Google. No proxies, CAPTCHA solving or stealth: the run stops when Google blocks it."
+  },
+  {
+   "fieldname": "maps_browser_max_results",
+   "fieldtype": "Int",
+   "label": "Max Places per Search",
+   "default": "40"
+  },
+  {
+   "fieldname": "maps_browser_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "maps_browser_delay",
+   "fieldtype": "Float",
+   "label": "Delay Between Places (Seconds)",
+   "default": "3"
+  },
+  {
+   "fieldname": "maps_browser_language",
+   "fieldtype": "Data",
+   "label": "Language (hl)",
+   "default": "en"
   },
   {
    "fieldname": "research_section",

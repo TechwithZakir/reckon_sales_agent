@@ -13,6 +13,10 @@ dependencies = [
     "anthropic>=1.0",
 ]
 
+[project.optional-dependencies]
+# Only for the experimental google_maps_browser_experimental connector.
+browser = ["playwright>=1.48"]
+
 [tool.bench.frappe-dependencies]
 frappe = ">=15.0.0,<17.0.0"
 erpnext = ">=15.0.0,<17.0.0"

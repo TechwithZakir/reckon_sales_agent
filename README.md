@@ -16,9 +16,11 @@ a human approving every message. App name: `reckon_sales_agent`. Market: Banglad
 2. **Sources.** Each source is a connector with a declared field-storage policy:
    - **Demo data:** offline, fictional, for training.
    - **CSV import:** your own lists.
-   - **Google Places API (New):** official API only, vendor key, vendor-enabled.
-
-   Scraping Google Maps pages is deliberately not supported.
+   - **Google Maps lead sources** (see *Google Maps lead generation* below):
+     Google Places API, SerpAPI, Scrapingdog, Apify, and an experimental
+     Playwright headless browser.
+   - **Permitted-directory crawler**, with an optional Claude extraction
+     fallback.
 3. **Policy and provenance.** Every stored field records its source, retrieval
    time, retention and attribution. Fields a source does not allow to keep are
    never stored. Google Places content expires after the configured retention
@@ -70,6 +72,55 @@ a human approving every message. App name: `reckon_sales_agent`. Market: Banglad
     - Monthly metering for discovery results, research pages, AI calls and
       sent messages.
     - Every privileged action writes an append-only audit entry.
+
+## Google Maps lead generation
+
+The pipeline: **search trigger** (manual or scheduled discovery from a
+targeting profile) → **Maps data source** → **website crawling and
+enrichment** → **scoring** → **CRM storage**.
+
+| Connector | How it gets Maps data | Needs |
+| --- | --- | --- |
+| `google_places_api` | Official Google Places API (New) | Places key; terms reviewed |
+| `serpapi_google_maps` | SerpAPI Google Maps engine (JSON) | SerpAPI key |
+| `scrapingdog_google_maps` | Scrapingdog Google Maps API (JSON; Bangladesh city coordinates built in) | Scrapingdog key |
+| `apify_google_maps` | Apify actor `compass~crawler-google-places` (run-sync, dataset items) | Apify token |
+| `google_maps_browser_experimental` | **Experimental.** Headless Chromium (Playwright) scrolls the Maps results feed and opens each place | `pip install "reckon_sales_agent[browser]"` and `playwright install --with-deps chromium` on the bench server |
+
+**Rules for every Maps source:**
+- **Off until enabled.** The vendor enables each source in *Sales Agent
+  Platform Settings* and ticks *I Accept Responsibility for Google Maps Data
+  Use*. Google's Terms of Service restrict scraping Maps; review them with
+  your lawyer.
+- **Opt-in per tenant.** Each tenant connector also needs *Source Policy
+  Reviewed*.
+- **Retention.** Maps-derived fields are attributed to Google Maps and kept
+  for *Maps Data Retention (Days)* (default 30), unless the company's own
+  website confirms them. They are not copied into the CRM until then.
+  Retention 0 keeps them; that is the vendor's decision.
+- **Extra fields.** Rating and review count are kept, and review volume
+  raises the *scale* part of the lead score.
+
+**The experimental browser does not evade blocking.** It uses the browser's
+own user agent, with no proxy rotation, stealth plugins or CAPTCHA solving.
+A consent, CAPTCHA or "unusual traffic" page stops the run. There is a
+minimum 2-second delay between places and a hard cap of 100 places per
+search. Google changes its page often; when it does, the connector returns
+fewer or no results rather than wrong data.
+
+**Enrichment after discovery:**
+- **Website finder.** When a listing has no website and Scrapingdog is
+  enabled, a Google search for "business + city" finds the site. A result is
+  accepted only if its domain shares a distinctive word with the business
+  name; directories and social sites are skipped.
+- **Website research** then extracts emails, phones, social profiles
+  (Facebook, LinkedIn, Instagram, YouTube, X, TikTok, WhatsApp) and evidence
+  for scoring.
+- **AI extraction fallback** on the directory crawler: when a page has no
+  schema.org data, Claude extracts the listings, ScrapeGraphAI/AgentQL-style
+  but with the app's own Claude provider. A business is kept only if its name
+  appears on the page, and a phone, email or website only if it appears there
+  verbatim.
 
 ## Autonomous agent (autopilot)
 
@@ -296,10 +347,12 @@ and *SA E2E Beta*, on a free trial plan, each with a Company Admin user.
 
 - **Not yet run on a bench.** Expect fixes after the first install
   (DocType sync, page rendering, CRM SPA behaviour).
-- **Connectors.** Demo data, CSV import, Google Places API and the
-  permitted-directory crawler are implemented. Licensed data providers are not.
-  The crawler's extraction depends on each directory's markup; check results
-  per source.
+- **Connectors.** Licensed business-data providers are not implemented yet.
+  Extraction by the directory crawler and the experimental Maps browser
+  depends on page markup that can change; check results per source.
+- **Maps providers untested live.** SerpAPI, Scrapingdog and Apify responses
+  were coded against their documentation and tested with recorded shapes,
+  not against the live services.
 - **WhatsApp.** It needs the `frappe_whatsapp` app. Free-form messages only
   work inside WhatsApp's 24-hour service window, and template messages are
   not wired yet.

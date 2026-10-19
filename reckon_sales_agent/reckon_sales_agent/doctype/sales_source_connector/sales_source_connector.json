@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-20 09:00:00.000000",
+ "modified": "2026-10-21 10:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -31,6 +31,7 @@
   "crawler_col",
   "max_pages",
   "crawl_delay_seconds",
+  "ai_extraction",
   "terms_url",
   "health_section",
   "last_health_status",
@@ -58,7 +59,7 @@
    "fieldname": "connector_type",
    "fieldtype": "Select",
    "label": "Connector Type",
-   "options": "fixture\ngoogle_places_api\npermitted_directory\nmanual_import",
+   "options": "fixture\ngoogle_places_api\nserpapi_google_maps\nscrapingdog_google_maps\napify_google_maps\ngoogle_maps_browser_experimental\npermitted_directory\nmanual_import",
    "reqd": 1,
    "in_list_view": 1,
    "default": "fixture"
@@ -134,6 +135,13 @@
    "fieldtype": "Float",
    "label": "Delay Between Requests (Seconds)",
    "default": "2"
+  },
+  {
+   "fieldname": "ai_extraction",
+   "fieldtype": "Check",
+   "label": "AI Extraction Fallback",
+   "default": "0",
+   "description": "When a page has no structured business data, let Claude extract listings (every name must appear on the page)."
   },
   {
    "fieldname": "terms_url",

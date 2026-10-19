@@ -40,6 +40,11 @@ def research_prospect(prospect_name: str) -> str | None:
         prospect.db_set("research_status", "Skipped")
         return None
     if not prospect.website:
+        found = _find_website(prospect, platform)
+        if found:
+            prospect.db_set("website", found)
+            prospect.reload()
+    if not prospect.website:
         prospect.db_set("research_status", "Skipped")
         _qualify(prospect.name)
         return None
@@ -99,6 +104,25 @@ def research_prospect(prospect_name: str) -> str | None:
     _reestablish_from_website(prospect, pages)
     _qualify(prospect.name)
     return name
+
+
+def _find_website(prospect, platform) -> str | None:
+    """Look the business up on Google Search (Scrapingdog) when the listing had no website."""
+    if not (platform.get("scrapingdog_enabled") and platform.get("maps_terms_ack")):
+        return None
+    key = platform.get_password("scrapingdog_api_key", raise_exception=False)
+    if not key or remaining(prospect.company, USAGE_RESEARCH) <= 0:
+        return None
+    from reckon_sales_agent.discovery.normalize import normalize_domain
+    from reckon_sales_agent.research.website_finder import find_website
+
+    reserve(prospect.company, USAGE_RESEARCH, 1, prospect)
+    frappe.db.commit()
+    website = find_website(key, prospect.business_name, prospect.city)
+    if website:
+        prospect.db_set("domain", normalize_domain(website))
+        log_activity(prospect.company, "website_found", prospect, website, "agent")
+    return website
 
 
 def _normalise_url(website: str) -> str:
@@ -195,6 +219,8 @@ def _reestablish_from_website(prospect, pages) -> None:
     provenance = json.loads(prospect.provenance_json or "{}")
     site = {"source": "company_website", "retrieved_at": str(now_datetime()), "retention_days": None,
             "attribution": None}
+    social = sorted({link for page in pages for link in getattr(page, "social_profiles", [])})
+    updates_social = "\n".join(social[:10]) or None
     emails = sorted({e for page in pages for e in page.emails})
     phones = sorted({p for page in pages for p in page.phones})
     updates = {}
@@ -208,6 +234,8 @@ def _reestablish_from_website(prospect, pages) -> None:
     text = " ".join(f"{p.title} {p.text}" for p in pages).lower()
     if normalize_name(prospect.business_name) and normalize_name(prospect.business_name) in normalize_name(text):
         provenance["business_name"] = site
+    if updates_social:
+        updates["social_profiles"] = updates_social
     updates["provenance_json"] = json.dumps(provenance, sort_keys=True)
     remaining_restricted = [f for f, info in provenance.items() if (info or {}).get("retention_days")]
     if not remaining_restricted:

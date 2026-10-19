@@ -62,6 +62,12 @@ def score(prospect: dict, facts: list[dict], profile: dict | None) -> dict:
     size_facts = [f for f in evidence if f.get("fact_type") == "size"] or _contains_any(statements, SIZE_WORDS)
     scale = (20.0 if prospect.get("website") else 0.0) + (40.0 if size_facts else 0.0) \
         + (20.0 if complexity_hits else 0.0) + (20.0 if len(services) >= 3 else 0.0)
+    reviews = int(float(prospect.get("review_count") or 0))
+    if reviews >= 100:
+        scale += 30.0
+        explanation.append(f"{reviews} Maps reviews show an established business.")
+    elif reviews >= 20:
+        scale += 15.0
     scale = min(scale, 100.0)
 
     if evidence:

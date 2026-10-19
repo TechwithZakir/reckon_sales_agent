@@ -15,7 +15,7 @@ PROTECTED = (
     "contactability", "research_status", "latest_research", "latest_qualification", "crm_organization",
     "crm_lead", "merged_into", "possible_duplicate_of", "source_connector", "source_type", "external_id",
     "source_url", "provenance_json", "retention_until", "first_seen", "last_seen",
-    "ai_fit_score", "deal_probability", "auto_approved",
+    "ai_fit_score", "deal_probability", "auto_approved", "rating", "review_count", "social_profiles",
 )
 
 

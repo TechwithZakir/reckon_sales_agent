@@ -45,7 +45,7 @@ class DirectoryCrawler:
 
     def __init__(self, start_urls: list[str], *, user_agent: str, allowed_path_prefix: str | None = None,
                  max_pages: int = 10, delay: float = 2.0, timeout: float = 10.0, max_bytes: int = 1_048_576,
-                 fetcher=fetch, sleep=time.sleep):
+                 fetcher=fetch, sleep=time.sleep, ai_extractor=None):
         self.start_urls = [u.strip() for u in start_urls if u and u.strip()]
         self.user_agent = user_agent
         self.allowed_path_prefix = (allowed_path_prefix or "").strip()
@@ -55,6 +55,8 @@ class DirectoryCrawler:
         self.max_bytes = max_bytes
         self.fetcher = fetcher
         self.sleep = sleep
+        # Optional LLM fallback (ScrapeGraphAI-style): (page_text, url) -> [business dicts].
+        self.ai_extractor = ai_extractor
         self._robots: dict[str, RobotFileParser | None] = {}
 
     def capabilities(self) -> dict:
@@ -71,7 +73,7 @@ class DirectoryCrawler:
             if not url.lower().startswith(("http://", "https://")):
                 raise ConnectorNotPermitted(f"Start URL must be http(s): {url}")
             if "google." in (urlsplit(url).hostname or "") and "/maps" in url:
-                raise ConnectorNotPermitted("Google Maps pages cannot be crawled; use the Places API connector.")
+                raise ConnectorNotPermitted("Use a Google Maps connector (Places API, SerpAPI, Scrapingdog, Apify or the experimental browser) for Google Maps.")
 
     def discover(self, query: DiscoveryQuery) -> Iterable[SourceRecord]:
         self.validate_configuration()
@@ -95,7 +97,10 @@ class DirectoryCrawler:
             pages += 1
             soup = BeautifulSoup(result.text or "", "html.parser")
             now = datetime.now(timezone.utc).isoformat()
-            for fields in extract_businesses(soup, result.url):
+            found = extract_businesses(soup, result.url)
+            if not found and self.ai_extractor:
+                found = verified_ai_listings(self.ai_extractor(_visible_text(soup), result.url), soup)
+            for fields in found:
                 key = normalize_domain(fields.get("website")) or fields["business_name"].lower()
                 if key in seen_keys:
                     continue
@@ -205,6 +210,35 @@ def extract_businesses(soup, page_url: str) -> list[dict]:
             continue
         businesses.append({"business_name": text, "website": href})
     return businesses
+
+
+def _visible_text(soup) -> str:
+    copy = BeautifulSoup(str(soup), "html.parser")
+    for tag in copy(["script", "style", "noscript", "template", "svg"]):
+        tag.decompose()
+    return " ".join(copy.get_text(" ").split())[:15000]
+
+
+def verified_ai_listings(items, soup) -> list[dict]:
+    """Keep AI-extracted listings whose name really appears on the page; never invent contacts."""
+    text = " ".join(soup.get_text(" ").split()).lower()
+    kept = []
+    for item in items or []:
+        if not isinstance(item, dict):
+            continue
+        name = normalize_space(item.get("business_name"))
+        if len(name) < 3 or name.lower() not in text:
+            continue
+        fields = {"business_name": name[:140]}
+        for key in ("website", "phone", "email", "address", "city", "industry"):
+            value = normalize_space(item.get(key))
+            # Contact details must also be on the page, verbatim.
+            if value and (key in ("city", "industry") or value.lower() in text):
+                fields[key] = value
+        if fields.get("website") and not normalize_domain(fields["website"]):
+            fields.pop("website")
+        kept.append(fields)
+    return kept[:100]
 
 
 def pagination_links(soup, page_url: str, allowed_prefix: str) -> list[str]:

@@ -89,6 +89,8 @@ def rule_facts(pages, profile_keywords: dict[str, str | None]) -> list[Fact]:
             add(Fact("contact", f"Public email: {email}", page.url, email, 1.0))
         for phone in page.phones[:5]:
             add(Fact("contact", f"Public phone: {phone}", page.url, phone, 0.9))
+        for profile in getattr(page, "social_profiles", [])[:5]:
+            add(Fact("contact", f"Social profile: {profile}", page.url, profile, 0.9))
         for fact_type, field in (("industry", "fit_keywords"), ("need_signal", "need_keywords"),
                                  ("industry", "target_industries"), ("other", "negative_keywords")):
             for word in split_lines(profile_keywords.get(field)):

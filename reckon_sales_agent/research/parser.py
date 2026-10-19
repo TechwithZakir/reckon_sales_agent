@@ -16,6 +16,8 @@ from reckon_sales_agent.discovery.normalize import normalize_email, normalize_ph
 EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 PHONE_RE = re.compile(r"(?:\+?880[\s-]?|0)1[3-9]\d{2}[\s-]?\d{3}[\s-]?\d{3}|\+?\d[\d\s().-]{8,16}\d")
 MAX_TEXT = 20_000
+SOCIAL_HOSTS = ("facebook.com", "linkedin.com", "instagram.com", "youtube.com", "x.com", "twitter.com",
+                "tiktok.com", "wa.me")
 INTERESTING_PATHS = ("about", "contact", "service", "product", "company", "career", "job", "team",
                      "আমাদের", "যোগাযোগ")
 
@@ -29,6 +31,7 @@ class ParsedPage:
     emails: list[str] = field(default_factory=list)
     phones: list[str] = field(default_factory=list)
     internal_links: list[str] = field(default_factory=list)
+    social_profiles: list[str] = field(default_factory=list)
 
 
 def parse_html(html: str, url: str) -> ParsedPage:
@@ -63,4 +66,13 @@ def parse_html(html: str, url: str) -> ParsedPage:
             if any(word in path for word in INTERESTING_PATHS) and target not in links:
                 links.append(target)
     page.internal_links = links[:20]
+    social: list[str] = []
+    for anchor in soup.find_all("a", href=True):
+        href = anchor["href"].strip()
+        host = (urlsplit(href).hostname or "").lower().removeprefix("www.").removeprefix("m.")
+        if href.startswith("https://") and any(host == h or host.endswith("." + h) for h in SOCIAL_HOSTS):
+            clean = href.split("?")[0].rstrip("/")
+            if clean not in social and urlsplit(clean).path.strip("/"):
+                social.append(clean)
+    page.social_profiles = social[:10]
     return page

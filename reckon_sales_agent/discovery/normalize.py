@@ -18,6 +18,7 @@ NAME_NOISE = {
 # Fields a prospect can carry; anything else from a connector is dropped.
 PROSPECT_FIELDS = (
     "business_name", "industry", "website", "email", "phone", "address", "city", "country",
+    "rating", "review_count",
 )
 
 

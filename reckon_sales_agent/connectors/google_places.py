@@ -35,6 +35,8 @@ FIELD_MASK = ",".join(
         "places.internationalPhoneNumber",
         "places.primaryTypeDisplayName",
         "places.addressComponents",
+        "places.rating",
+        "places.userRatingCount",
         "nextPageToken",
     ]
 )
@@ -68,6 +70,8 @@ class GooglePlacesConnector:
             "address": restricted,
             "city": restricted,
             "country": restricted,
+            "rating": restricted,
+            "review_count": restricted,
         }
 
     def validate_configuration(self) -> None:
@@ -138,6 +142,8 @@ class GooglePlacesConnector:
                 "address": place.get("formattedAddress"),
                 "city": city or query.location,
                 "country": country,
+                "rating": place.get("rating"),
+                "review_count": place.get("userRatingCount"),
             },
             retrieved_at=datetime.now(timezone.utc).isoformat(),
         )

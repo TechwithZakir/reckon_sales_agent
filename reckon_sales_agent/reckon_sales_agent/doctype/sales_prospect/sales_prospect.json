@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-20 09:00:00.000000",
+ "modified": "2026-10-21 10:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -23,6 +23,9 @@
   "fit_score",
   "head_col",
   "industry",
+  "rating",
+  "review_count",
+  "social_profiles",
   "website",
   "domain",
   "email",
@@ -124,6 +127,24 @@
    "fieldname": "industry",
    "fieldtype": "Data",
    "label": "Industry"
+  },
+  {
+   "fieldname": "rating",
+   "fieldtype": "Float",
+   "label": "Maps Rating",
+   "read_only": 1
+  },
+  {
+   "fieldname": "review_count",
+   "fieldtype": "Int",
+   "label": "Maps Reviews",
+   "read_only": 1
+  },
+  {
+   "fieldname": "social_profiles",
+   "fieldtype": "Small Text",
+   "label": "Social Profiles",
+   "read_only": 1
   },
   {
    "fieldname": "website",
