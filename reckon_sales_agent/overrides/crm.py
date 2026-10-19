@@ -1,6 +1,6 @@
-"""Tenant-aware subclasses of Frappe CRM controllers.
+"""Tenant-aware subclass of the Frappe CRM Lead controller.
 
-Only the two behaviours that cross Company boundaries are changed; everything
+Only the behaviours that cross Company boundaries are changed; everything
 else is inherited from upstream CRM.
 """
 
@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import frappe
 from crm.fcrm.doctype.crm_lead.crm_lead import CRMLead
-from crm.fcrm.doctype.crm_organization.crm_organization import CRMOrganization
 from frappe import _
 
 from reckon_sales_agent.crm_tenancy import (
@@ -17,7 +16,6 @@ from reckon_sales_agent.crm_tenancy import (
     find_contact_by_email,
     find_organization,
     is_scoping_active,
-    unique_organization_name,
 )
 
 
@@ -79,8 +77,3 @@ class TenantCRMLead(CRMLead):
             existing_organization = organization.name
         return super().create_organization(existing_organization)
 
-
-class TenantCRMOrganization(CRMOrganization):
-    def autoname(self):
-        if is_scoping_active():
-            self.name = unique_organization_name(self.organization_name, self.get(COMPANY_FIELD))

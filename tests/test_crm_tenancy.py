@@ -1,4 +1,4 @@
-"""Company ownership of native CRM records (runs without a database)."""
+"""Company ownership of CRM records (runs without a database)."""
 import importlib.util
 import sys
 import unittest
@@ -19,6 +19,8 @@ class FakeDB:
     def __init__(self, tables):
         self.tables = tables
         self.missing_columns = set()
+        self.singles = {"System Settings"}
+        self.company_column = {"Sales Invoice"}
 
     def _match(self, doctype, filters):
         rows = self.tables.get(doctype, {})
@@ -37,6 +39,10 @@ class FakeDB:
         return found[0] if field == "name" else self.tables[doctype][found[0]].get(field)
 
     def has_column(self, doctype, column):
+        if doctype in self.singles:
+            raise RuntimeError(f"tab{doctype} does not exist")
+        if column == "company":
+            return doctype in self.company_column
         return (doctype, column) not in self.missing_columns
 
     def get_all(self, doctype, filters=None, pluck=None):
@@ -48,6 +54,50 @@ class FakeDB:
     @staticmethod
     def escape(value):
         return f"'{value}'"
+
+
+# Link structure of the DocTypes used below: links, dynamic links, child tables.
+META = {
+    "CRM Lead": {"links": {"source": "CRM Lead Source", "lead_owner": "User"}},
+    "CRM Deal": {
+        "links": {"organization": "CRM Organization", "lead": "CRM Lead"},
+        "tables": {"contacts": "CRM Contacts", "products": "CRM Products"},
+    },
+    "CRM Contacts": {"links": {"contact": "Contact"}},
+    "CRM Products": {"links": {"product_code": "CRM Product"}},
+    "CRM Task": {"dynamic": {"reference_docname": "reference_doctype"}},
+    "FCRM Note": {"dynamic": {"reference_docname": "reference_doctype"}},
+    "CRM Call Log": {
+        "links": {"note": "FCRM Note", "caller": "User"},
+        "dynamic": {"reference_docname": "reference_doctype"},
+    },
+    "Contact": {"links": {"user": "User"}, "tables": {"links": "Dynamic Link"}},
+    "Address": {"tables": {"links": "Dynamic Link"}},
+    "Dynamic Link": {"dynamic": {"link_name": "link_doctype"}},
+    "Comment": {"dynamic": {"reference_name": "reference_doctype"}},
+    "CRM Territory": {"links": {"parent_crm_territory": "CRM Territory"}},
+}
+
+
+def _field(name, options):
+    return SimpleNamespace(fieldname=name, options=options)
+
+
+class FakeMeta:
+    def __init__(self, doctype):
+        spec = META.get(doctype, {})
+        self._links = [_field(k, v) for k, v in spec.get("links", {}).items()]
+        self._dynamic = [_field(k, v) for k, v in spec.get("dynamic", {}).items()]
+        self._tables = [_field(k, v) for k, v in spec.get("tables", {}).items()]
+
+    def get_link_fields(self):
+        return self._links
+
+    def get_dynamic_link_fields(self):
+        return self._dynamic
+
+    def get_table_fields(self):
+        return self._tables
 
 
 class Doc(SimpleNamespace):
@@ -90,6 +140,18 @@ class CRMTenancyTests(unittest.TestCase):
                     "R1": {"contact": "Bob", "parenttype": "CRM Deal", "parent": "DEAL-B"},
                 },
                 "Customer": {"Shop A": {"rd_company": "Acme"}, "Shop B": {"rd_company": "Beta"}},
+                "Sales Invoice": {"SINV-B": {"company": "Beta"}},
+                "CRM Lead Source": {
+                    "Website": {},
+                    "Fair - AC": {"rsa_company": "Acme"},
+                    "Fair - BT": {"rsa_company": "Beta"},
+                },
+                "CRM Product": {"P-A": {"rsa_company": "Acme"}, "P-B": {"rsa_company": "Beta"}},
+                "File": {
+                    "Home": {"is_folder": 1},
+                    "F-B": {"rsa_company": "Beta", "is_folder": 0},
+                },
+                "Comment": {"C1": {}},
             }
         )
         frappe = ModuleType("frappe")
@@ -99,6 +161,7 @@ class CRMTenancyTests(unittest.TestCase):
         frappe.session = SimpleNamespace(user="a@acme.example")
         frappe.db = self.db
         frappe.get_all = self.db.get_all
+        frappe.get_meta = FakeMeta
         frappe.get_installed_apps = Mock(return_value=["frappe", "crm", "reckon_saas_platform"])
         self.frappe = frappe
 
@@ -219,17 +282,27 @@ class CRMTenancyTests(unittest.TestCase):
                    reference_doctype="CRM Lead", reference_docname="LEAD-A")
         self.t.validate_company(task)
 
-    # Organizations
+    def test_deal_cannot_include_other_company_product(self):
+        deal = Doc("CRM Deal", new=True, rsa_company="Acme", products=[{"product_code": "P-B"}])
+        with self.assertRaises(PermissionError):
+            self.t.validate_company(deal)
+
+    # Organizations and naming
 
     def test_organization_lookup_ignores_other_companies(self):
         self.assertIsNone(self.t.find_organization("Globex", "Acme"))
         self.assertEqual(self.t.find_organization("Globex", "Beta"), "Globex")
 
-    def test_same_organization_name_in_second_company_gets_qualified_name(self):
-        self.assertEqual(self.t.unique_organization_name("Globex", "Acme"), "Globex - AC")
+    def test_same_name_in_second_company_gets_qualified_name(self):
+        org = Doc("CRM Organization", new=True, organization_name="Globex", rsa_company="Acme")
+        self.t.set_tenant_name(org)
+        self.assertEqual(org.name, "Globex - AC")
         self.db.tables["CRM Organization"]["Globex - AC"] = {"rsa_company": "Acme"}
-        self.assertEqual(self.t.unique_organization_name("Globex", "Acme"), "Globex - AC-2")
-        self.assertEqual(self.t.unique_organization_name("Initech", "Acme"), "Initech")
+        self.t.set_tenant_name(org)
+        self.assertEqual(org.name, "Globex - AC-2")
+        fresh = Doc("CRM Organization", new=True, organization_name="Initech", rsa_company="Acme")
+        self.t.set_tenant_name(fresh)
+        self.assertEqual(fresh.name, "Initech")
 
     # Notes, call logs and contacts
 
@@ -294,17 +367,121 @@ class CRMTenancyTests(unittest.TestCase):
         self.assertIsNone(self.t.find_contact_by_email("x@shared.example", "Acme"))
         self.assertEqual(self.t.find_contact_by_email("x@shared.example", "Beta"), "Bob")
 
+    # Master lists
 
-class HooksTests(unittest.TestCase):
-    def test_hooks_cover_every_scoped_doctype(self):
-        source = (APP / "crm_tenancy.py").read_text(encoding="utf-8")
+    def test_master_query_includes_shared_defaults(self):
+        self.assertEqual(
+            self.t.get_query_conditions("a@acme.example", "CRM Lead Source"),
+            "(`tabCRM Lead Source`.`rsa_company` = 'Acme' or "
+            "(ifnull(`tabCRM Lead Source`.`rsa_company`, '') = '' and 1=1))",
+        )
+
+    def test_shared_default_is_read_only_for_tenants(self):
+        default = Doc("CRM Lead Source", "Website")
+        self.assertTrue(self.t.has_permission(default, "a@acme.example", "read"))
+        self.assertFalse(self.t.has_permission(default, "a@acme.example", "write"))
+        self.assertTrue(self.t.has_permission(default, "Administrator", "write"))
+
+    def test_tenant_master_is_private(self):
+        own = Doc("CRM Lead Source", "Fair - AC", rsa_company="Acme")
+        other = Doc("CRM Lead Source", "Fair - BT", rsa_company="Beta")
+        self.assertTrue(self.t.has_permission(own, "a@acme.example", "write"))
+        self.assertFalse(self.t.has_permission(other, "a@acme.example", "read"))
+
+    def test_system_created_master_entry_is_shared(self):
+        self.as_user("Administrator")
+        source = Doc("CRM Lead Source", new=True)
+        self.t.bind_company(source)
+        self.assertIsNone(source.get("rsa_company"))
+
+    def test_lead_may_use_shared_or_own_master_but_not_others(self):
+        self.t.validate_company(Doc("CRM Lead", new=True, rsa_company="Acme", source="Website"))
+        self.t.validate_company(Doc("CRM Lead", new=True, rsa_company="Acme", source="Fair - AC"))
+        with self.assertRaises(PermissionError):
+            self.t.validate_company(Doc("CRM Lead", new=True, rsa_company="Acme", source="Fair - BT"))
+
+    def test_master_entry_does_not_confer_company(self):
+        self.as_user("Administrator")
+        lead = Doc("CRM Lead", new=True, source="Fair - BT")
+        self.t.bind_company(lead)
+        self.assertIsNone(lead.rsa_company)
+
+    # Site configuration
+
+    def test_site_config_is_read_only_for_tenants(self):
+        settings = Doc("FCRM Settings", "FCRM Settings")
+        self.assertTrue(self.t.has_config_permission(settings, "a@acme.example", "read"))
+        self.assertFalse(self.t.has_config_permission(settings, "a@acme.example", "write"))
+        self.assertFalse(self.t.has_config_permission(settings, "a@acme.example", "create"))
+        self.assertTrue(self.t.has_config_permission(settings, "Administrator", "write"))
+
+    # Frappe core records
+
+    def test_file_folders_are_shared_read_only(self):
+        folder = Doc("File", "Home", is_folder=1)
+        self.assertTrue(self.t.has_permission(folder, "a@acme.example", "read"))
+        self.assertFalse(self.t.has_permission(folder, "a@acme.example", "write"))
+        self.assertFalse(self.t.has_permission(Doc("File", "F-B", rsa_company="Beta"),
+                                               "a@acme.example", "read"))
+        self.assertIn("is_folder = 1", self.t.get_query_conditions("a@acme.example", "File"))
+
+    def test_system_attachment_inherits_attached_record_company(self):
+        self.as_user("Administrator")
+        file = Doc("File", new=True, attached_to_doctype="CRM Deal", attached_to_name="DEAL-B")
+        self.t.bind_company(file)
+        self.assertEqual(file.rsa_company, "Beta")
+
+    def test_tenant_cannot_attach_file_to_other_company_record(self):
+        file = Doc("File", new=True, rsa_company="Acme",
+                   attached_to_doctype="CRM Lead", attached_to_name="LEAD-B")
+        with self.assertRaises(PermissionError):
+            self.t.validate_company(file)
+
+    def test_comment_on_erpnext_document_follows_its_company(self):
+        comment = Doc("Comment", new=True, rsa_company="Acme",
+                      reference_doctype="Sales Invoice", reference_name="SINV-B")
+        with self.assertRaises(PermissionError):
+            self.t.validate_company(comment)
+        self.as_user("Administrator")
+        system = Doc("Comment", new=True, reference_doctype="Sales Invoice", reference_name="SINV-B")
+        self.t.bind_company(system)
+        self.assertEqual(system.rsa_company, "Beta")
+
+    def test_record_linked_after_insert_inherits_on_save(self):
+        self.as_user("Administrator")
+        comment = Doc("Comment", "C1", reference_doctype="CRM Deal", reference_name="DEAL-B")
+        self.t.validate_company(comment)
+        self.assertEqual(comment.rsa_company, "Beta")
+
+    def test_company_address_belongs_to_that_company(self):
+        self.as_user("Administrator")
+        address = Doc("Address", new=True, links=[{"link_doctype": "Company", "link_name": "Acme"}])
+        self.t.bind_company(address)
+        self.assertEqual(address.rsa_company, "Acme")
+
+    def test_reference_to_single_doctype_is_not_company_owned(self):
+        self.assertIsNone(self.t.get_record_company("System Settings", "System Settings"))
+        comment = Doc("Comment", new=True, rsa_company="Acme",
+                      reference_doctype="System Settings", reference_name="System Settings")
+        self.t.validate_company(comment)
+
+    # Hooks
+
+    def test_hooks_match_the_tenancy_registry(self):
         hooks = {}
         exec((APP / "hooks.py").read_text(encoding="utf-8"), hooks)
-        for doctype in hooks["SCOPED_DOCTYPES"]:
-            self.assertIn(f'"{doctype}"', source)
+        self.assertEqual(set(hooks["SCOPED_DOCTYPES"]), set(self.t.SCOPED_DOCTYPES))
+        self.assertEqual(set(hooks["VENDOR_CONFIG_DOCTYPES"]), set(self.t.VENDOR_CONFIG_DOCTYPES))
+        self.assertEqual(set(hooks["NAMED_BY_FIELD"]), set(self.t.NAME_FIELDS))
+        for doctype in self.t.SCOPED_DOCTYPES:
             self.assertIn(doctype, hooks["permission_query_conditions"])
             self.assertIn(doctype, hooks["has_permission"])
-            self.assertEqual(set(hooks["doc_events"][doctype]), {"before_insert", "validate"})
+            events = {"before_insert", "validate"}
+            if doctype in self.t.NAME_FIELDS:
+                events.add("autoname")
+            self.assertEqual(set(hooks["doc_events"][doctype]), events)
+        for doctype in self.t.VENDOR_CONFIG_DOCTYPES:
+            self.assertTrue(hooks["has_permission"][doctype].endswith("has_config_permission"))
 
 
 if __name__ == "__main__":
