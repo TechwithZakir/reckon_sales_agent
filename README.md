@@ -4,7 +4,7 @@ A Python-first sales agent for **Frappe CRM**, sold as a module of
 [Reckon SaaS Platform](https://github.com/TechwithZakir/Reckon-SaaS-Platform).
 It finds B2B prospects, researches their public websites, scores the fit with
 evidence, puts approved prospects into the CRM, and runs email follow-up with
-a human approving every message. App name: `reckon_sales_agent`. Market: Bangladesh first.
+a human approving every message. App name: `reckon_sales_agent`. 
 
 **Status: first release, unreleased. Built and unit-tested; not yet verified on a bench site.**
 
