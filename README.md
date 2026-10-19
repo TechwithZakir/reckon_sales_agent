@@ -71,6 +71,77 @@ a human approving every message. App name: `reckon_sales_agent`. Market: Banglad
       sent messages.
     - Every privileged action writes an append-only audit entry.
 
+## Autonomous agent (autopilot)
+
+Every autonomous step can be switched off, respects the kill switch and the
+Company's plan limits, and is recorded in the audit trail.
+
+- **Targeting master setup** (*Sales Targeting Profile*) defines:
+  - who to find: market (B2B/B2B2C/B2G), company size, industries, B2B
+    segments (distributors, wholesalers, factories, ...), keywords
+    (English/Bangla), interests and needs, and exclusions;
+  - where: a table of city, area, division and country.
+
+  Discovery campaigns built from a profile search every term × location
+  within the bounded budget, and drop results that match an exclusion.
+- **AI search planner.** *Suggest with AI* asks Claude for search phrases,
+  Bangla variants, buyer segments, related industries and exclusions, based on
+  what you sell. Suggestions are stored for review; *Apply AI Suggestions*
+  merges them in. A campaign can also *Expand Searches with AI* at plan time.
+- **Scheduled discovery.** Set a campaign to run Daily, Weekly or Monthly.
+  Each run re-plans from the targeting profile and starts automatically.
+  Deduplication keeps re-runs from creating duplicates.
+- **Lead crawler** (`permitted_directory` connector):
+  - Crawls listing pages of directories or member lists the tenant confirms
+    it may use. Start URLs accept `{keyword}`/`{location}` placeholders.
+  - Reads schema.org JSON-LD business data first, then listing links that
+    point to company websites, and follows pagination under an allowed path.
+  - Every request is SSRF-safe and obeys `robots.txt`, with at least a 1 s
+    delay and a page cap of 50.
+  - No logins or evasion. Google Maps pages are refused; use the Places API
+    connector.
+- **AI lead scoring.** The deterministic, versioned score stays the base.
+  Claude adds an assessment (fit, intent, rationale, risks) built only from
+  verified facts:
+  - Intent is capped at 20 unless the research found a need signal.
+  - The *combined score* blends the AI in at a configurable share, never
+    more than 50%.
+- **Deal probability.** An explainable logistic model over fit, buying
+  signal, evidence, contactability and engagement (replies, positive
+  replies, meetings).
+  - It is calibrated per Company against its own lead-to-deal history and
+    re-run weekly, so it learns from outcomes.
+  - It fills a CRM Deal's probability only when nobody has set one.
+- **Auto-approval.** With *Auto-Approve Strong Prospects* on, a prospect is
+  approved, and optionally made a CRM Lead, only when every rule holds:
+  qualified; minimum fit, evidence and deal probability; a contact channel;
+  not suppressed; not a possible duplicate; under the daily cap.
+- **Omni-channel campaigns.** Each step has a channel:
+  - **Email.**
+  - **SMS**, via the platform's BulkSMSBD gateway.
+  - **WhatsApp**, via the `frappe_whatsapp` app.
+  - **Call Task / LinkedIn Task:** a CRM Task for a person.
+
+  SMS and WhatsApp go only to prospects with recorded consent; a public phone
+  number is never treated as permission. A step a member can't be reached on
+  is skipped. Internal task steps need no approval; outreach steps keep every
+  pre-send check.
+- **AI reply handling.** Replies by email, and by WhatsApp when installed,
+  are classified as: interested, meeting request, question, not now, not
+  interested, wrong person, unsubscribe, out of office.
+  - Rules act immediately: opt-outs are suppressed and the sequence stops.
+    Out-of-office pauses for 5 days.
+  - Claude then refines the class in the background.
+  - Positive replies get a high-priority CRM Task for the lead owner and a
+    note on the lead's timeline in `/crm`, and raise the deal probability.
+    "Not now" gets a reminder task in 30 days.
+- **Campaign analytics.** The *Campaign Analytics* page shows, by channel and
+  by step: members, sent, reply rate, positive rate, meetings, deals,
+  conversion, pipeline value and unsubscribe rate. *Analyze with AI*, also
+  run weekly, sends Claude only aggregated numbers (no names or contact
+  details) and stores its summary and recommendations as a *Sales Campaign
+  Insight*.
+
 ## Separating Frappe CRM by Company
 
 Tenants are Companies on one shared site, but Frappe CRM records carry no
@@ -225,11 +296,15 @@ and *SA E2E Beta*, on a free trial plan, each with a Company Admin user.
 
 - **Not yet run on a bench.** Expect fixes after the first install
   (DocType sync, page rendering, CRM SPA behaviour).
-- **Connectors.** Only Demo data, CSV import and Google Places are
-  implemented. The `permitted_directory` type is a placeholder that refuses to
-  run.
-- **Outreach channels.** Email only. WhatsApp/SMS are future adapters, and a
-  public phone number is never treated as marketing consent.
+- **Connectors.** Demo data, CSV import, Google Places API and the
+  permitted-directory crawler are implemented. Licensed data providers are not.
+  The crawler's extraction depends on each directory's markup; check results
+  per source.
+- **WhatsApp.** It needs the `frappe_whatsapp` app. Free-form messages only
+  work inside WhatsApp's 24-hour service window, and template messages are
+  not wired yet.
+- **SMS.** Delivery reports are not imported, and inbound SMS replies are not
+  captured because BulkSMSBD is one-way.
 - **Replies.** They are tracked when they reach Frappe's incoming Email
   Account; replies sent elsewhere must be marked manually (stop the member).
 - **Shared core DocTypes.** Contact, Address, Communication, Comment, ToDo and

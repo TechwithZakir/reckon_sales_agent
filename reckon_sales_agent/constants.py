@@ -9,6 +9,7 @@ MODULE_KEY = "sales_agent"
 MODULE_NAME = "Reckon Sales Agent"
 HOME_PAGE = "sales-agent"
 REVIEW_PAGE = "sales-review"
+ANALYTICS_PAGE = "sales-analytics"
 HOME_ROUTE = f"/desk/{HOME_PAGE}"
 WORKSPACE_SIDEBAR = "Sales Agent"
 
@@ -47,8 +48,12 @@ COMPANY_DOCTYPES = (
     "Sales Agent Activity",
     "Sales Suppression Entry",
     "Sales Usage Ledger",
+    "Sales Targeting Profile",
+    "Sales Campaign Insight",
 )
-CHILD_DOCTYPES = ("Sales Planned Query", "Sales Research Fact", "Sales Campaign Step")
+CHILD_DOCTYPES = ("Sales Planned Query", "Sales Research Fact", "Sales Campaign Step", "Sales Target Location")
+CHANNELS = ("Email", "SMS", "WhatsApp", "Call Task", "LinkedIn Task")
+TASK_CHANNELS = frozenset({"Call Task", "LinkedIn Task"})
 PLATFORM_SETTINGS = "Sales Agent Platform Settings"
 
 # Everything the Frappe CRM app (/crm) reads or writes. Tenants on several
@@ -77,7 +82,7 @@ LOOKUP_ONLY_DOCTYPES = frozenset(
     | set(CHILD_DOCTYPES)
     | set(CRM_DOCTYPES)
 )
-ALLOWED_PAGES = frozenset({HOME_PAGE, REVIEW_PAGE, "print", "user-profile", "home"})
+ALLOWED_PAGES = frozenset({HOME_PAGE, REVIEW_PAGE, ANALYTICS_PAGE, "print", "user-profile", "home"})
 
 LEAD_SOURCE = "Sales Agent"
 

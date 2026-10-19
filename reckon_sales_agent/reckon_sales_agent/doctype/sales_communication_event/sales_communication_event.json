@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-19 12:00:00.000000",
+ "modified": "2026-10-20 09:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -23,6 +23,7 @@
   "message",
   "head_col",
   "channel",
+  "reply_class",
   "event_time",
   "provider_message_id",
   "idempotency_key",
@@ -43,7 +44,7 @@
    "fieldname": "event_type",
    "fieldtype": "Select",
    "label": "Event Type",
-   "options": "drafted\napproved\nsent\ndry_run\ndelivered\nbounced\nreplied\nunsubscribed\ncomplained\nfailed\nstopped",
+   "options": "drafted\napproved\nsent\ndry_run\ndelivered\nbounced\nreplied\npositive_reply\nmeeting_requested\nout_of_office\nunsubscribed\ncomplained\nfailed\nstopped\ntask_created\nauto_approved",
    "in_list_view": 1
   },
   {
@@ -74,6 +75,11 @@
    "fieldtype": "Data",
    "label": "Channel",
    "default": "Email"
+  },
+  {
+   "fieldname": "reply_class",
+   "fieldtype": "Data",
+   "label": "Reply Class"
   },
   {
    "fieldname": "event_time",

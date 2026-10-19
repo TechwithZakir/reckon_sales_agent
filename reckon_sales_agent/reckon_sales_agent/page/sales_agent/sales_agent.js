@@ -70,7 +70,19 @@ class SalesAgentHome {
 				${tile(__("Running jobs"), data.running_jobs, "/app/sales-discovery-job")}
 				${tile(__("Active campaigns"), data.active_campaigns, "/app/sales-campaign?status=Active")}
 				${tile(__("Drafts to approve"), data.drafts_waiting, "/app/sales-outreach-message?status=Draft")}
-				${tile(__("Replies"), data.replies, "/app/sales-communication-event?event_type=replied")}
+				${tile(__("Positive replies"), data.positive_replies, "/app/sales-communication-event?event_type=positive_reply")}
+				${tile(__("Auto-approved"), data.auto_approved, "/app/sales-prospect?auto_approved=1")}
+				${tile(__("Scheduled discovery"), data.scheduled_campaigns, "/app/sales-discovery-campaign")}
+				${tile(__("Autopilot"), data.autopilot ? __("On") : __("Off"), `/app/sales-agent-settings/${encodeURIComponent(data.company || "")}`)}
+				${tile(__("Analytics"), "→", "/desk/sales-analytics")}
+			</div>
+			<div class="frappe-card" style="padding:16px; margin-bottom:12px">
+				<h5>${__("Hottest prospects (deal probability)")}</h5>
+				<table class="table table-sm"><tbody>${(data.hot_prospects || [])
+					.map((p) => `<tr><td><a href="/app/sales-prospect/${encodeURIComponent(p.name)}">${e(p.business_name)}</a></td>
+						<td>${e(p.city || "")}</td><td>${e(__(p.review_status))}</td>
+						<td><b>${e(String(Math.round(p.deal_probability)))}%</b></td><td>${__("fit")} ${e(String(Math.round(p.fit_score || 0)))}</td></tr>`)
+					.join("") || `<tr><td class="text-muted">${__("No scored prospects yet")}</td></tr>`}</tbody></table>
 			</div>
 			<div class="row">
 				<div class="col-sm-6"><div class="frappe-card" style="padding:16px">

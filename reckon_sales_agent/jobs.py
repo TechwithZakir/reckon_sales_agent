@@ -49,6 +49,46 @@ def enqueue_discovery(campaign) -> str:
     return job.name
 
 
+def next_run_date(schedule: str):
+    from frappe.utils import add_months
+
+    today = nowdate()
+    return {"Daily": add_days(today, 1), "Weekly": add_days(today, 7)}.get(schedule) or add_months(today, 1)
+
+
+def run_scheduled_discovery() -> None:
+    """Daily: re-plan and start campaigns whose automatic run is due.
+
+    Each run rebuilds the plan from the targeting profile (with AI expansion
+    when enabled), so new keywords and locations apply; deduplication keeps
+    re-runs from creating duplicates.
+    """
+    from reckon_sales_agent.discovery.runner import build_plan
+    from reckon_sales_agent.usage import NotEntitled, assert_entitled
+
+    today = getdate(nowdate())
+    for name in frappe.get_all("Sales Discovery Campaign",
+                               filters={"schedule": ["in", ["Daily", "Weekly", "Monthly"]],
+                                        "status": ["!=", "Running"]}, pluck="name"):
+        campaign = frappe.get_doc("Sales Discovery Campaign", name)
+        if campaign.next_run_on and getdate(campaign.next_run_on) > today:
+            continue
+        try:
+            assert_entitled(campaign.company)
+            build_plan(campaign)
+            campaign.flags.ignore_permissions = True
+            campaign.save()
+            campaign.db_set({"status": "Planned", "next_run_on": next_run_date(campaign.schedule)})
+            enqueue_discovery(campaign)
+            frappe.db.commit()
+        except NotEntitled:
+            frappe.db.rollback()
+        except Exception:
+            frappe.db.rollback()
+            frappe.log_error(title="Sales Agent scheduled discovery failed",
+                             reference_doctype="Sales Discovery Campaign", reference_name=name)
+
+
 def enqueue_research(company: str, prospect_names: list[str]) -> None:
     for start in range(0, len(prospect_names), RESEARCH_BATCH):
         batch = prospect_names[start:start + RESEARCH_BATCH]

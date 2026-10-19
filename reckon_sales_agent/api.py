@@ -164,9 +164,10 @@ def review_queue(status: str = "Pending", qualification: str | None = None, star
         "Sales Prospect",
         filters=filters,
         fields=["name", "business_name", "industry", "city", "website", "email", "phone", "fit_score",
+                "ai_fit_score", "deal_probability",
                 "buying_signal_score", "evidence_confidence", "qualification_status", "research_status",
                 "possible_duplicate_of", "contactability", "latest_research", "source_type"],
-        order_by="fit_score desc, creation desc",
+        order_by="deal_probability desc, fit_score desc, creation desc",
         start=int(start or 0),
         page_length=50,
     )
@@ -293,6 +294,72 @@ def unsubscribe(token: str | None = None) -> None:
     )
 
 
+# Targeting master and analytics ---------------------------------------------
+
+
+@frappe.whitelist()
+def suggest_targeting(profile: str) -> dict | None:
+    """Ask Claude for keywords, Bangla variants, segments and exclusions (stored, not applied)."""
+    from reckon_sales_agent.discovery.ai_planner import suggest
+
+    doc = get_tenant_doc("Sales Targeting Profile", profile, "write")
+    assert_entitled(doc.company)
+    result = suggest(doc)
+    log_activity(doc.company, "targeting_suggested", doc)
+    return result
+
+
+@frappe.whitelist()
+def apply_targeting_suggestions(profile: str) -> None:
+    """Merge the stored AI suggestions into the profile's fields."""
+    from reckon_sales_agent.discovery.targeting import merge_lines
+
+    doc = get_tenant_doc("Sales Targeting Profile", profile, "write")
+    suggestions = json.loads(doc.ai_suggestions or "{}")
+    if not suggestions:
+        frappe.throw(_("Ask for AI suggestions first."))
+    doc.keywords = merge_lines(doc.keywords, (suggestions.get("keywords") or []) + (suggestions.get("bangla_keywords") or []))
+    doc.b2b_segments = merge_lines(doc.b2b_segments, suggestions.get("b2b_segments") or [])
+    doc.industries = merge_lines(doc.industries, suggestions.get("industries") or [])
+    doc.exclude_keywords = merge_lines(doc.exclude_keywords, suggestions.get("exclude_keywords") or [])
+    doc.save()
+    log_activity(doc.company, "targeting_applied", doc)
+
+
+@frappe.whitelist()
+def preview_targeting(profile: str, target_count: int = 100, per_query_limit: int = 20) -> list[dict]:
+    from reckon_sales_agent.discovery.targeting import plan_from_profile
+    from reckon_sales_agent.usage import get_settings
+
+    doc = get_tenant_doc("Sales Targeting Profile", profile, "read")
+    plan = plan_from_profile(doc.as_dict(), int(target_count), int(per_query_limit),
+                             get_settings(doc.company).max_results_per_job or 100)
+    return [{"query_text": p.query_text, "max_results": p.max_results} for p in plan]
+
+
+@frappe.whitelist()
+def analyze_campaign(campaign: str) -> str:
+    from reckon_sales_agent.campaigns.analytics import analyze_campaign as analyze
+
+    doc = get_tenant_doc("Sales Campaign", campaign, "write")
+    return analyze(doc)
+
+
+@frappe.whitelist()
+def campaign_analytics() -> list[dict]:
+    """Metrics for the Company's campaigns, with the latest insight text."""
+    from reckon_sales_agent.campaigns.analytics import campaign_metrics
+
+    rows = []
+    for campaign in frappe.get_list("Sales Campaign", fields=["name", "campaign_name", "status", "latest_insight"],
+                                    order_by="modified desc", page_length=20):
+        insight = frappe.db.get_value("Sales Campaign Insight", campaign.latest_insight,
+                                      ["summary", "recommendations", "generated_on"], as_dict=True) \
+            if campaign.latest_insight else None
+        rows.append({**campaign, "metrics": campaign_metrics(campaign.name), "insight": insight})
+    return rows
+
+
 # Dashboard -----------------------------------------------------------------
 
 
@@ -319,6 +386,14 @@ def dashboard() -> dict:
         "outbound_enabled": bool(settings.outbound_enabled),
         "kill_switch": bool(settings.kill_switch),
         "ai_enabled": bool(settings.ai_enabled),
+        "autopilot": bool(settings.auto_approve_enabled),
+        "auto_approved": count("Sales Prospect", auto_approved=1),
+        "positive_replies": count("Sales Communication Event", event_type=["in", ["positive_reply", "meeting_requested"]]),
+        "scheduled_campaigns": count("Sales Discovery Campaign", schedule=["is", "set"]),
+        "hot_prospects": frappe.get_list("Sales Prospect", filters={"company": company, "deal_probability": [">", 0]},
+                                         fields=["name", "business_name", "city", "deal_probability", "fit_score",
+                                                 "review_status"],
+                                         order_by="deal_probability desc", page_length=8),
         "usage": usage_summary(company),
         "recent_jobs": frappe.get_list("Sales Discovery Job", filters={"company": company},
                                        fields=["name", "discovery_campaign", "status", "progress_done",

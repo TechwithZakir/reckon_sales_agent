@@ -1,0 +1,198 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Targeting Profile",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-10-20 09:00:00.000000",
+ "modified": "2026-10-20 09:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 0,
+ "issingle": 0,
+ "editable_grid": 0,
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "field_order": [
+  "company",
+  "profile_name",
+  "market",
+  "company_size",
+  "what_section",
+  "industries",
+  "b2b_segments",
+  "what_col",
+  "keywords",
+  "interests",
+  "exclude_keywords",
+  "where_section",
+  "locations",
+  "ai_section",
+  "ai_suggestions",
+  "ai_suggested_on"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "search_index": 1,
+   "remember_last_selected_value": 1
+  },
+  {
+   "fieldname": "profile_name",
+   "fieldtype": "Data",
+   "label": "Profile Name",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "market",
+   "fieldtype": "Select",
+   "label": "Market",
+   "options": "B2B\nB2B2C\nB2G",
+   "default": "B2B",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "company_size",
+   "fieldtype": "Select",
+   "label": "Company Size",
+   "options": "Any\nMicro (1-9)\nSmall (10-49)\nMedium (50-249)\nLarge (250+)",
+   "default": "Any"
+  },
+  {
+   "fieldname": "what_section",
+   "fieldtype": "Section Break",
+   "label": "Who to Find"
+  },
+  {
+   "fieldname": "industries",
+   "fieldtype": "Small Text",
+   "label": "Industries",
+   "description": "One per line, e.g. Pharmaceutical distribution."
+  },
+  {
+   "fieldname": "b2b_segments",
+   "fieldtype": "Small Text",
+   "label": "B2B Segments",
+   "description": "Buyer types, one per line: distributors, wholesalers, factories, retail chains."
+  },
+  {
+   "fieldname": "what_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "keywords",
+   "fieldtype": "Small Text",
+   "label": "Keywords",
+   "description": "Search phrases, one per line. English or Bangla."
+  },
+  {
+   "fieldname": "interests",
+   "fieldtype": "Small Text",
+   "label": "Interests / Needs",
+   "description": "Problems your offer solves, one per line: route planning, credit control."
+  },
+  {
+   "fieldname": "exclude_keywords",
+   "fieldtype": "Small Text",
+   "label": "Exclude Keywords",
+   "description": "Rule out businesses that mention these, one per line."
+  },
+  {
+   "fieldname": "where_section",
+   "fieldtype": "Section Break",
+   "label": "Where"
+  },
+  {
+   "fieldname": "locations",
+   "fieldtype": "Table",
+   "label": "Locations",
+   "options": "Sales Target Location"
+  },
+  {
+   "fieldname": "ai_section",
+   "fieldtype": "Section Break",
+   "label": "AI Suggestions"
+  },
+  {
+   "fieldname": "ai_suggestions",
+   "fieldtype": "Code",
+   "label": "Ai Suggestions",
+   "options": "JSON",
+   "read_only": 1,
+   "description": "Proposed by Claude from your company profile. Apply them with the Suggest with AI button."
+  },
+  {
+   "fieldname": "ai_suggested_on",
+   "fieldtype": "Datetime",
+   "label": "Ai Suggested On",
+   "read_only": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Vendor Superuser",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Admin",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "Reckon Sales Agent User",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  }
+ ],
+ "autoname": "hash",
+ "title_field": "profile_name",
+ "show_title_field_in_link": 1,
+ "naming_rule": "Random"
+}

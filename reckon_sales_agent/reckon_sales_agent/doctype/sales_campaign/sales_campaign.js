@@ -57,5 +57,35 @@ frappe.ui.form.on("Sales Campaign", {
 			frappe.set_route("List", "Sales Campaign Member", { campaign: frm.doc.name }), __("View"));
 		frm.add_custom_button(__("Events"), () =>
 			frappe.set_route("List", "Sales Communication Event", { campaign: frm.doc.name }), __("View"));
+		frm.add_custom_button(__("Analytics"), () => frappe.set_route("sales-analytics"), __("View"));
+		frm.add_custom_button(__("Analyze with AI"), () =>
+			frappe
+				.call({ method: "reckon_sales_agent.api.analyze_campaign", args: { campaign: frm.doc.name }, freeze: true })
+				.then(() => frm.reload_doc())
+		);
+		if (frm.doc.latest_insight) {
+			frappe.db.get_value("Sales Campaign Insight", frm.doc.latest_insight, ["summary", "recommendations"]).then((r) => {
+				const v = r.message || {};
+				if (v.summary) {
+					frm.dashboard.add_comment(
+						`<b>${__("AI insight")}:</b> ${frappe.utils.escape_html(v.summary)}<br>${frappe.utils.escape_html(v.recommendations || "").replace(/\n/g, "<br>")}`,
+						"blue",
+						true
+					);
+				}
+			});
+		}
+	},
+});
+
+frappe.ui.form.on("Sales Campaign Step", {
+	channel(frm, cdt, cdn) {
+		const row = locals[cdt][cdn];
+		if (["SMS", "WhatsApp"].includes(row.channel)) {
+			frappe.show_alert({
+				message: __("{0} is sent only to prospects with recorded consent; keep it short and plain text.", [__(row.channel)]),
+				indicator: "orange",
+			});
+		}
 	},
 });

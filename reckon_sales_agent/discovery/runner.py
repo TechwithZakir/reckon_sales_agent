@@ -33,17 +33,45 @@ from reckon_sales_agent.usage import get_settings, log_activity, remaining, rese
 MAX_ATTEMPTS = 3
 
 
+def _targeting(campaign) -> dict | None:
+    if not campaign.get("targeting_profile"):
+        return None
+    profile = frappe.get_doc("Sales Targeting Profile", campaign.targeting_profile)
+    data = profile.as_dict()
+    if campaign.get("use_ai_planner"):
+        from reckon_sales_agent.discovery.ai_planner import suggest
+        from reckon_sales_agent.discovery.targeting import merge_lines
+
+        suggestions = suggest(profile, raise_errors=False)
+        if suggestions:
+            data["keywords"] = merge_lines(data.get("keywords"),
+                                           suggestions["keywords"] + suggestions["bangla_keywords"])
+            data["exclude_keywords"] = merge_lines(data.get("exclude_keywords"), suggestions["exclude_keywords"])
+    return data
+
+
 def build_plan(campaign) -> None:
-    """Fill the campaign's planned searches (a preview the user sees before running)."""
+    """Fill the campaign's planned searches (a preview the user sees before running).
+
+    With a targeting profile, the plan comes from its locations, keywords,
+    segments and industries, optionally widened by Claude's suggestions.
+    """
+    from reckon_sales_agent.discovery.targeting import plan_from_profile
+
     settings = get_settings(campaign.company)
-    plan = plan_queries(
-        campaign.industries,
-        campaign.keywords,
-        campaign.locations,
-        campaign.target_count or 0,
-        campaign.per_query_limit or 20,
-        settings.max_results_per_job or 100,
-    )
+    targeting = _targeting(campaign)
+    if targeting:
+        plan = plan_from_profile(targeting, campaign.target_count or 0, campaign.per_query_limit or 20,
+                                 settings.max_results_per_job or 100)
+    else:
+        plan = plan_queries(
+            campaign.industries,
+            campaign.keywords,
+            campaign.locations,
+            campaign.target_count or 0,
+            campaign.per_query_limit or 20,
+            settings.max_results_per_job or 100,
+        )
     if not plan:
         frappe.throw(_("Add at least one keyword or industry."))
     campaign.set("planned_queries", [])
@@ -72,6 +100,10 @@ def run_discovery_job(job_name: str) -> None:
         _finish(job, campaign, "Failed", exc.code, str(exc))
         return
 
+    from reckon_sales_agent.discovery.targeting import excluded
+
+    targeting = (frappe.get_doc("Sales Targeting Profile", campaign.targeting_profile).as_dict()
+                 if campaign.get("targeting_profile") else {})
     new_prospects: list[str] = []
     for row in campaign.planned_queries:
         if row.status != "Planned":
@@ -97,6 +129,8 @@ def run_discovery_job(job_name: str) -> None:
             continue
         created = updated = 0
         for record in records:
+            if targeting and excluded(" ".join(str(v) for v in record.fields.values() if v), targeting):
+                continue
             outcome, prospect = upsert_prospect(job.company, campaign, connector_doc, record, policy)
             if outcome == "created":
                 created += 1
@@ -114,6 +148,11 @@ def run_discovery_job(job_name: str) -> None:
         frappe.db.commit()
 
     _finish(job, campaign, "Completed")
+    if campaign.get("schedule"):
+        from reckon_sales_agent.jobs import next_run_date
+
+        campaign.db_set({"last_run_on": now_datetime(), "next_run_on": next_run_date(campaign.schedule)})
+        frappe.db.commit()
     if campaign.auto_research and new_prospects:
         from reckon_sales_agent.jobs import enqueue_research
 

@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-19 12:00:00.000000",
+ "modified": "2026-10-20 09:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -21,6 +21,7 @@
   "member",
   "prospect",
   "step_no",
+  "channel",
   "status",
   "head_col",
   "recipient",
@@ -72,6 +73,14 @@
    "label": "Step No"
   },
   {
+   "fieldname": "channel",
+   "fieldtype": "Select",
+   "label": "Channel",
+   "options": "Email\nSMS\nWhatsApp\nCall Task\nLinkedIn Task",
+   "default": "Email",
+   "in_list_view": 1
+  },
+  {
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
@@ -88,7 +97,7 @@
    "fieldname": "recipient",
    "fieldtype": "Data",
    "label": "Recipient",
-   "options": "Email",
+   "options": null,
    "read_only": 1
   },
   {

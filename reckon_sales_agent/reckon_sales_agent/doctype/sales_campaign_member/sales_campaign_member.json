@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-19 12:00:00.000000",
+ "modified": "2026-10-20 09:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -21,6 +21,8 @@
   "prospect",
   "crm_lead",
   "email",
+  "phone",
+  "reply_classification",
   "status",
   "head_col",
   "eligibility_reason",
@@ -68,6 +70,17 @@
    "fieldtype": "Data",
    "label": "Email",
    "options": "Email"
+  },
+  {
+   "fieldname": "phone",
+   "fieldtype": "Data",
+   "label": "Phone"
+  },
+  {
+   "fieldname": "reply_classification",
+   "fieldtype": "Data",
+   "label": "Reply Classification",
+   "read_only": 1
   },
   {
    "fieldname": "status",

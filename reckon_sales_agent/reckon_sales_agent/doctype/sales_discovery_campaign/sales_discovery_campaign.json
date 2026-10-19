@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-19 12:00:00.000000",
+ "modified": "2026-10-20 09:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -21,6 +21,8 @@
   "status",
   "source_connector",
   "qualification_profile",
+  "targeting_profile",
+  "use_ai_planner",
   "target_section",
   "industries",
   "keywords",
@@ -32,6 +34,9 @@
   "target_count",
   "per_query_limit",
   "auto_research",
+  "schedule",
+  "next_run_on",
+  "last_run_on",
   "plan_section",
   "planned_queries",
   "results_section",
@@ -80,6 +85,19 @@
    "fieldtype": "Link",
    "label": "Qualification Profile",
    "options": "Sales Qualification Profile"
+  },
+  {
+   "fieldname": "targeting_profile",
+   "fieldtype": "Link",
+   "label": "Targeting Profile",
+   "options": "Sales Targeting Profile",
+   "description": "Master setup of locations, keywords, segments, interests and industries."
+  },
+  {
+   "fieldname": "use_ai_planner",
+   "fieldtype": "Check",
+   "label": "Expand Searches with AI",
+   "default": "0"
   },
   {
    "fieldname": "target_section",
@@ -140,6 +158,24 @@
    "fieldtype": "Check",
    "label": "Research New Prospects Automatically",
    "default": "1"
+  },
+  {
+   "fieldname": "schedule",
+   "fieldtype": "Select",
+   "label": "Run Automatically",
+   "options": "\nDaily\nWeekly\nMonthly"
+  },
+  {
+   "fieldname": "next_run_on",
+   "fieldtype": "Date",
+   "label": "Next Run On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_run_on",
+   "fieldtype": "Datetime",
+   "label": "Last Run On",
+   "read_only": 1
   },
   {
    "fieldname": "plan_section",

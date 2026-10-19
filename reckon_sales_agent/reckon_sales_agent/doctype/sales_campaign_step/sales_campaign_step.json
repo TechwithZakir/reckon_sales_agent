@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-19 12:00:00.000000",
+ "modified": "2026-10-20 09:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -17,6 +17,7 @@
  "states": [],
  "field_order": [
   "step_no",
+  "channel",
   "delay_days",
   "subject_template",
   "body_template",
@@ -29,6 +30,14 @@
    "label": "Step No",
    "in_list_view": 1,
    "reqd": 1
+  },
+  {
+   "fieldname": "channel",
+   "fieldtype": "Select",
+   "label": "Channel",
+   "options": "Email\nSMS\nWhatsApp\nCall Task\nLinkedIn Task",
+   "default": "Email",
+   "in_list_view": 1
   },
   {
    "fieldname": "delay_days",

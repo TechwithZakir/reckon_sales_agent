@@ -68,7 +68,8 @@ class ProspectReview {
 					<div class="small text-muted">${e(p.industry || "")} · ${e(p.city || "")}</div></td>
 				<td>${/^https?:\/\//i.test(p.website || "") ? `<a href="${e(p.website)}" target="_blank" rel="noopener noreferrer">${e(p.website)}</a>` : e(p.website || "–")}</td>
 				<td>${e(__(p.qualification_status || "Not scored"))}</td>
-				<td>${score(p.fit_score)}</td>
+				<td><b>${p.deal_probability ? score(p.deal_probability) + "%" : "–"}</b></td>
+				<td>${score(p.fit_score)}${p.ai_fit_score ? ` <span class="text-muted small">(AI ${score(p.ai_fit_score)})</span>` : ""}</td>
 				<td>${score(p.buying_signal_score)}</td>
 				<td>${score(p.evidence_confidence)}</td>
 				<td>${e(__(p.contactability || ""))}</td>
@@ -81,10 +82,10 @@ class ProspectReview {
 				<thead><tr>
 					<th><input type="checkbox" class="review-all"></th>
 					<th>${__("Business")}</th><th>${__("Website")}</th><th>${__("Result")}</th>
-					<th>${__("Fit")}</th><th>${__("Buying signal")}</th><th>${__("Evidence")}</th>
+					<th>${__("Deal probability")}</th><th>${__("Fit")}</th><th>${__("Buying signal")}</th><th>${__("Evidence")}</th>
 					<th>${__("Contact")}</th><th>${__("Research")}</th>
 				</tr></thead>
-				<tbody>${body || `<tr><td colspan="9" class="text-muted">${__("Nothing to review")}</td></tr>`}</tbody>
+				<tbody>${body || `<tr><td colspan="10" class="text-muted">${__("Nothing to review")}</td></tr>`}</tbody>
 			</table>`);
 		this.$body.find(".review-all").on("change", (ev) =>
 			this.$body.find(".review-select").prop("checked", ev.target.checked)

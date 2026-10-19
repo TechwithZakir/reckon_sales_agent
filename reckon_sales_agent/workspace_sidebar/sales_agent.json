@@ -30,6 +30,17 @@
    "show_arrow": 0
   },
   {
+   "type": "Link",
+   "label": "Campaign Analytics",
+   "link_to": "sales-analytics",
+   "link_type": "Page",
+   "icon": "bar-chart",
+   "child": 0,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
    "type": "Section Break",
    "label": "Discovery",
    "icon": "search",
@@ -37,6 +48,17 @@
    "indent": 0,
    "collapsible": 1,
    "keep_closed": 0,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Targeting Profiles",
+   "link_to": "Sales Targeting Profile",
+   "link_type": "DocType",
+   "icon": "crosshair",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
    "show_arrow": 0
   },
   {
@@ -143,6 +165,17 @@
    "link_to": "Sales Communication Event",
    "link_type": "DocType",
    "icon": "activity",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Campaign Insights",
+   "link_to": "Sales Campaign Insight",
+   "link_type": "DocType",
+   "icon": "lightbulb",
    "child": 1,
    "indent": 0,
    "collapsible": 1,

@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-19 12:00:00.000000",
+ "modified": "2026-10-20 09:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -33,6 +33,24 @@
   "max_results_per_job",
   "max_concurrent_jobs",
   "retention_days",
+  "autopilot_section",
+  "auto_approve_enabled",
+  "auto_approve_min_fit",
+  "auto_approve_min_evidence",
+  "auto_approve_min_probability",
+  "autopilot_col",
+  "auto_approve_require_contact",
+  "auto_approve_daily_cap",
+  "auto_sync_to_crm",
+  "ai_scoring_section",
+  "ai_score_weight",
+  "classify_replies_with_ai",
+  "ai_scoring_col",
+  "create_crm_tasks",
+  "task_due_days",
+  "channels_section",
+  "sms_enabled",
+  "whatsapp_enabled",
   "limits_section",
   "monthly_discovery_limit",
   "monthly_research_limit",
@@ -142,6 +160,111 @@
    "fieldtype": "Int",
    "label": "Prospect Retention (Days)",
    "default": "365"
+  },
+  {
+   "fieldname": "autopilot_section",
+   "fieldtype": "Section Break",
+   "label": "Autopilot"
+  },
+  {
+   "fieldname": "auto_approve_enabled",
+   "fieldtype": "Check",
+   "label": "Auto-Approve Strong Prospects",
+   "default": "0",
+   "description": "Approve prospects that meet every rule below without waiting for review."
+  },
+  {
+   "fieldname": "auto_approve_min_fit",
+   "fieldtype": "Float",
+   "label": "Minimum Fit Score",
+   "default": "75"
+  },
+  {
+   "fieldname": "auto_approve_min_evidence",
+   "fieldtype": "Float",
+   "label": "Minimum Evidence Confidence",
+   "default": "40"
+  },
+  {
+   "fieldname": "auto_approve_min_probability",
+   "fieldtype": "Percent",
+   "label": "Minimum Deal Probability",
+   "default": "0"
+  },
+  {
+   "fieldname": "autopilot_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "auto_approve_require_contact",
+   "fieldtype": "Check",
+   "label": "Require a Contact Channel",
+   "default": "1"
+  },
+  {
+   "fieldname": "auto_approve_daily_cap",
+   "fieldtype": "Int",
+   "label": "Auto-Approvals per Day",
+   "default": "50"
+  },
+  {
+   "fieldname": "auto_sync_to_crm",
+   "fieldtype": "Check",
+   "label": "Create CRM Leads for Auto-Approved",
+   "default": "1"
+  },
+  {
+   "fieldname": "ai_scoring_section",
+   "fieldtype": "Section Break",
+   "label": "AI Scoring & Replies"
+  },
+  {
+   "fieldname": "ai_score_weight",
+   "fieldtype": "Percent",
+   "label": "AI Share of Combined Score",
+   "default": "30",
+   "description": "The deterministic score always counts for the rest; AI is never the only authority."
+  },
+  {
+   "fieldname": "classify_replies_with_ai",
+   "fieldtype": "Check",
+   "label": "Classify Replies with AI",
+   "default": "1"
+  },
+  {
+   "fieldname": "ai_scoring_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "create_crm_tasks",
+   "fieldtype": "Check",
+   "label": "Create CRM Tasks for Positive Replies",
+   "default": "1"
+  },
+  {
+   "fieldname": "task_due_days",
+   "fieldtype": "Int",
+   "label": "Task Due in (Days)",
+   "default": "1"
+  },
+  {
+   "fieldname": "channels_section",
+   "fieldtype": "Section Break",
+   "label": "Channels"
+  },
+  {
+   "fieldname": "sms_enabled",
+   "fieldtype": "Check",
+   "label": "SMS (BulkSMSBD)",
+   "default": "0",
+   "description": "Sent only to contacts with recorded SMS consent."
+  },
+  {
+   "fieldname": "whatsapp_enabled",
+   "fieldtype": "Check",
+   "label": "WhatsApp Business",
+   "default": "0",
+   "description": "Needs the frappe_whatsapp app and recorded WhatsApp opt-in."
   },
   {
    "fieldname": "limits_section",

@@ -52,6 +52,22 @@ def build_connector(connector_doc):
         )
     if kind == "manual_import":
         return CSVImportConnector(_attached_csv(connector_doc))
+    if kind == "permitted_directory":
+        from reckon_sales_agent.connectors.directory_crawler import DirectoryCrawler
+        from reckon_sales_agent.usage import platform_settings
+
+        settings = platform_settings()
+        if not settings.research_enabled:
+            raise ConnectorNotPermitted(_("Web crawling is disabled by the platform vendor."))
+        return DirectoryCrawler(
+            (connector_doc.start_urls or "").splitlines(),
+            user_agent=settings.user_agent or "ReckonSalesAgent/1.0",
+            allowed_path_prefix=connector_doc.allowed_path_prefix,
+            max_pages=connector_doc.max_pages or 10,
+            delay=connector_doc.crawl_delay_seconds or 2,
+            timeout=settings.fetch_timeout or 10,
+            max_bytes=(settings.max_page_kb or 1024) * 1024,
+        )
     raise ConnectorNotPermitted(_("Connector type {0} is not available yet.").format(kind))
 
 

@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-19 12:00:00.000000",
+ "modified": "2026-10-20 09:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -54,13 +54,22 @@
   "scoring_col",
   "buying_signal_score",
   "evidence_confidence",
+  "ai_fit_score",
+  "deal_probability",
+  "auto_approved",
   "contactability",
   "crm_section",
   "crm_organization",
   "crm_lead",
   "crm_col",
   "do_not_contact",
-  "review_notes"
+  "review_notes",
+  "consent_section",
+  "sms_consent",
+  "whatsapp_consent",
+  "consent_col",
+  "consent_source",
+  "consent_date"
  ],
  "fields": [
   {
@@ -304,6 +313,25 @@
    "read_only": 1
   },
   {
+   "fieldname": "ai_fit_score",
+   "fieldtype": "Float",
+   "label": "AI Fit Score",
+   "read_only": 1
+  },
+  {
+   "fieldname": "deal_probability",
+   "fieldtype": "Percent",
+   "label": "Deal Probability",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "auto_approved",
+   "fieldtype": "Check",
+   "label": "Auto Approved",
+   "read_only": 1
+  },
+  {
    "fieldname": "contactability",
    "fieldtype": "Select",
    "label": "Contactability",
@@ -343,6 +371,38 @@
    "fieldname": "review_notes",
    "fieldtype": "Small Text",
    "label": "Review Notes"
+  },
+  {
+   "fieldname": "consent_section",
+   "fieldtype": "Section Break",
+   "label": "Channel Consent"
+  },
+  {
+   "fieldname": "sms_consent",
+   "fieldtype": "Check",
+   "label": "SMS Consent",
+   "default": "0"
+  },
+  {
+   "fieldname": "whatsapp_consent",
+   "fieldtype": "Check",
+   "label": "WhatsApp Opt-in",
+   "default": "0"
+  },
+  {
+   "fieldname": "consent_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "consent_source",
+   "fieldtype": "Data",
+   "label": "Consent Source",
+   "description": "How consent was obtained (form, call, event)."
+  },
+  {
+   "fieldname": "consent_date",
+   "fieldtype": "Date",
+   "label": "Consent Date"
   }
  ],
  "permissions": [

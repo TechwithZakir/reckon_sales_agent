@@ -128,13 +128,22 @@ for _doctype in _NAMED_BY_FIELD:
     doc_events[_doctype]["autoname"] = f"{_CRM}.set_tenant_name"
 doc_events["Communication"]["after_insert"] = "reckon_sales_agent.campaigns.engine.handle_communication"
 doc_events["CRM Deal"]["after_insert"] = "reckon_sales_agent.campaigns.engine.handle_deal"
+# Inbound WhatsApp replies (only fires when the frappe_whatsapp app is installed).
+doc_events["WhatsApp Message"] = {"after_insert": "reckon_sales_agent.campaigns.engine.handle_whatsapp"}
 
 scheduler_events = {
     "hourly": [
         "reckon_sales_agent.campaigns.engine.run_campaign_tick",
         "reckon_sales_agent.jobs.recover_stuck_jobs",
     ],
-    "daily": ["reckon_sales_agent.jobs.purge_expired_source_data"],
+    "daily": [
+        "reckon_sales_agent.jobs.run_scheduled_discovery",
+        "reckon_sales_agent.jobs.purge_expired_source_data",
+    ],
+    "weekly": [
+        "reckon_sales_agent.qualification.service.recalibrate_all",
+        "reckon_sales_agent.campaigns.analytics.analyze_active_campaigns",
+    ],
 }
 
 fixtures = [{"dt": "Role", "filters": [["name", "in", list(_c.SAAS_ROLES)]]}]

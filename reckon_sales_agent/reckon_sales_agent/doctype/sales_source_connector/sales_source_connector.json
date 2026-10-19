@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-19 12:00:00.000000",
+ "modified": "2026-10-20 09:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -25,6 +25,13 @@
   "policy_section",
   "field_policy",
   "config_json",
+  "crawler_section",
+  "start_urls",
+  "allowed_path_prefix",
+  "crawler_col",
+  "max_pages",
+  "crawl_delay_seconds",
+  "terms_url",
   "health_section",
   "last_health_status",
   "last_error"
@@ -93,6 +100,46 @@
    "fieldtype": "Code",
    "label": "Configuration",
    "options": "JSON"
+  },
+  {
+   "fieldname": "crawler_section",
+   "fieldtype": "Section Break",
+   "label": "Crawler (Permitted Directory)",
+   "depends_on": "eval:doc.connector_type==\"permitted_directory\""
+  },
+  {
+   "fieldname": "start_urls",
+   "fieldtype": "Small Text",
+   "label": "Start URLs",
+   "description": "Listing pages the tenant is permitted to crawl, one per line. {keyword} and {location} are filled from the plan."
+  },
+  {
+   "fieldname": "allowed_path_prefix",
+   "fieldtype": "Data",
+   "label": "Allowed Path Prefix",
+   "description": "Only follow pagination links under this path, e.g. /members/."
+  },
+  {
+   "fieldname": "crawler_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "max_pages",
+   "fieldtype": "Int",
+   "label": "Max Pages per Search",
+   "default": "10"
+  },
+  {
+   "fieldname": "crawl_delay_seconds",
+   "fieldtype": "Float",
+   "label": "Delay Between Requests (Seconds)",
+   "default": "2"
+  },
+  {
+   "fieldname": "terms_url",
+   "fieldtype": "Data",
+   "label": "Source Terms URL",
+   "options": "URL"
   },
   {
    "fieldname": "health_section",

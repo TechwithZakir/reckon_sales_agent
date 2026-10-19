@@ -5,7 +5,8 @@ from reckon_sales_agent.tenant import protect_fields
 PROTECTED = ("result", "industry_fit", "operational_complexity", "need_signal", "scale", "evidence_quality",
              "fit_score", "buying_signal_score", "evidence_confidence", "contactability", "explanation",
              "unknowns", "scoring_version", "profile_version", "override_result", "override_reason",
-             "overridden_by")
+             "overridden_by", "ai_fit_score", "ai_intent_score", "combined_score", "deal_probability",
+             "probability_model", "ai_rationale", "ai_risks")
 
 
 class SalesQualification(Document):

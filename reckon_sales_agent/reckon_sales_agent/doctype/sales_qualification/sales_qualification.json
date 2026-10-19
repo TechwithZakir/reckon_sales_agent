@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-19 12:00:00.000000",
+ "modified": "2026-10-20 09:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -35,6 +35,15 @@
   "dimensions_col",
   "evidence_confidence",
   "contactability",
+  "ai_section",
+  "ai_fit_score",
+  "ai_intent_score",
+  "combined_score",
+  "ai_col",
+  "deal_probability",
+  "probability_model",
+  "ai_rationale",
+  "ai_risks",
   "explain_section",
   "explanation",
   "unknowns",
@@ -159,6 +168,57 @@
    "fieldname": "contactability",
    "fieldtype": "Data",
    "label": "Contactability",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ai_section",
+   "fieldtype": "Section Break",
+   "label": "AI Assessment"
+  },
+  {
+   "fieldname": "ai_fit_score",
+   "fieldtype": "Float",
+   "label": "AI Fit Score",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ai_intent_score",
+   "fieldtype": "Float",
+   "label": "AI Intent Score",
+   "read_only": 1
+  },
+  {
+   "fieldname": "combined_score",
+   "fieldtype": "Float",
+   "label": "Combined Score",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ai_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "deal_probability",
+   "fieldtype": "Percent",
+   "label": "Deal Probability",
+   "read_only": 1
+  },
+  {
+   "fieldname": "probability_model",
+   "fieldtype": "Data",
+   "label": "Probability Model",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ai_rationale",
+   "fieldtype": "Small Text",
+   "label": "AI Rationale",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ai_risks",
+   "fieldtype": "Small Text",
+   "label": "AI Risks",
    "read_only": 1
   },
   {

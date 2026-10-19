@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-19 12:00:00.000000",
+ "modified": "2026-10-20 09:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -36,10 +36,14 @@
   "member_count",
   "sent_count",
   "reply_count",
+  "positive_reply_count",
+  "meeting_count",
   "metrics_col",
   "unsubscribe_count",
   "bounce_count",
-  "converted_count"
+  "converted_count",
+  "task_count",
+  "latest_insight"
  ],
  "fields": [
   {
@@ -72,8 +76,8 @@
    "fieldname": "channel",
    "fieldtype": "Select",
    "label": "Channel",
-   "options": "Email",
-   "default": "Email"
+   "options": "Omni-channel\nEmail",
+   "default": "Omni-channel"
   },
   {
    "fieldname": "offer",
@@ -167,6 +171,18 @@
    "read_only": 1
   },
   {
+   "fieldname": "positive_reply_count",
+   "fieldtype": "Int",
+   "label": "Positive Reply Count",
+   "read_only": 1
+  },
+  {
+   "fieldname": "meeting_count",
+   "fieldtype": "Int",
+   "label": "Meetings Requested",
+   "read_only": 1
+  },
+  {
    "fieldname": "metrics_col",
    "fieldtype": "Column Break"
   },
@@ -186,6 +202,19 @@
    "fieldname": "converted_count",
    "fieldtype": "Int",
    "label": "Converted Count",
+   "read_only": 1
+  },
+  {
+   "fieldname": "task_count",
+   "fieldtype": "Int",
+   "label": "CRM Tasks Created",
+   "read_only": 1
+  },
+  {
+   "fieldname": "latest_insight",
+   "fieldtype": "Link",
+   "label": "Latest Insight",
+   "options": "Sales Campaign Insight",
    "read_only": 1
   }
  ],
