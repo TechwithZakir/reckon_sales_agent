@@ -1,0 +1,244 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Business Profile",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-10-26 03:00:00.000000",
+ "modified": "2026-10-26 03:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 0,
+ "issingle": 0,
+ "editable_grid": 0,
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "field_order": [
+  "company",
+  "business_name",
+  "what_we_sell",
+  "offer_section",
+  "products",
+  "offer_col",
+  "problems_solved",
+  "icp_section",
+  "target_industries",
+  "business_types",
+  "buyer_roles",
+  "icp_col",
+  "regions",
+  "size_signals",
+  "languages",
+  "exclude_section",
+  "competitors",
+  "exclude_col",
+  "exclusions",
+  "customers_section",
+  "best_customers",
+  "best_customers_synced_on",
+  "brief_section",
+  "latest_brief"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "search_index": 1,
+   "remember_last_selected_value": 1
+  },
+  {
+   "fieldname": "business_name",
+   "fieldtype": "Data",
+   "label": "Business Name",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "what_we_sell",
+   "fieldtype": "Small Text",
+   "label": "What You Sell",
+   "description": "One or two sentences: your offer and who it helps."
+  },
+  {
+   "fieldname": "offer_section",
+   "fieldtype": "Section Break",
+   "label": "Your Offer"
+  },
+  {
+   "fieldname": "products",
+   "fieldtype": "Small Text",
+   "label": "Products and Services",
+   "description": "One per line."
+  },
+  {
+   "fieldname": "offer_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "problems_solved",
+   "fieldtype": "Small Text",
+   "label": "Problems You Solve",
+   "description": "One per line: stock-outs, slow collections, route planning."
+  },
+  {
+   "fieldname": "icp_section",
+   "fieldtype": "Section Break",
+   "label": "Ideal Customer"
+  },
+  {
+   "fieldname": "target_industries",
+   "fieldtype": "Small Text",
+   "label": "Target Industries",
+   "description": "One per line."
+  },
+  {
+   "fieldname": "business_types",
+   "fieldtype": "Small Text",
+   "label": "Business Types",
+   "description": "Distributors, wholesalers, retail chains, clinics... one per line."
+  },
+  {
+   "fieldname": "buyer_roles",
+   "fieldtype": "Small Text",
+   "label": "Buyer Roles",
+   "description": "Owner, procurement manager, operations head... one per line."
+  },
+  {
+   "fieldname": "icp_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "regions",
+   "fieldtype": "Small Text",
+   "label": "Regions",
+   "description": "Cities or areas you serve, one per line."
+  },
+  {
+   "fieldname": "size_signals",
+   "fieldtype": "Small Text",
+   "label": "Size Signals",
+   "description": "Signs of a good-size customer: branches, warehouse, fleet... one per line."
+  },
+  {
+   "fieldname": "languages",
+   "fieldtype": "Data",
+   "label": "Search Languages",
+   "default": "English, Bangla"
+  },
+  {
+   "fieldname": "exclude_section",
+   "fieldtype": "Section Break",
+   "label": "Leave Out"
+  },
+  {
+   "fieldname": "competitors",
+   "fieldtype": "Small Text",
+   "label": "Competitors",
+   "description": "One per line; they are never leads."
+  },
+  {
+   "fieldname": "exclude_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "exclusions",
+   "fieldtype": "Small Text",
+   "label": "Exclusions",
+   "description": "Business types or words to rule out, one per line."
+  },
+  {
+   "fieldname": "customers_section",
+   "fieldtype": "Section Break",
+   "label": "Your Best Customers"
+  },
+  {
+   "fieldname": "best_customers",
+   "fieldtype": "Small Text",
+   "label": "Best Customers",
+   "description": "One per line as Name | website | industry. Imported from won CRM deals; add more by hand."
+  },
+  {
+   "fieldname": "best_customers_synced_on",
+   "fieldtype": "Datetime",
+   "label": "Imported From CRM On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "brief_section",
+   "fieldtype": "Section Break",
+   "label": "Market Research"
+  },
+  {
+   "fieldname": "latest_brief",
+   "fieldtype": "Link",
+   "label": "Latest Market Brief",
+   "options": "Sales Market Brief",
+   "read_only": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Vendor Superuser",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Admin",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "Reckon Sales Agent User",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  }
+ ],
+ "autoname": "hash",
+ "naming_rule": "Random",
+ "title_field": "business_name",
+ "show_title_field_in_link": 1
+}

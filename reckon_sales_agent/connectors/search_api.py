@@ -61,6 +61,17 @@ class _SearchAPIConnector:
             if returned >= query.max_results or not results or len(results) < self.page_size:
                 return
 
+    def search(self, text: str, count: int = 10) -> list[dict]:
+        """One page of plain results as [{url, title, text}] (market research and verification)."""
+        self.validate_configuration()
+        rows = []
+        for result in self._page(text, 0)[:count]:
+            url = result.get("link") or result.get("url") or ""
+            if url.startswith(("http://", "https://")):
+                rows.append({"url": url, "title": result.get("title") or "",
+                             "text": result.get("snippet") or result.get("description") or ""})
+        return rows
+
     def _page(self, text: str, page: int) -> list[dict]:
         raise NotImplementedError
 

@@ -406,14 +406,22 @@ class DocTypeDefinitionTests(unittest.TestCase):
     ROOT = Path(__file__).parents[1] / "reckon_sales_agent"
 
     def test_every_company_doctype_has_a_required_company_field(self):
-        from reckon_sales_agent.constants import CHILD_DOCTYPES, COMPANY_DOCTYPES, PLATFORM_SETTINGS
+        from reckon_sales_agent.constants import (
+            CHILD_DOCTYPES,
+            COMPANY_DOCTYPES,
+            PLATFORM_SETTINGS,
+            VENDOR_DOCTYPES,
+        )
 
         folder = self.ROOT / "reckon_sales_agent" / "doctype"
         found = {}
         for path in folder.glob("*/*.json"):
             doc = json.loads(path.read_text(encoding="utf-8"))
             found[doc["name"]] = doc
-        self.assertEqual(set(found), set(COMPANY_DOCTYPES) | set(CHILD_DOCTYPES) | {PLATFORM_SETTINGS})
+        self.assertEqual(set(found), set(COMPANY_DOCTYPES) | set(CHILD_DOCTYPES) | set(VENDOR_DOCTYPES)
+                         | {PLATFORM_SETTINGS})
+        for name in VENDOR_DOCTYPES:
+            self.assertEqual({p["role"] for p in found[name]["permissions"]}, {"System Manager", "Reckon Vendor Superuser"})
         for name in COMPANY_DOCTYPES:
             company = next(f for f in found[name]["fields"] if f["fieldname"] == "company")
             self.assertEqual((company["fieldtype"], company["options"], company.get("reqd")), ("Link", "Company", 1))

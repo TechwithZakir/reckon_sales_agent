@@ -18,8 +18,10 @@ MAPS_SOURCES = frozenset({"google_places_api", "serpapi_google_maps", "scrapingd
 BRAVE_SOURCES = frozenset({"brave_web_search", "brave_place_search", "brave_llm_context"})
 SEARCH_SOURCES = BRAVE_SOURCES | frozenset({"scrapingdog_google_search", "scrapingbee_google_search", "serpapi_google_search",
                             "google_search_browser_experimental"})
+# Smart Sources: one search across every active places and page-context provider.
+MULTI_SOURCE = "multi_source"
 # Sources whose terms we do not control: tenants may only tighten their policy.
-RESTRICTED_SOURCES = MAPS_SOURCES | SEARCH_SOURCES
+RESTRICTED_SOURCES = MAPS_SOURCES | SEARCH_SOURCES | {MULTI_SOURCE}
 # Sources that need an explicit "policy reviewed" confirmation before running.
 EXTERNAL_SOURCES = RESTRICTED_SOURCES | {"permitted_directory"}
 
@@ -48,10 +50,16 @@ def build_connector(connector_doc):
         return FixtureConnector(config)
     if kind == "manual_import":
         return CSVImportConnector(_attached_csv(connector_doc))
-    if kind in MAPS_SOURCES:
-        return _maps_connector(kind)
-    if kind in SEARCH_SOURCES:
-        return _search_connector(kind)
+    if kind in MAPS_SOURCES or kind in SEARCH_SOURCES:
+        from reckon_sales_agent.providers.router import build_provider
+
+        return build_provider(kind)  # counts every request against the provider's monthly budget
+    if kind == MULTI_SOURCE:
+        from reckon_sales_agent.connectors.multi_source import MultiSourceConnector
+        from reckon_sales_agent.providers.router import active, build_provider
+
+        kinds = active("places") + active("page_context")
+        return MultiSourceConnector([(k, build_provider(k)) for k in kinds])
     if kind == "permitted_directory":
         from reckon_sales_agent.connectors.directory_crawler import DirectoryCrawler
         from reckon_sales_agent.usage import platform_settings
@@ -72,7 +80,16 @@ def build_connector(connector_doc):
     raise ConnectorNotPermitted(_("Connector type {0} is not available yet.").format(kind))
 
 
-def _maps_connector(kind: str):
+def provider_connector(kind: str, session=None):
+    """A Maps or search provider's connector built from Platform Settings (no tenant record needed)."""
+    if kind in MAPS_SOURCES:
+        return _maps_connector(kind, session)
+    if kind in SEARCH_SOURCES:
+        return _search_connector(kind, session)
+    raise ConnectorNotPermitted(_("{0} is not a lead search provider.").format(kind))
+
+
+def _maps_connector(kind: str, session=None):
     from reckon_sales_agent.connectors.apify_maps import ApifyMapsConnector
     from reckon_sales_agent.connectors.maps_browser import GoogleMapsBrowserConnector
     from reckon_sales_agent.connectors.scrapingbee_maps import ScrapingBeeMapsConnector
@@ -86,16 +103,16 @@ def _maps_connector(kind: str):
     secret = lambda field: s.get_password(field, raise_exception=False)  # noqa: E731
     if kind == "serpapi_google_maps":
         return SerpAPIMapsConnector(secret("serpapi_api_key"), enabled=bool(s.serpapi_enabled), terms_ack=ack,
-                                    retention_days=retention)
+                                    retention_days=retention, session=session)
     if kind == "scrapingdog_google_maps":
         return ScrapingdogMapsConnector(secret("scrapingdog_api_key"), enabled=bool(s.scrapingdog_enabled),
-                                        terms_ack=ack, retention_days=retention)
+                                        terms_ack=ack, retention_days=retention, session=session)
     if kind == "scrapingbee_google_maps":
         return ScrapingBeeMapsConnector(secret("scrapingbee_api_key"), enabled=bool(s.scrapingbee_enabled),
-                                        terms_ack=ack, retention_days=retention)
+                                        terms_ack=ack, retention_days=retention, session=session)
     if kind == "apify_google_maps":
         return ApifyMapsConnector(secret("apify_api_token"), enabled=bool(s.apify_enabled), terms_ack=ack,
-                                  actor=s.apify_actor, retention_days=retention)
+                                  actor=s.apify_actor, retention_days=retention, session=session)
     if kind == "google_maps_browser_experimental":
         return GoogleMapsBrowserConnector(enabled=bool(s.maps_browser_enabled), terms_ack=ack,
                                           max_results=s.maps_browser_max_results or 40,
@@ -106,10 +123,11 @@ def _maps_connector(kind: str):
         enabled=bool(s.places_enabled),
         terms_reviewed=bool(s.places_terms_reviewed),
         retention_days=s.places_retention_days or 30,
+        session=session,
     )
 
 
-def _search_connector(kind: str):
+def _search_connector(kind: str, session=None):
     from reckon_sales_agent.connectors.search_api import (
         ScrapingBeeSearchConnector,
         ScrapingdogSearchConnector,
@@ -136,15 +154,16 @@ def _search_connector(kind: str):
         cls = {"brave_web_search": BraveSearchConnector, "brave_place_search": BravePlaceSearchConnector,
                "brave_llm_context": BraveLLMContextConnector}[kind]
         return cls(secret("brave_api_key"), enabled=bool(s.brave_enabled), retention_days=common["retention_days"],
-                   country=s.brave_country or "", language=common["language"])
+                   country=s.brave_country or "", language=common["language"], session=session)
     if kind == "scrapingdog_google_search":
         return ScrapingdogSearchConnector(secret("scrapingdog_api_key"), enabled=bool(s.search_scrapingdog_enabled),
-                                          **common)
+                                          session=session, **common)
     if kind == "scrapingbee_google_search":
         return ScrapingBeeSearchConnector(secret("scrapingbee_api_key"), enabled=bool(s.search_scrapingbee_enabled),
-                                          **common)
+                                          session=session, **common)
     if kind == "serpapi_google_search":
-        return SerpAPISearchConnector(secret("serpapi_api_key"), enabled=bool(s.search_serpapi_enabled), **common)
+        return SerpAPISearchConnector(secret("serpapi_api_key"), enabled=bool(s.search_serpapi_enabled),
+                                      session=session, **common)
     return GoogleSearchBrowserConnector(enabled=bool(s.search_browser_enabled),
                                         max_results=s.search_browser_max_results or 30,
                                         delay=s.search_browser_delay or 4, **common)

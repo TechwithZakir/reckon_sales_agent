@@ -1,4 +1,4 @@
-// Lead Finder Studio: source -> targeting -> campaign & schedule -> launch with live progress.
+// Lead Finder Studio: your business & market research -> source -> targeting -> campaign & schedule -> launch.
 // Wrapped in a closure: Desk evaluates page scripts in the global scope.
 (() => {
 	frappe.pages["lead-finder"].on_page_load = function (wrapper) {
@@ -58,6 +58,12 @@
 		load() {
 			return this.call("bootstrap").then((data) => {
 				this.data = data;
+				if (!this.started) {
+					// First visit: start with the business; once a market brief is approved, start at the sources.
+					this.started = true;
+					const brief = (data.business || {}).brief;
+					this.step = brief && brief.status === "Approved" ? 2 : 1;
+				}
 				this.render();
 			});
 		}
@@ -89,7 +95,7 @@
 						${this.data.ai_available ? `<span class="lfs-pill ok"><span class="dot"></span>${__("AI assist on")}</span>` : ""}
 					</div>
 				</div>
-				<div class="lfs-steps">${[__("Source"), __("Who to find"), __("Campaign & schedule"), __("Launch")]
+				<div class="lfs-steps">${[__("Your business"), __("Source"), __("Who to find"), __("Campaign & schedule"), __("Launch")]
 					.map((label, i) => `<div class="lfs-step ${i + 1 === this.step ? "active" : i + 1 < this.step ? "done" : ""}" data-step="${i + 1}">
 						<span class="num">${i + 1 < this.step ? lfs_icon("check", 14) : i + 1}</span><span class="label">${e(label)}</span></div>`)
 					.join("")}</div>
@@ -97,12 +103,12 @@
 				<div class="lfs-recent"></div>`);
 			this.$root.find(".lfs-step.done").on("click", (ev) => this.go(Number(ev.currentTarget.dataset.step)));
 			const body = this.$root.find(".lfs-body");
-			[null, this.render_source, this.render_targeting, this.render_campaign, this.render_launch][this.step].call(this, body);
+			[null, this.render_business, this.render_source, this.render_targeting, this.render_campaign, this.render_launch][this.step].call(this, body);
 			this.render_recent(this.$root.find(".lfs-recent"));
 		}
 
 		go(step) {
-			if (step !== 4) this.stop_polling();
+			if (step !== 5) this.stop_polling();
 			this.step = step;
 			this.render();
 			window.scrollTo({ top: 0, behavior: "smooth" });
@@ -118,7 +124,130 @@
 			return $a;
 		}
 
-		// ---------------------------------------------------------------- 1. source
+		// ---------------------------------------------------------------- 1. your business & market research
+		render_business(body) {
+			const stored = (this.data.business || {}).profile || {};
+			const biz = (this.state.biz = this.state.biz || { business_name: stored.business_name || "", what_we_sell: stored.what_we_sell || "",
+				best_customers: stored.best_customers || "" });
+			const canManage = this.data.can_manage;
+			const panel = $(`<div class="lfs-panel"><h3>${__("Tell the agent about your business")}</h3>
+				<p class="lead">${__("The agent researches your market on the web and proposes who to target, with search keywords in English and Bangla.")}</p>
+				<div class="lfs-grid2">
+					<div class="lfs-field"><label>${__("Business name")}</label>
+						<input class="form-control lfs-bname" value="${e(biz.business_name)}"></div>
+					<div class="lfs-field"><label>${__("What you sell")}</label>
+						<input class="form-control lfs-what" value="${e(biz.what_we_sell)}" placeholder="${__("e.g. Distribution management software for FMCG and pharma distributors")}"></div>
+					${this.chip_field("biz_products", __("Products and services"), __("e.g. DMS, van sales app"), stored.products)}
+					${this.chip_field("biz_problems_solved", __("Problems you solve"), __("e.g. stock-outs, slow collections"), stored.problems_solved)}
+					${this.chip_field("biz_target_industries", __("Target industries"), __("e.g. Pharmaceutical, FMCG"), stored.target_industries)}
+					${this.chip_field("biz_business_types", __("Business types you sell to"), __("e.g. distributors, wholesalers, pharmacies"), stored.business_types)}
+					${this.chip_field("biz_buyer_roles", __("Buyer roles"), __("e.g. owner, procurement manager"), stored.buyer_roles)}
+					${this.chip_field("biz_regions", __("Regions you serve"), __("e.g. Dhaka, Chattogram"), stored.regions)}
+					${this.chip_field("biz_size_signals", __("Signs of a good customer"), __("e.g. several branches, own warehouse"), stored.size_signals)}
+					${this.chip_field("biz_competitors", __("Competitors (never leads)"), __("Company names"), stored.competitors)}
+				</div>
+				<div class="lfs-field" style="margin-top:14px"><label>${__("Your best customers (Name | website | industry)")}</label>
+					<textarea class="form-control lfs-best" rows="3" placeholder="${__("One per line. The agent looks for businesses like these.")}">${e(biz.best_customers)}</textarea>
+					<div class="hint"><button type="button" class="btn btn-xs btn-default lfs-import">${__("Import from won CRM deals")}</button></div></div>
+				<div class="lfs-brief"></div></div>`).appendTo(body);
+			this.bind_chips(panel);
+			panel.find(".lfs-bname").on("input", (ev) => (biz.business_name = ev.target.value));
+			panel.find(".lfs-what").on("input", (ev) => (biz.what_we_sell = ev.target.value));
+			panel.find(".lfs-best").on("input", (ev) => (biz.best_customers = ev.target.value));
+			panel.find(".lfs-import").on("click", () => this.save_business().then(() => this.call("import_customers")).then((r) => {
+				biz.best_customers = r.best_customers;
+				panel.find(".lfs-best").val(r.best_customers);
+				frappe.show_alert({ message: __("{0} customers imported from won deals", [r.added]), indicator: r.added ? "green" : "blue" });
+			}));
+			if (!canManage) panel.find("input, textarea, .lfs-import").prop("disabled", true);
+			const $a = this.actions(body, {
+				next: canManage ? () => this.save_business().then(() => this.call("research_market")).then((brief) => {
+					this.state.briefName = brief;
+					this.state.brief = null;
+					return this.call("bootstrap").then((d) => ((this.data = d), this.render()));
+				}) : null,
+				nextLabel: __("Research my market"), nextIcon: "spark",
+			});
+			$(`<button class="btn btn-default btn-sm">${__("Skip, I know who to target")}</button>`).prependTo($a.find(".right")).on("click", () => this.go(2));
+			const briefName = this.state.briefName || ((this.data.business || {}).brief || {}).name;
+			if (briefName) this.load_brief(panel.find(".lfs-brief"), briefName);
+		}
+
+		save_business() {
+			const biz = this.state.biz || {};
+			const data = { business_name: biz.business_name, what_we_sell: biz.what_we_sell, best_customers: biz.best_customers };
+			["products", "problems_solved", "target_industries", "business_types", "buyer_roles", "regions", "size_signals", "competitors"]
+				.forEach((k) => (data[k] = (this.state.chips[`biz_${k}`] || []).join("\n")));
+			return this.call("save_business", { data: JSON.stringify(data) });
+		}
+
+		load_brief(el, name) {
+			this.call("market_brief", { brief: name }).then((brief) => {
+				this.state.brief = brief;
+				this.render_brief(el, brief);
+				if (brief.status === "Researching" && this.step === 1) {
+					clearTimeout(this.briefTimer);
+					this.briefTimer = setTimeout(() => this.step === 1 && this.load_brief(el, name), 4000);
+				}
+			});
+		}
+
+		render_brief(el, b) {
+			if (b.status === "Researching") {
+				el.html(`<div class="lfs-panel" style="margin-top:16px"><h3>${__("Researching your market...")}</h3>
+					<p class="lead">${__("Reading the web about your industries, customers and competitors. This usually takes one to two minutes.")}</p>
+					<div class="lfs-progress indeterminate"><div></div></div></div>`);
+				return;
+			}
+			if (b.status === "Failed") {
+				el.html(`<div class="lfs-note bad" style="margin-top:16px"><b>${__("Market research failed")}</b>: ${e(b.error || "")}</div>`);
+				return;
+			}
+			const host = (url) => { try { return new URL(url).hostname.replace(/^www\./, ""); } catch (x) { return url; } };
+			const chips = (items, cls = "") => (items || []).map((v) => `<span class="lfs-chip lfs-mini ${cls}">${e(v)}</span>`).join("");
+			const approved = b.status === "Approved";
+			el.html(`<div class="lfs-panel" style="margin-top:16px">
+				<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+					<h3>${__("Your market brief")}</h3>
+					<span class="lfs-state ${approved ? "Done" : "Running"}">${approved ? __("Approved") : __("Ready to review")}</span></div>
+				<p class="lead">${e(b.summary || "")}</p>
+				<div class="meta lfs-brief-meta">${b.method === "ai" ? __("AI research on {0} web pages", [b.sources.length]) : __("Built from your profile")}
+					${b.providers_used ? " &middot; " + e(b.providers_used) : ""}</div>
+				<div class="lfs-segs">${b.segments.map((s) => `
+					<label class="lfs-seg-card">
+						<div class="lfs-seg-head"><input type="checkbox" class="lfs-keep" value="${e(s.name)}" ${s.include ? "checked" : ""} ${approved ? "disabled" : ""}>
+							<b>${e(s.segment_name)}</b><span class="lfs-badge">${__("Priority {0}", [s.priority])}</span></div>
+						<div class="lfs-seg-why">${e(s.fit_reason || "")}</div>
+						<div class="lfs-seg-row"><span>${__("Search")}</span>${chips(s.keywords)}${chips(s.bangla_keywords, "bn")}</div>
+						${s.business_types.length ? `<div class="lfs-seg-row"><span>${__("Buyers")}</span>${chips(s.business_types)}</div>` : ""}
+						${s.locations.length ? `<div class="lfs-seg-row"><span>${__("Where")}</span>${chips(s.locations)}</div>` : ""}
+						${s.buying_signals.length ? `<div class="lfs-seg-row"><span>${__("Signals")}</span>${chips(s.buying_signals)}</div>` : ""}
+						${s.evidence_urls.length ? `<div class="lfs-seg-row"><span>${__("Evidence")}</span>${s.evidence_urls.map((u) =>
+							`<a href="${e(u)}" target="_blank" rel="noopener noreferrer">${e(host(u))}</a>`).join(" &middot; ")}</div>` : ""}
+					</label>`).join("")}</div>
+				${b.unknowns.length ? `<details class="lfs-unknowns"><summary>${__("What the agent could not confirm ({0})", [b.unknowns.length])}</summary>
+					<ul>${b.unknowns.map((u) => `<li>${e(u)}</li>`).join("")}</ul></details>` : ""}
+				<div class="lfs-actions"><span></span><div class="right">
+					${approved ? `<button class="btn btn-primary btn-sm lfs-to-source">${__("Continue to sources")}</button>`
+						: `<button class="btn btn-primary btn-sm lfs-approve">${lfs_icon("check", 14)} ${__("Use these segments")}</button>`}</div></div>
+			</div>`);
+			el.find(".lfs-to-source").on("click", () => this.go(2));
+			el.find(".lfs-approve").on("click", (ev) => {
+				const keep = el.find(".lfs-keep:checked").map((_, x) => x.value).get();
+				if (!keep.length) return frappe.msgprint(__("Keep at least one segment."));
+				$(ev.currentTarget).prop("disabled", true);
+				this.call("approve_market_brief", { brief: b.name, keep: JSON.stringify(keep) }).then((profiles) => {
+					frappe.show_alert({ message: __("{0} targeting profiles created", [profiles.length]), indicator: "green" });
+					this.state.profile = profiles[0];
+					this.state.chips = {};
+					this.state.form = null;
+					this.state.locations_loaded = false;
+					return this.call("bootstrap").then((d) => ((this.data = d), this.go(2)));
+				}).catch(() => $(ev.currentTarget).prop("disabled", false));
+			});
+		}
+
+		// ---------------------------------------------------------------- 2. source
 		render_source(body) {
 			const panel = $(`<div class="lfs-panel"><h3>${__("Where should the agent look?")}</h3>
 				<p class="lead">${__("Choose a lead source. Sources marked Ready are set up for your company.")}</p></div>`).appendTo(body);
@@ -140,7 +269,7 @@
 			});
 			const setup = $('<div class="lfs-setup"></div>').appendTo(panel);
 			if (this.state.connectorType) this.render_source_setup(setup);
-			this.actions(body, { next: () => this.go(2), nextLabel: __("Continue") }).find(".lfs-next").prop("disabled", !this.state.connector);
+			this.actions(body, { back: () => this.go(1), next: () => this.go(3), nextLabel: __("Continue") }).find(".lfs-next").prop("disabled", !this.state.connector);
 		}
 
 		pick_source(c) {
@@ -255,8 +384,8 @@
 					})));
 			}
 			this.actions(body, {
-				back: () => this.go(1),
-				next: () => this.save_profile(panel).then(() => this.go(3)),
+				back: () => this.go(2),
+				next: () => this.save_profile(panel).then(() => this.go(4)),
 				nextLabel: __("Save & continue"),
 			});
 		}
@@ -360,7 +489,7 @@
 				$(ev.currentTarget).addClass("on");
 				panel.find(".lfs-sched").toggle(s.mode !== "now");
 			});
-			const $a = this.actions(body, { back: () => (sync(), this.go(2)), next: () => (sync(), this.go(4)), nextLabel: __("Review & launch") });
+			const $a = this.actions(body, { back: () => (sync(), this.go(3)), next: () => (sync(), this.go(5)), nextLabel: __("Review & launch") });
 			$('<button class="btn btn-default btn-sm">' + __("Preview searches") + "</button>").prependTo($a.find(".right")).on("click", () => {
 				sync();
 				frappe.xcall("reckon_sales_agent.api.preview_targeting",
@@ -389,7 +518,7 @@
 						`<div class="lfs-row"><span class="meta">${e(k)}</span><div class="main"><div><b>${e(v)}</b></div></div></div>`).join("")}
 				</div></div>`).appendTo(body);
 			this.actions(body, {
-				back: () => this.go(3), nextIcon: "spark",
+				back: () => this.go(4), nextIcon: "spark",
 				nextLabel: s.mode === "schedule" ? __("Save schedule") : __("Start discovery"),
 				next: (ev) => {
 					$(ev.currentTarget).prop("disabled", true);
@@ -472,7 +601,7 @@
 		reset() {
 			this.stop_polling();
 			this.state = { connector: this.state.connector, connectorType: this.state.connectorType, profile: this.state.profile, chips: {}, job: null };
-			this.load().then(() => this.go(1));
+			this.load().then(() => this.go(2));
 		}
 
 		// ---------------------------------------------------------------- recent campaigns
@@ -487,7 +616,7 @@
 				${c.last_job ? `<button class="btn btn-xs btn-default lfs-watch" data-job="${e(c.last_job)}">${__("Progress")}</button>` : ""}</div></div>`).join("")}</div>`);
 			el.find(".lfs-watch").on("click", (ev) => {
 				this.state.job = ev.currentTarget.dataset.job;
-				this.step = 4;
+				this.step = 5;
 				this.render();
 			});
 		}

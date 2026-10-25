@@ -51,8 +51,13 @@ COMPANY_DOCTYPES = (
     "Sales Usage Ledger",
     "Sales Targeting Profile",
     "Sales Campaign Insight",
+    "Sales Business Profile",
+    "Sales Market Brief",
 )
-CHILD_DOCTYPES = ("Sales Planned Query", "Sales Research Fact", "Sales Campaign Step", "Sales Target Location")
+CHILD_DOCTYPES = ("Sales Planned Query", "Sales Research Fact", "Sales Campaign Step", "Sales Target Location",
+                  "Sales Market Segment", "Sales Provider Budget")
+# Vendor-only records (no company): provider request counts for budgets.
+VENDOR_DOCTYPES = ("Sales Provider Usage",)
 CHANNELS = ("Email", "SMS", "WhatsApp", "Call Task", "LinkedIn Task")
 TASK_CHANNELS = frozenset({"Call Task", "LinkedIn Task"})
 PLATFORM_SETTINGS = "Sales Agent Platform Settings"

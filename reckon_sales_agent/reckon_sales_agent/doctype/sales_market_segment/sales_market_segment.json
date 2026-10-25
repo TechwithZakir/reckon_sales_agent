@@ -1,0 +1,113 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Market Segment",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-10-26 03:00:00.000000",
+ "modified": "2026-10-26 03:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 1,
+ "issingle": 0,
+ "editable_grid": 1,
+ "track_changes": 0,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "field_order": [
+  "include",
+  "segment_name",
+  "priority",
+  "fit_reason",
+  "industries",
+  "business_types",
+  "keywords",
+  "bangla_keywords",
+  "locations",
+  "buying_signals",
+  "negative_keywords",
+  "evidence_urls",
+  "targeting_profile"
+ ],
+ "fields": [
+  {
+   "fieldname": "include",
+   "fieldtype": "Check",
+   "label": "Use",
+   "default": "1",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "segment_name",
+   "fieldtype": "Data",
+   "label": "Segment",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 3
+  },
+  {
+   "fieldname": "priority",
+   "fieldtype": "Int",
+   "label": "Priority (1 best)",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "fit_reason",
+   "fieldtype": "Small Text",
+   "label": "Why It Fits",
+   "in_list_view": 1,
+   "columns": 4
+  },
+  {
+   "fieldname": "industries",
+   "fieldtype": "Small Text",
+   "label": "Industries"
+  },
+  {
+   "fieldname": "business_types",
+   "fieldtype": "Small Text",
+   "label": "Business Types"
+  },
+  {
+   "fieldname": "keywords",
+   "fieldtype": "Small Text",
+   "label": "Search Keywords"
+  },
+  {
+   "fieldname": "bangla_keywords",
+   "fieldtype": "Small Text",
+   "label": "Bangla Keywords"
+  },
+  {
+   "fieldname": "locations",
+   "fieldtype": "Small Text",
+   "label": "Locations"
+  },
+  {
+   "fieldname": "buying_signals",
+   "fieldtype": "Small Text",
+   "label": "Buying Signals"
+  },
+  {
+   "fieldname": "negative_keywords",
+   "fieldtype": "Small Text",
+   "label": "Exclude Keywords"
+  },
+  {
+   "fieldname": "evidence_urls",
+   "fieldtype": "Small Text",
+   "label": "Evidence"
+  },
+  {
+   "fieldname": "targeting_profile",
+   "fieldtype": "Link",
+   "label": "Targeting Profile",
+   "options": "Sales Targeting Profile",
+   "read_only": 1
+  }
+ ],
+ "permissions": []
+}

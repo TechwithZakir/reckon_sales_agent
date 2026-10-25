@@ -27,6 +27,9 @@ from reckon_sales_agent.usage import (
 # Settings flags that must all be on; ``maps`` adds the Maps responsibility tick
 # and ``ack`` names any other responsibility tick (Google Search).
 CATALOG = (
+    {"type": "multi_source", "title": "Smart Sources", "group": "Recommended",
+     "icon": "spark", "subtitle": "Every active lead source in one search: Brave Places, LLM Context and more.",
+     "vendor": (), "maps": False, "router": True},
     {"type": "scrapingbee_google_maps", "title": "Google Maps · ScrapingBee", "group": "Google Maps",
      "icon": "map", "subtitle": "Reliable Maps search through ScrapingBee's API.",
      "vendor": ("scrapingbee_enabled",), "maps": True},
@@ -97,6 +100,12 @@ def _lines(value) -> str:
 
 
 def _availability(item: dict, platform) -> tuple[bool, str]:
+    if item.get("router"):
+        from reckon_sales_agent.providers.router import active
+
+        if not (active("places") or active("page_context")):
+            return False, _("No lead source is switched on yet.")
+        return True, _("Ready")
     missing = [flag for flag in item["vendor"] if not platform.get(flag)]
     if missing:
         return False, _("Not enabled by your provider yet.")
@@ -149,6 +158,7 @@ def bootstrap() -> dict:
                                              "source_connector"],
                                      order_by="modified desc", limit_page_length=20),
         "ai_available": bool(platform.get("ai_enabled") and settings.ai_enabled),
+        "business": _business_summary(company),
         "max_results_per_job": settings.max_results_per_job or 100,
         "usage": usage_summary(company),
         "workers": worker_status(),
@@ -303,3 +313,98 @@ def progress(job: str) -> dict:
                                                           "research_status": "Done"}) if campaign else 0,
         "workers": worker_status() if doc.status == "Queued" else None,
     }
+
+
+# ---------------------------------------------------------------- business profile and market research
+BUSINESS_FIELDS = ("what_we_sell", "products", "problems_solved", "target_industries", "business_types",
+                   "buyer_roles", "regions", "size_signals", "competitors", "exclusions", "best_customers")
+
+
+def _business_summary(company: str) -> dict:
+    from reckon_sales_agent.research.market import business_profile
+
+    profile = business_profile(company, create=False)
+    if not profile:
+        return {"profile": None, "brief": None}
+    data = {field: profile.get(field) or "" for field in ("name", "business_name", "languages", *BUSINESS_FIELDS)}
+    brief = None
+    if profile.latest_brief:
+        brief = frappe.db.get_value("Sales Market Brief", profile.latest_brief,
+                                    ["name", "status", "method", "researched_on", "approved_on"], as_dict=True)
+    return {"profile": data, "brief": brief}
+
+
+def _require_manager() -> None:
+    if not _can_manage():
+        frappe.throw(_("Ask a Sales Agent admin or manager to change the business profile."), frappe.PermissionError)
+
+
+@frappe.whitelist()
+def save_business(data) -> str:
+    from reckon_sales_agent.research.market import business_profile
+
+    _require_manager()
+    data = _payload(data)
+    profile = business_profile(current_company())
+    profile.business_name = " ".join(str(data.get("business_name") or profile.business_name or "").split())[:140]         or profile.company
+    profile.languages = " ".join(str(data.get("languages") or "English, Bangla").split())[:80]
+    for field in BUSINESS_FIELDS:
+        if field in data:
+            value = data[field]
+            profile.set(field, " ".join(str(value).split())[:1000] if field == "what_we_sell" else _lines(value))
+    profile.save() if not profile.is_new() else profile.insert()
+    return profile.name
+
+
+@frappe.whitelist()
+def import_customers() -> dict:
+    from reckon_sales_agent.research.market import business_profile, import_best_customers
+
+    _require_manager()
+    profile = business_profile(current_company())
+    if profile.is_new():
+        profile.insert()
+    added = import_best_customers(profile)
+    profile.save()
+    return {"added": added, "best_customers": profile.best_customers or ""}
+
+
+@frappe.whitelist()
+def research_market() -> str:
+    from reckon_sales_agent.research.market import business_profile, start_research
+
+    _require_manager()
+    company = current_company()
+    assert_entitled(company)
+    profile = business_profile(company, create=False)
+    if not profile:
+        frappe.throw(_("Save your business profile first."))
+    return start_research(profile)
+
+
+@frappe.whitelist()
+def market_brief(brief: str) -> dict:
+    doc = get_tenant_doc("Sales Market Brief", brief, "read")
+    split = lambda value: [line for line in (value or "").splitlines() if line.strip()]  # noqa: E731
+    return {
+        "name": doc.name, "status": doc.status, "summary": doc.summary, "method": doc.method,
+        "providers_used": doc.providers_used, "provider_requests": doc.provider_requests, "error": doc.error,
+        "unknowns": split(doc.unknowns), "sources": split(doc.sources), "approved_on": doc.approved_on,
+        "segments": [{
+            "name": row.name, "include": row.include, "segment_name": row.segment_name, "priority": row.priority,
+            "fit_reason": row.fit_reason, "targeting_profile": row.targeting_profile,
+            **{field: split(row.get(field)) for field in ("industries", "business_types", "keywords", "bangla_keywords",
+                                                          "locations", "buying_signals", "negative_keywords",
+                                                          "evidence_urls")},
+        } for row in doc.segments],
+    }
+
+
+@frappe.whitelist()
+def approve_market_brief(brief: str, keep=None) -> list[str]:
+    from reckon_sales_agent.research.market import approve
+
+    _require_manager()
+    doc = get_tenant_doc("Sales Market Brief", brief, "write")
+    keep = json.loads(keep) if isinstance(keep, str) else keep
+    return approve(doc, [str(k) for k in keep] if isinstance(keep, list) else None)

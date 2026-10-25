@@ -44,10 +44,15 @@ def suggest(profile_doc, *, raise_errors: bool = True) -> dict | None:
                              ("Interests / needs", "interests"), ("Exclude", "exclude_keywords"))
     )
     places = ", ".join(filter(None, (row.city for row in profile_doc.locations))) or "Bangladesh"
+    seller = settings.company_profile
+    business = frappe.db.get_value("Sales Business Profile", {"company": profile_doc.company},
+                                   ["what_we_sell", "products", "problems_solved"], as_dict=True)
+    if business and (business.what_we_sell or business.products):
+        seller = "\n".join(filter(None, (business.what_we_sell, business.products, business.problems_solved, seller)))
     try:
         data = llm.complete_json(
             SYSTEM,
-            untrusted("seller profile", f"Seller offers: {settings.company_profile or 'not described'}")
+            untrusted("seller profile", f"Seller offers: {seller or 'not described'}")
             + "\n" + untrusted("target profile", f"{brief}\nLocations: {places}"),
             AI_PLAN_SCHEMA,
         )

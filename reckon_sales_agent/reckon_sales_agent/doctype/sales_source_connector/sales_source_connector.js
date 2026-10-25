@@ -26,6 +26,9 @@ frappe.ui.form.on("Sales Source Connector", {
 				__("Keys and permission are set by the platform vendor. Maps data is kept only for the vendor's retention window unless the company's website confirms it."),
 				frm.doc.connector_type.endsWith("experimental") ? "orange" : "blue");
 		}
+		if (frm.doc.connector_type === "multi_source") {
+			frm.set_intro(__("Smart Sources runs each search on every lead source your provider has switched on (Brave Places and LLM Context by default, plus Google Places and others), keeps each business once and applies the strictest data rules of the sources used."), "blue");
+		}
 		const search = {
 			brave_web_search: __("Brave's official search API runs the search; results that are a business's own website become leads."),
 			brave_place_search: __("Brave Place Search finds local businesses (name, website, phone, address, rating) around the search location."),

@@ -1,0 +1,47 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Provider Budget",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-10-26 03:00:00.000000",
+ "modified": "2026-10-26 03:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 1,
+ "issingle": 0,
+ "editable_grid": 1,
+ "track_changes": 0,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "field_order": [
+  "provider",
+  "monthly_request_cap",
+  "note"
+ ],
+ "fields": [
+  {
+   "fieldname": "provider",
+   "fieldtype": "Select",
+   "label": "Provider",
+   "reqd": 1,
+   "in_list_view": 1,
+   "options": "brave\ngoogle_places\nscrapingdog\nscrapingbee\nserpapi\napify"
+  },
+  {
+   "fieldname": "monthly_request_cap",
+   "fieldtype": "Int",
+   "label": "Monthly Request Cap",
+   "in_list_view": 1,
+   "description": "API requests per month across all companies. 0 = no cap."
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Data",
+   "label": "Note",
+   "in_list_view": 1
+  }
+ ],
+ "permissions": []
+}

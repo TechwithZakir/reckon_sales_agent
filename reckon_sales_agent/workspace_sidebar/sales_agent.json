@@ -63,6 +63,28 @@
   },
   {
    "type": "Link",
+   "label": "Business Profile",
+   "link_to": "Sales Business Profile",
+   "link_type": "DocType",
+   "icon": "crosshair",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Market Briefs",
+   "link_to": "Sales Market Brief",
+   "link_type": "DocType",
+   "icon": "crosshair",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
    "label": "Targeting Profiles",
    "link_to": "Sales Targeting Profile",
    "link_type": "DocType",
@@ -263,6 +285,17 @@
    "link_to": "Sales Agent Activity",
    "link_type": "DocType",
    "icon": "history",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Provider Usage (Vendor)",
+   "link_to": "Sales Provider Usage",
+   "link_type": "DocType",
+   "icon": "crosshair",
    "child": 1,
    "indent": 0,
    "collapsible": 1,

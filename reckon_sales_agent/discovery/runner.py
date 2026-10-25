@@ -215,7 +215,7 @@ def _discover_with_retry(connector, query: DiscoveryQuery, job) -> list:
 def upsert_prospect(company: str, campaign, connector_doc, record, policy: dict) -> tuple[str, str | None]:
     """Store one source record; returns ("created" | "duplicate" | "skipped", prospect)."""
     kept, provenance, retention_until = apply_field_policy(
-        record.fields, policy, record.retrieved_at, connector_doc.connector_type, getdate(nowdate())
+        record.fields, policy, record.retrieved_at, record.source_key or connector_doc.connector_type, getdate(nowdate())
     )
     if not kept.get("business_name"):
         return "skipped", None
@@ -245,7 +245,7 @@ def upsert_prospect(company: str, campaign, connector_doc, record, policy: dict)
         **kept,
         "discovery_campaign": campaign.name,
         "source_connector": connector_doc.name,
-        "source_type": connector_doc.connector_type,
+        "source_type": record.source_key or connector_doc.connector_type,  # the provider that found it (Smart Sources)
         "external_id": record.external_id,
         "source_url": record.source_url,
         "first_seen": now,

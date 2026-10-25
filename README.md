@@ -112,6 +112,42 @@ minimum 2-second delay between places and a hard cap of 100 places per
 search. Google changes its page often; when it does, the connector returns
 fewer or no results rather than wrong data.
 
+### Market research agent and Smart Sources
+
+**Lead Finder Studio starts with "Your business".** You describe what you
+sell, which industries and business types buy it, the regions you serve,
+signs of a good customer and your competitors. You can import your best
+customers from won CRM deals. **Research my market** then:
+
+1. Builds research queries from the profile: industries in your regions,
+   buyers of your products, companies like your best customers, industry
+   associations, market trends and competitors' customers.
+2. Reads the web through the active page-context provider (Brave LLM Context
+   by default) or web search, within *Requests per Market Brief*.
+3. Has Claude turn the pages into a **Market Brief**: customer segments with
+   priority, why each fits, search keywords that match the customer
+   businesses themselves, Bangla variants, locations, buying signals and
+   words to exclude. A segment may only cite pages the agent read. Without
+   AI, a plan is built from the profile alone.
+4. On approval, each kept segment becomes a Targeting Profile ready for
+   discovery.
+
+**Lead search routing.** Providers are grouped by capability: *places*
+(Brave Places, Google Places, the Maps APIs), *page context* (Brave LLM
+Context) and *web search* (Brave Web Search, the Google Search APIs). Brave
+is the default for each; the vendor can pick another default in *Lead Search
+Routing*. The **Smart Sources** connector runs each discovery search on every
+active places and page-context provider, interleaves the results, keeps each
+business once (website, phone or name and city) and applies the strictest
+data policy of the sources used. Research and verification try the default
+web provider first and fall back to the next active one.
+
+**Budgets.** Every API request is counted per provider family and month in
+*Sales Provider Usage*. *Monthly Provider Budgets* (Platform Settings) caps
+each family; a request over budget is refused before it is sent, and the job
+stops with code `provider_budget`. Browser bots are never chosen
+automatically.
+
 ### Web search lead sources (Brave and Google)
 
 These search the web for "keyword in location" (Brave's official API, or

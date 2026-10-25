@@ -98,6 +98,10 @@ class BraveSearchConnector(_BraveConnector):
         self._more = True
         yield from super().discover(query)
 
+    def search(self, text: str, count: int = 10) -> list[dict]:
+        self._more = True
+        return super().search(text, count)
+
     def _page(self, text: str, page: int) -> list[dict]:
         if not self._more or page > WEB_MAX_OFFSET:
             return []  # Brave said there are no more results: no paid request
@@ -196,23 +200,37 @@ class BraveLLMContextConnector(_BraveConnector):
     provider = "Brave LLM Context"
     attribution = "Brave Search"
 
-    def discover(self, query: DiscoveryQuery):
+    def _grounding(self, text: str, location: str, count: int, tokens_per_url: int = 1024) -> list[dict]:
+        """Local business entries (poi, map) first, then the generic results, each with page snippets."""
         self.validate_configuration()
-        params = {"q": query.query_text[:600], "count": max(1, min(query.max_results * 2, 50)),
-                  "search_lang": self.language, "enable_local": "true",
-                  "maximum_number_of_tokens_per_url": 1024, "maximum_number_of_tokens": 16384}
+        params = {"q": text[:600], "count": max(1, min(count, 50)), "search_lang": self.language,
+                  "enable_local": "true", "maximum_number_of_tokens_per_url": tokens_per_url,
+                  "maximum_number_of_tokens": 16384}
         if self.brave_country:
             params["country"] = self.brave_country
         headers = {}
-        city = (query.location or "").split(",")[-1].strip()
+        city = (location or "").split(",")[-1].strip()
         if city:
             headers["X-Loc-City"] = city
         if self.brave_country:
             headers["X-Loc-Country"] = self.brave_country
         grounding = (self._brave("/llm/context", params, headers) or {}).get("grounding") or {}
-        entries = list(grounding.get("generic") or [])
         poi = grounding.get("poi")
-        entries = ([poi] if isinstance(poi, dict) else []) + list(grounding.get("map") or []) + entries
+        return ([poi] if isinstance(poi, dict) else []) + list(grounding.get("map") or []) \
+            + list(grounding.get("generic") or [])
+
+    def context(self, text: str, location: str = "", count: int = 10) -> list[dict]:
+        """[{url, title, text}] with page text (market research); 2048 tokens per page for richer evidence."""
+        rows = []
+        for entry in self._grounding(text, location, count, tokens_per_url=2048):
+            url = (entry or {}).get("url") or ""
+            if url.startswith(("http://", "https://")):
+                rows.append({"url": url, "title": clean(entry.get("title") or entry.get("name")),
+                             "text": " ".join(clean(s) for s in entry.get("snippets") or [] if s)})
+        return rows[:count]
+
+    def discover(self, query: DiscoveryQuery):
+        entries = self._grounding(query.query_text, query.location, query.max_results * 2)
         now = datetime.now(timezone.utc).isoformat()
         seen: set[str] = set()
         returned = 0

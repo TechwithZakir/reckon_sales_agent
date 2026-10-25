@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-26 02:00:00.000000",
+ "modified": "2026-10-26 03:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -47,6 +47,13 @@
   "maps_browser_col",
   "maps_browser_delay",
   "maps_browser_language",
+  "routing_section",
+  "default_places_provider",
+  "default_page_context_provider",
+  "default_web_search_provider",
+  "routing_col",
+  "market_research_max_requests",
+  "provider_budgets",
   "brave_section",
   "brave_enabled",
   "brave_api_key",
@@ -258,6 +265,50 @@
    "fieldtype": "Data",
    "label": "Language (hl)",
    "default": "en"
+  },
+  {
+   "fieldname": "routing_section",
+   "fieldtype": "Section Break",
+   "label": "Lead Search Routing",
+   "description": "Brave is the default. Every other provider you switch on below also joins Smart Sources lead searches; research and verification fall back to it when the default fails."
+  },
+  {
+   "fieldname": "default_places_provider",
+   "fieldtype": "Select",
+   "label": "Default Places Provider",
+   "options": "brave_place_search\ngoogle_places_api\nscrapingdog_google_maps\nscrapingbee_google_maps\nserpapi_google_maps\napify_google_maps",
+   "default": "brave_place_search"
+  },
+  {
+   "fieldname": "default_page_context_provider",
+   "fieldtype": "Select",
+   "label": "Default Page Context Provider",
+   "options": "brave_llm_context",
+   "default": "brave_llm_context"
+  },
+  {
+   "fieldname": "default_web_search_provider",
+   "fieldtype": "Select",
+   "label": "Default Web Search Provider",
+   "options": "brave_web_search\nscrapingdog_google_search\nscrapingbee_google_search\nserpapi_google_search",
+   "default": "brave_web_search"
+  },
+  {
+   "fieldname": "routing_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "market_research_max_requests",
+   "fieldtype": "Int",
+   "label": "Requests per Market Brief",
+   "default": "12",
+   "description": "Search requests one market research run may use."
+  },
+  {
+   "fieldname": "provider_budgets",
+   "fieldtype": "Table",
+   "label": "Monthly Provider Budgets",
+   "options": "Sales Provider Budget"
   },
   {
    "fieldname": "brave_section",

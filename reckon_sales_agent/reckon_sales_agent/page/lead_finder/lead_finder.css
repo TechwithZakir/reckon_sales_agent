@@ -24,7 +24,7 @@
 .lfs-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--lfs-muted); }
 .lfs-pill.ok .dot { background: var(--lfs-ok); } .lfs-pill.warn .dot { background: var(--lfs-warn); } .lfs-pill.bad .dot { background: var(--lfs-bad); }
 
-.lfs-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 18px; counter-reset: step; }
+.lfs-steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 18px; counter-reset: step; }
 .lfs-step { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--lfs-line);
 	background: var(--lfs-card); color: var(--lfs-muted); cursor: default; font-weight: 500; min-width: 0; }
 .lfs-step .num { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 13px;
@@ -99,8 +99,25 @@
 .lfs-two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .lfs-recent { margin-top: 18px; }
 
+/* Market brief */
+.lfs-brief-meta { font-size: 12px; color: var(--lfs-muted); margin: -8px 0 12px; }
+.lfs-segs { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 10px; }
+.lfs-seg-card { display: block; border: 1px solid var(--lfs-line); border-radius: 12px; padding: 12px 14px; cursor: pointer;
+	font-weight: normal; margin: 0; }
+.lfs-seg-card:has(.lfs-keep:checked) { border-color: var(--lfs-accent); box-shadow: 0 0 0 3px var(--lfs-accent-soft); }
+.lfs-seg-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.lfs-seg-head .lfs-badge { position: static; margin-left: auto; }
+.lfs-seg-why { font-size: 13px; color: var(--lfs-muted); margin-bottom: 8px; }
+.lfs-seg-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-top: 4px; font-size: 12px; }
+.lfs-seg-row > span:first-child { min-width: 64px; color: var(--lfs-muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+.lfs-seg-row a { color: var(--lfs-accent); }
+.lfs-chip.lfs-mini { padding: 2px 8px; font-size: 12px; }
+.lfs-chip.lfs-mini.bn { background: color-mix(in srgb, var(--lfs-ok) 14%, transparent); }
+.lfs-unknowns { margin-top: 12px; font-size: 13px; color: var(--lfs-muted); }
+.lfs-unknowns summary { cursor: pointer; }
+
 @media (max-width: 768px) {
-	.lfs-steps { grid-template-columns: repeat(4, 1fr); }
+	.lfs-steps { grid-template-columns: repeat(5, 1fr); }
 	.lfs-step .label { display: none; }
 	.lfs-grid2, .lfs-two { grid-template-columns: 1fr; }
 	.lfs-stats { grid-template-columns: repeat(2, 1fr); }
