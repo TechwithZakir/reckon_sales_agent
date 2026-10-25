@@ -131,8 +131,7 @@ class ProviderErrorTests(unittest.TestCase):
     def test_error_explains_status_and_redacts_key(self):
         body = {"success": False, "message": "Invalid API key sd-SECRET-123"}
         session = FakeSession([response(401, body)])
-        connector = ScrapingdogMapsConnector("  sd-SECRET-123
-", enabled=True, terms_ack=True, session=session)
+        connector = ScrapingdogMapsConnector("  sd-SECRET-123\n", enabled=True, terms_ack=True, session=session)
         with self.assertRaises(ConnectorError) as ctx:
             list(connector.discover(QUERY))
         message = str(ctx.exception)

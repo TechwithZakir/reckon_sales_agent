@@ -14,6 +14,7 @@ import requests
 from reckon_sales_agent.connectors.base import ConnectorError, DiscoveryQuery, SourceRecord
 from reckon_sales_agent.connectors.maps_common import (
     city_from_address,
+    http_error,
     maps_field_policy,
     require_maps_terms,
 )
