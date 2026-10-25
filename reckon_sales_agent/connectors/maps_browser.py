@@ -38,7 +38,9 @@ from reckon_sales_agent.connectors.maps_common import (
 from reckon_sales_agent.discovery.normalize import normalize_space
 
 HARD_CAP = 100
+MAPS_HOME = "https://maps.google.com/?hl={language}"
 SEARCH_URL = "https://www.google.com/maps/search/{query}?hl={language}"
+SEARCH_BOX = 'input#searchboxinput, input[name="q"]'
 FEED = 'div[role="feed"]'
 PLACE_LINKS = 'a[href*="/maps/place/"]'
 EXTRACT_JS = """() => {
@@ -141,9 +143,7 @@ class GoogleMapsBrowserConnector:
             try:
                 page = browser.new_context(locale=self.language).new_page()
                 page.set_default_timeout(20_000)
-                page.goto(SEARCH_URL.format(query=quote(query.query_text), language=self.language),
-                          wait_until="domcontentloaded")
-                self._check(page)
+                self._search(page, query)
                 links = self._collect_links(page, limit)
                 if not links and "/maps/place/" in page.url:
                     links = [page.url]  # the search opened a single place directly
@@ -163,6 +163,23 @@ class GoogleMapsBrowserConnector:
                                            fields, now, warnings=["experimental browser source"])
             finally:
                 browser.close()
+
+    def _search(self, page, query: DiscoveryQuery) -> None:
+        """Open maps.google.com, type "keyword in location" into the search box and press Enter.
+
+        Falls back to the search URL when the box is not found (layout change).
+        """
+        page.goto(MAPS_HOME.format(language=self.language), wait_until="domcontentloaded")
+        self._check(page)
+        try:
+            page.wait_for_selector(SEARCH_BOX, timeout=15_000)
+            page.fill(SEARCH_BOX, query.query_text)
+            page.press(SEARCH_BOX, "Enter")
+            page.wait_for_load_state("domcontentloaded")
+        except Exception:
+            page.goto(SEARCH_URL.format(query=quote(query.query_text), language=self.language),
+                      wait_until="domcontentloaded")
+        self._check(page)
 
     def _check(self, page) -> None:
         try:

@@ -230,11 +230,13 @@ class ApifyTests(unittest.TestCase):
 class FakePage:
     """Stands in for a Playwright page on Google Maps."""
 
-    def __init__(self, places, blocked=False):
+    def __init__(self, places, blocked=False, has_search_box=True):
         self.places = places
         self.blocked = blocked
+        self.has_search_box = has_search_box
         self.url = ""
         self.visited = []
+        self.typed = []
 
     def set_default_timeout(self, ms):
         pass
@@ -247,7 +249,19 @@ class FakePage:
         return "Our systems have detected unusual traffic" if self.blocked else "Results"
 
     def wait_for_selector(self, selector, timeout=None):
+        if "searchboxinput" in selector and not self.has_search_box:
+            raise TimeoutError("no search box")
         return True
+
+    def fill(self, selector, text):
+        self.typed.append(text)
+
+    def press(self, selector, key):
+        self.typed.append(key)
+        self.url = "https://www.google.com/maps/search/results"
+
+    def wait_for_load_state(self, state=None):
+        return None
 
     def eval_on_selector_all(self, selector, script):
         return list(self.places)
@@ -289,6 +303,24 @@ class BrowserConnectorTests(unittest.TestCase):
             GoogleMapsBrowserConnector(enabled=False, terms_ack=True, playwright_factory=FakePlaywright(None)).validate_configuration()
         with self.assertRaises(ConnectorNotPermitted):
             GoogleMapsBrowserConnector(enabled=True, terms_ack=False, playwright_factory=FakePlaywright(None)).validate_configuration()
+
+    def test_opens_maps_home_and_types_the_search(self):
+        page = FakePage(self.PLACES)
+        connector = GoogleMapsBrowserConnector(enabled=True, terms_ack=True, max_results=1,
+                                               playwright_factory=FakePlaywright(page), sleep=lambda s: None)
+        list(connector.discover(DiscoveryQuery("pharmacy", "Dhaka", "pharmacy in Dhaka", 1)))
+        self.assertTrue(page.visited[0].startswith("https://maps.google.com/"))
+        self.assertEqual(page.typed, ["pharmacy in Dhaka", "Enter"])
+        self.assertFalse(any("/maps/search/" in url for url in page.visited))
+
+    def test_falls_back_to_search_url_without_search_box(self):
+        page = FakePage(self.PLACES, has_search_box=False)
+        connector = GoogleMapsBrowserConnector(enabled=True, terms_ack=True, max_results=1,
+                                               playwright_factory=FakePlaywright(page), sleep=lambda s: None)
+        records = list(connector.discover(DiscoveryQuery("pharmacy", "Dhaka", "pharmacy in Dhaka", 1)))
+        self.assertEqual(page.typed, [])
+        self.assertIn("https://www.google.com/maps/search/pharmacy%20in%20Dhaka?hl=en", page.visited)
+        self.assertEqual(len(records), 1)
 
     def test_scrolls_feed_and_reads_places_with_delay(self):
         page = FakePage(self.PLACES)
