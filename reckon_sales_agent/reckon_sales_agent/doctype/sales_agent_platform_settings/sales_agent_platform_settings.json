@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-25 18:00:00.000000",
+ "modified": "2026-10-26 09:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -16,6 +16,8 @@
  "sort_order": "DESC",
  "states": [],
  "field_order": [
+  "vendor_section",
+  "internal_companies",
   "ai_section",
   "ai_enabled",
   "anthropic_api_key",
@@ -59,6 +61,17 @@
   "monthly_message_limit"
  ],
  "fields": [
+  {
+   "fieldname": "vendor_section",
+   "fieldtype": "Section Break",
+   "label": "Vendor Use"
+  },
+  {
+   "fieldname": "internal_companies",
+   "fieldtype": "Small Text",
+   "label": "Internal Companies (no subscription needed)",
+   "description": "Your own companies, one per line exactly as named in Company. They can use the Sales Agent without a SaaS subscription; plan limits still apply."
+  },
   {
    "fieldname": "ai_section",
    "fieldtype": "Section Break",

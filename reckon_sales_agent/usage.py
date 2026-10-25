@@ -37,19 +37,35 @@ def get_settings(company: str):
     return frappe.get_doc("Sales Agent Settings", company)
 
 
+def is_internal_company(company: str, internal_companies: str | None) -> bool:
+    """The vendor's own companies, listed one per line in Platform Settings."""
+    listed = {line.strip().casefold() for line in (internal_companies or "").splitlines() if line.strip()}
+    return bool(company) and company.strip().casefold() in listed
+
+
 def assert_entitled(company: str) -> None:
-    """Fail closed unless the Company has an active Sales Agent subscription."""
-    try:
-        from reckon_saas_platform.saas import is_subscription_active
-    except ImportError:
-        frappe.throw(_("Reckon SaaS Platform is required for the Sales Agent."), NotEntitled)
-    try:
-        active = is_subscription_active(company, saas_module=MODULE_KEY)
-    except Exception:
-        frappe.log_error(title="Sales Agent entitlement check failed")
-        active = False
-    if not active:
-        frappe.throw(_("{0} has no active Sales Agent subscription.").format(company), NotEntitled)
+    """Fail closed unless the Company has an active Sales Agent subscription.
+
+    The vendor's own companies (Platform Settings > Internal Companies) need no
+    subscription. This is decided by Company, never by user, because scheduled
+    jobs run as Administrator for every tenant.
+    """
+    if not is_internal_company(company, platform_settings().get("internal_companies")):
+        try:
+            from reckon_saas_platform.saas import is_subscription_active
+        except ImportError:
+            frappe.throw(_("Reckon SaaS Platform is required for the Sales Agent."), NotEntitled)
+        try:
+            active = is_subscription_active(company, saas_module=MODULE_KEY)
+        except Exception:
+            frappe.log_error(title="Sales Agent entitlement check failed")
+            active = False
+        if not active:
+            frappe.throw(
+                _("{0} has no active Sales Agent subscription. Vendors can list their own companies under "
+                  "Sales Agent Platform Settings > Internal Companies.").format(company),
+                NotEntitled,
+            )
     if not get_settings(company).enabled:
         frappe.throw(_("The Sales Agent is disabled for {0}.").format(company), NotEntitled)
 
