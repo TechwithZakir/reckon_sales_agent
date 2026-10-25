@@ -256,6 +256,17 @@
    "indent": 0,
    "collapsible": 1,
    "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Platform Settings (Vendor)",
+   "link_to": "Sales Agent Platform Settings",
+   "link_type": "DocType",
+   "icon": "shield",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
   }
  ]
 }
