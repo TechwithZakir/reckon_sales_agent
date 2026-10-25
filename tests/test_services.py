@@ -423,6 +423,17 @@ class DocTypeDefinitionTests(unittest.TestCase):
         roles = {p["role"] for p in found[PLATFORM_SETTINGS]["permissions"]}
         self.assertEqual(roles, {"System Manager", "Reckon Vendor Superuser"})
 
+    def test_internal_companies_is_system_manager_only(self):
+        doc = json.loads((self.ROOT / "reckon_sales_agent" / "doctype" / "sales_agent_platform_settings"
+                          / "sales_agent_platform_settings.json").read_text(encoding="utf-8"))
+        field = next(f for f in doc["fields"] if f["fieldname"] == "internal_companies")
+        self.assertEqual(field.get("permlevel"), 1)
+        level_one = [p["role"] for p in doc["permissions"] if p.get("permlevel") == 1]
+        self.assertEqual(level_one, ["System Manager"])
+        controller = (self.ROOT / "reckon_sales_agent" / "doctype" / "sales_agent_platform_settings"
+                      / "sales_agent_platform_settings.py").read_text(encoding="utf-8")
+        self.assertIn('SYSTEM_MANAGER_FIELDS = ("internal_companies",)', controller)
+
     def test_outreach_defaults_are_safe(self):
         settings = json.loads((self.ROOT / "reckon_sales_agent" / "doctype" / "sales_agent_settings"
                                / "sales_agent_settings.json").read_text(encoding="utf-8"))

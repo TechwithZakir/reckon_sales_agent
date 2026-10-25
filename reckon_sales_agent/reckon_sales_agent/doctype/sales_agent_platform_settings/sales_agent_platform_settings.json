@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-26 09:00:00.000000",
+ "modified": "2026-10-26 10:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -64,13 +64,15 @@
   {
    "fieldname": "vendor_section",
    "fieldtype": "Section Break",
-   "label": "Vendor Use"
+   "label": "Vendor Use (System Manager only)",
+   "permlevel": 1
   },
   {
    "fieldname": "internal_companies",
    "fieldtype": "Small Text",
    "label": "Internal Companies (no subscription needed)",
-   "description": "Your own companies, one per line exactly as named in Company. They can use the Sales Agent without a SaaS subscription; plan limits still apply."
+   "description": "Your own companies, one per line exactly as named in Company. They can use the Sales Agent without a SaaS subscription; plan limits still apply.",
+   "permlevel": 1
   },
   {
    "fieldname": "ai_section",
@@ -331,6 +333,12 @@
    "print": 1,
    "email": 1,
    "share": 1
+  },
+  {
+   "role": "System Manager",
+   "permlevel": 1,
+   "read": 1,
+   "write": 1
   }
  ]
 }
