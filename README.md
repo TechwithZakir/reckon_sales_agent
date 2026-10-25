@@ -84,6 +84,7 @@ enrichment** → **scoring** → **CRM storage**.
 | `google_places_api` | Official Google Places API (New) | Places key; terms reviewed |
 | `serpapi_google_maps` | SerpAPI Google Maps engine (JSON) | SerpAPI key |
 | `scrapingdog_google_maps` | Scrapingdog Google Maps API (JSON; Bangladesh city coordinates built in) | Scrapingdog key |
+| `scrapingbee_google_maps` | ScrapingBee Google API with `search_type=maps` (JSON; key sent in the Authorization header) | ScrapingBee key |
 | `apify_google_maps` | Apify actor `compass~crawler-google-places` (run-sync, dataset items) | Apify token |
 | `google_maps_browser_experimental` | **Experimental.** Headless Chromium (Playwright) scrolls the Maps results feed and opens each place | `pip install "reckon_sales_agent[browser]"` and `playwright install --with-deps chromium` on the bench server |
 
@@ -109,8 +110,8 @@ search. Google changes its page often; when it does, the connector returns
 fewer or no results rather than wrong data.
 
 **Enrichment after discovery:**
-- **Website finder.** When a listing has no website and Scrapingdog is
-  enabled, a Google search for "business + city" finds the site. A result is
+- **Website finder.** When a listing has no website and ScrapingBee or
+  Scrapingdog is enabled, a Google search for "business + city" finds the site. A result is
   accepted only if its domain shares a distinctive word with the business
   name; directories and social sites are skipped.
 - **Website research** then extracts emails, phones, social profiles

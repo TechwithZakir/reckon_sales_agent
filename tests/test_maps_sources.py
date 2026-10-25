@@ -23,6 +23,11 @@ from reckon_sales_agent.connectors.maps_common import (  # noqa: E402
     looks_blocked,
     maps_field_policy,
 )
+from reckon_sales_agent.connectors.scrapingbee_maps import (  # noqa: E402
+    ScrapingBeeMapsConnector,
+    maps_results,
+    own_website,
+)
 from reckon_sales_agent.connectors.scrapingdog_maps import ScrapingdogMapsConnector, coordinates_for  # noqa: E402
 from reckon_sales_agent.connectors.serpapi_maps import SerpAPIMapsConnector  # noqa: E402
 from reckon_sales_agent.discovery.normalize import apply_field_policy  # noqa: E402
@@ -44,8 +49,8 @@ class FakeSession:
         self.pages = list(pages)
         self.calls = []
 
-    def get(self, url, params=None, timeout=None):
-        self.calls.append(("GET", url, params))
+    def get(self, url, params=None, timeout=None, headers=None):
+        self.calls.append(("GET", url, params, headers))
         return self.pages.pop(0)
 
     def post(self, url, json=None, headers=None, params=None, timeout=None):
@@ -125,6 +130,56 @@ class ScrapingdogTests(unittest.TestCase):
         self.assertEqual(records[0].fields["review_count"], 900)
         self.assertEqual(session.calls[0][2]["query"], "pharmacy")  # city goes in ll, not the query
         self.assertEqual(session.calls[0][2]["ll"], "@23.8103,90.4125,12z")
+
+
+class ScrapingBeeTests(unittest.TestCase):
+    PAGE = {"map_results": [
+        {"title": "Lazz Pharma", "address": "Kalabagan, Dhaka 1205", "phone": "01711-000111", "rating": "4.6",
+         "reviews": 812, "category": "Pharmacy", "link": "https://www.google.com/aclk?sa=l"},
+        {"title": "Padma Drugs", "address": "Uttara, Dhaka", "website": "https://padma.example/", "cid": "42"},
+    ]}
+
+    def test_maps_search_with_key_in_header(self):
+        session = FakeSession([response(200, self.PAGE), response(200, {"map_results": []})])
+        connector = ScrapingBeeMapsConnector(" bee-KEY \n", enabled=True, terms_ack=True, session=session)
+        records = list(connector.discover(DiscoveryQuery("pharmacy", "Dhaka", "pharmacy in Dhaka", 5)))
+        self.assertEqual([r.fields["business_name"] for r in records], ["Lazz Pharma", "Padma Drugs"])
+        self.assertIsNone(records[0].fields["website"])  # Google ad link is not the business site
+        self.assertEqual(records[1].fields["website"], "https://padma.example/")
+        self.assertEqual(records[0].fields["review_count"], 812)
+        method, url, params, headers = session.calls[0]
+        self.assertEqual(params["search_type"], "maps")
+        self.assertEqual(params["country_code"], "bd")
+        self.assertNotIn("api_key", params)
+        self.assertEqual(headers["Authorization"], "Bearer bee-KEY")
+
+    def test_result_key_variants(self):
+        self.assertEqual(len(maps_results({"maps_results": [{"title": "a"}]})), 1)
+        self.assertEqual(len(maps_results({"local_results": [{"title": "a"}, "junk"]})), 1)
+        self.assertEqual(maps_results({}), [])
+        self.assertIsNone(own_website({"link": "https://maps.google.com/x"}))
+
+    def test_fails_closed_and_explains_errors(self):
+        with self.assertRaises(ConnectorNotPermitted):
+            ScrapingBeeMapsConnector("k", enabled=False, terms_ack=True).validate_configuration()
+        session = FakeSession([response(401, {"message": "Invalid api key"})])
+        connector = ScrapingBeeMapsConnector("k", enabled=True, terms_ack=True, session=session)
+        with self.assertRaises(ConnectorError) as ctx:
+            list(connector.discover(QUERY))
+        self.assertIn("ScrapingBee HTTP 401", str(ctx.exception))
+
+
+class WebsiteFinderProviderTests(unittest.TestCase):
+    def test_scrapingbee_and_scrapingdog_requests(self):
+        from reckon_sales_agent.research.website_finder import find_website
+
+        bee = FakeSession([response(200, {"organic_results": [{"url": "https://www.lazzpharma.com/"}]})])
+        self.assertEqual(find_website("k", "Lazz Pharma", "Dhaka", session=bee, provider="scrapingbee"),
+                         "https://lazzpharma.com")
+        self.assertEqual(bee.calls[0][3]["Authorization"], "Bearer k")
+        dog = FakeSession([response(200, {"organic_results": [{"link": "https://lazzpharma.com"}]})])
+        self.assertEqual(find_website(" k ", "Lazz Pharma", "Dhaka", session=dog), "https://lazzpharma.com")
+        self.assertEqual(dog.calls[0][2]["api_key"], "k")
 
 
 class ProviderErrorTests(unittest.TestCase):

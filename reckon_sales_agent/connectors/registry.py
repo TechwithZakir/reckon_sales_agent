@@ -13,6 +13,7 @@ from reckon_sales_agent.connectors.fixture import FixtureConnector
 from reckon_sales_agent.connectors.google_places import GooglePlacesConnector
 
 MAPS_SOURCES = frozenset({"google_places_api", "serpapi_google_maps", "scrapingdog_google_maps",
+                          "scrapingbee_google_maps",
                           "apify_google_maps", "google_maps_browser_experimental"})
 # Sources whose terms we do not control: tenants may only tighten their policy.
 RESTRICTED_SOURCES = MAPS_SOURCES
@@ -69,6 +70,7 @@ def build_connector(connector_doc):
 def _maps_connector(kind: str):
     from reckon_sales_agent.connectors.apify_maps import ApifyMapsConnector
     from reckon_sales_agent.connectors.maps_browser import GoogleMapsBrowserConnector
+    from reckon_sales_agent.connectors.scrapingbee_maps import ScrapingBeeMapsConnector
     from reckon_sales_agent.connectors.scrapingdog_maps import ScrapingdogMapsConnector
     from reckon_sales_agent.connectors.serpapi_maps import SerpAPIMapsConnector
     from reckon_sales_agent.usage import platform_settings
@@ -82,6 +84,9 @@ def _maps_connector(kind: str):
                                     retention_days=retention)
     if kind == "scrapingdog_google_maps":
         return ScrapingdogMapsConnector(secret("scrapingdog_api_key"), enabled=bool(s.scrapingdog_enabled),
+                                        terms_ack=ack, retention_days=retention)
+    if kind == "scrapingbee_google_maps":
+        return ScrapingBeeMapsConnector(secret("scrapingbee_api_key"), enabled=bool(s.scrapingbee_enabled),
                                         terms_ack=ack, retention_days=retention)
     if kind == "apify_google_maps":
         return ApifyMapsConnector(secret("apify_api_token"), enabled=bool(s.apify_enabled), terms_ack=ack,

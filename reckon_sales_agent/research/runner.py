@@ -107,18 +107,24 @@ def research_prospect(prospect_name: str) -> str | None:
 
 
 def _find_website(prospect, platform) -> str | None:
-    """Look the business up on Google Search (Scrapingdog) when the listing had no website."""
-    if not (platform.get("scrapingdog_enabled") and platform.get("maps_terms_ack")):
+    """Look the business up on Google Search (ScrapingBee or Scrapingdog) when the listing had no website."""
+    if not platform.get("maps_terms_ack"):
         return None
-    key = platform.get_password("scrapingdog_api_key", raise_exception=False)
-    if not key or remaining(prospect.company, USAGE_RESEARCH) <= 0:
+    provider, key = None, None
+    for name in ("scrapingbee", "scrapingdog"):
+        if platform.get(f"{name}_enabled"):
+            key = platform.get_password(f"{name}_api_key", raise_exception=False)
+            if key:
+                provider = name
+                break
+    if not provider or remaining(prospect.company, USAGE_RESEARCH) <= 0:
         return None
     from reckon_sales_agent.discovery.normalize import normalize_domain
     from reckon_sales_agent.research.website_finder import find_website
 
     reserve(prospect.company, USAGE_RESEARCH, 1, prospect)
     frappe.db.commit()
-    website = find_website(key, prospect.business_name, prospect.city)
+    website = find_website(key, prospect.business_name, prospect.city, provider=provider)
     if website:
         prospect.db_set("domain", normalize_domain(website))
         log_activity(prospect.company, "website_found", prospect, website, "agent")
