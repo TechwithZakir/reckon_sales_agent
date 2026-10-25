@@ -28,7 +28,7 @@ from reckon_sales_agent.connectors.base import (
     DiscoveryQuery,
     SourceRecord,
 )
-from reckon_sales_agent.connectors.maps_common import looks_blocked
+from reckon_sales_agent.connectors.maps_common import guard_google_page
 from reckon_sales_agent.connectors.search_common import (
     COUNTRY,
     records_from_results,
@@ -66,6 +66,7 @@ class GoogleSearchBrowserConnector:
         self.retention_days = retention_days
         self.playwright_factory = playwright_factory
         self.sleep = sleep
+        self._declined = False  # Google's consent wall, declined at most once
 
     def capabilities(self) -> dict:
         return {"live": True, "network": True, "experimental": True, "official_api": False,
@@ -167,6 +168,4 @@ class GoogleSearchBrowserConnector:
             return ""
 
     def _check(self, page) -> None:
-        if looks_blocked(page.url, self._text(page)):
-            raise ConnectorError("Google showed a consent, CAPTCHA or unusual-traffic page; stopping.",
-                                 permanent=True, code="blocked")
+        self._declined = guard_google_page(page, self._declined)

@@ -85,3 +85,65 @@ def http_error(provider: str, response, secret: str | None = None):
 def looks_blocked(url: str, text: str = "") -> bool:
     haystack = f"{url} {text[:5000]}".lower()
     return any(marker in haystack for marker in BLOCK_MARKERS)
+
+
+# A cookie-consent wall is a privacy choice, not bot detection: the browser bots decline it ("Reject all")
+# and carry on. A CAPTCHA or "unusual traffic" page is bot detection: the bots stop and never try to pass it.
+CAPTCHA_MARKERS = ("/sorry/", "unusual traffic", "our systems have detected", "recaptcha", "not a robot")
+CONSENT_MARKERS = ("consent.google.", "before you continue to google")
+REJECT_ALL = (
+    'button:has-text("Reject all")', '[aria-label="Reject all"]', 'input[type="submit"][value="Reject all"]',
+    'button:has-text("Alle ablehnen")', 'button:has-text("Tout refuser")', 'button:has-text("Rechazar todo")',
+)
+
+
+def block_kind(url: str, text: str = "") -> str | None:
+    """'captcha', 'consent' or None for a Google page."""
+    haystack = f"{url} {text[:5000]}".lower()
+    if any(marker in haystack for marker in CAPTCHA_MARKERS):
+        return "captcha"
+    if any(marker in haystack for marker in CONSENT_MARKERS):
+        return "consent"
+    return None
+
+
+def _page_text(page) -> str:
+    try:
+        return page.inner_text("body")[:5000]
+    except Exception:
+        return ""
+
+
+def _decline_consent(page) -> bool:
+    for selector in REJECT_ALL:
+        try:
+            page.click(selector, timeout=3_000)
+        except Exception:
+            continue
+        try:
+            page.wait_for_load_state("domcontentloaded")
+        except Exception:
+            pass
+        return True
+    return False
+
+
+def guard_google_page(page, declined: bool) -> bool:
+    """Stop on a CAPTCHA; decline a consent wall once. Returns whether consent has been declined.
+
+    Raises ConnectorError with code "captcha" or "consent" so the job says which page stopped it.
+    """
+    from reckon_sales_agent.connectors.base import ConnectorError
+
+    kind = block_kind(page.url, _page_text(page))
+    if kind == "consent" and not declined and _decline_consent(page):
+        declined = True
+        kind = block_kind(page.url, _page_text(page))
+    if kind == "captcha":
+        raise ConnectorError("Google showed a CAPTCHA / \"unusual traffic\" page (bot detection), so the run "
+                             "stopped. The bot never tries to pass it; use an API source for this search.",
+                             permanent=True, code="captcha")
+    if kind == "consent":
+        raise ConnectorError("Google showed a cookie consent page and the bot could not decline it "
+                             "(\"Reject all\" was not found), so the run stopped.", permanent=True, code="consent")
+    return declined

@@ -20,6 +20,7 @@ from reckon_sales_agent.connectors.maps_browser import (  # noqa: E402
     unwrap_website,
 )
 from reckon_sales_agent.connectors.maps_common import (  # noqa: E402
+    block_kind,
     city_from_address,
     looks_blocked,
     maps_field_policy,
@@ -231,8 +232,12 @@ class ApifyTests(unittest.TestCase):
 class FakePage:
     """Stands in for a Playwright page on Google Maps."""
 
-    def __init__(self, places, blocked=False, has_search_box=True, feed=True, body="Results"):
+    def __init__(self, places, blocked=False, has_search_box=True, feed=True, body="Results", consent=None):
         self.places = places
+        self.consent = consent  # None, "reject" (button shown) or "stuck" (no button)
+        self.consent_done = False
+        self.pending = ""
+        self.clicks = []
         self.blocked = blocked
         self.has_search_box = has_search_box
         self.feed = feed
@@ -245,11 +250,30 @@ class FakePage:
         pass
 
     def goto(self, url, wait_until=None):
-        self.url = "https://www.google.com/sorry/index" if self.blocked else url
         self.visited.append(url)
+        if not self._consent_wall(url):
+            self.url = "https://www.google.com/sorry/index" if self.blocked else url
 
     def inner_text(self, selector):
+        if "consent.google." in self.url:
+            return "Before you continue to Google. Reject all / Accept all"
         return "Our systems have detected unusual traffic" if self.blocked else self.body
+
+    def _consent_wall(self, url):
+        """Show Google's consent page instead of ``url`` until "Reject all" is clicked."""
+        if self.consent and not self.consent_done:
+            self.pending = url
+            self.url = "https://consent.google.com/ml?continue=" + url
+            return True
+        return False
+
+    def click(self, selector, timeout=None):
+        if self.consent == "reject" and "Reject all" in selector and "consent.google." in self.url:
+            self.clicks.append(selector)
+            self.consent_done = True
+            self.url = self.pending
+            return None
+        raise TimeoutError(selector)
 
     def wait_for_selector(self, selector, timeout=None):
         if "searchboxinput" in selector and not self.has_search_box:
@@ -359,8 +383,31 @@ class BrowserConnectorTests(unittest.TestCase):
                                                sleep=lambda s: None)
         with self.assertRaises(ConnectorError) as ctx:
             list(connector.discover(QUERY))
-        self.assertEqual(ctx.exception.code, "blocked")
+        self.assertEqual(ctx.exception.code, "captcha")
         self.assertTrue(ctx.exception.permanent)
+
+    def test_consent_page_is_declined_and_the_run_continues(self):
+        page = FakePage(self.PLACES, consent="reject")
+        connector = GoogleMapsBrowserConnector(enabled=True, terms_ack=True, max_results=2,
+                                               playwright_factory=FakePlaywright(page), sleep=lambda s: None)
+        self.assertEqual(len(list(connector.discover(QUERY))), 2)
+        self.assertEqual(len(page.clicks), 1)  # "Reject all", once
+        self.assertIn("Reject all", page.clicks[0])
+
+    def test_consent_page_without_reject_button_stops_with_consent_code(self):
+        connector = GoogleMapsBrowserConnector(enabled=True, terms_ack=True, sleep=lambda s: None,
+                                               playwright_factory=FakePlaywright(FakePage(self.PLACES, consent="stuck")))
+        with self.assertRaises(ConnectorError) as ctx:
+            list(connector.discover(QUERY))
+        self.assertEqual(ctx.exception.code, "consent")
+
+    def test_block_kind(self):
+        self.assertEqual(block_kind("https://www.google.com/sorry/index?continue=x"), "captcha")
+        self.assertEqual(block_kind("https://www.google.com/maps", "Our systems have detected unusual traffic"),
+                         "captcha")
+        self.assertEqual(block_kind("https://consent.google.com/ml?continue=x"), "consent")
+        self.assertEqual(block_kind("https://www.google.com/", "Before you continue to Google"), "consent")
+        self.assertIsNone(block_kind("https://www.google.com/maps/place/x", "Lazz Pharma"))
 
     def test_missing_results_list_is_a_retryable_error_not_zero_leads(self):
         connector = GoogleMapsBrowserConnector(enabled=True, terms_ack=True, sleep=lambda s: None,

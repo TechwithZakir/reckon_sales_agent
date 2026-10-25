@@ -150,8 +150,12 @@ class SearchAPITests(unittest.TestCase):
 class FakeSearchPage:
     """Stands in for a Playwright page on Google Search: two result pages."""
 
-    def __init__(self, pages, blocked=False, has_box=True, results=True, body="Results"):
+    def __init__(self, pages, blocked=False, has_box=True, results=True, body="Results", consent=None):
         self.pages = pages
+        self.consent = consent
+        self.consent_done = False
+        self.pending = ""
+        self.clicks = []
         self.blocked = blocked
         self.has_box = has_box
         self.results = results
@@ -165,13 +169,33 @@ class FakeSearchPage:
         pass
 
     def goto(self, url, wait_until=None):
-        self.url = "https://www.google.com/sorry/index" if self.blocked else url
         self.visited.append(url)
+        if self._consent_wall(url):
+            return
+        self.url = "https://www.google.com/sorry/index" if self.blocked else url
         if "start=" in url:
             self.index += 1
 
     def inner_text(self, selector):
+        if "consent.google." in self.url:
+            return "Before you continue to Google Search"
         return "Our systems have detected unusual traffic" if self.blocked else self.body
+
+    def _consent_wall(self, url):
+        """Show Google's consent page instead of ``url`` until "Reject all" is clicked."""
+        if self.consent and not self.consent_done:
+            self.pending = url
+            self.url = "https://consent.google.com/ml?continue=" + url
+            return True
+        return False
+
+    def click(self, selector, timeout=None):
+        if self.consent == "reject" and "Reject all" in selector and "consent.google." in self.url:
+            self.clicks.append(selector)
+            self.consent_done = True
+            self.url = self.pending
+            return None
+        raise TimeoutError(selector)
 
     def wait_for_selector(self, selector, timeout=None):
         if "name=\"q\"" in selector and not self.has_box:
@@ -245,8 +269,20 @@ class SearchBrowserTests(unittest.TestCase):
     def test_block_page_stops_the_run(self):
         with self.assertRaises(ConnectorError) as ctx:
             list(self.bot(FakeSearchPage([PAGE_ONE], blocked=True)).discover(QUERY))
-        self.assertEqual(ctx.exception.code, "blocked")
+        self.assertEqual(ctx.exception.code, "captcha")
         self.assertTrue(ctx.exception.permanent)
+        self.assertIn("CAPTCHA", str(ctx.exception))
+
+    def test_consent_page_is_declined_and_the_search_runs(self):
+        page = FakeSearchPage([PAGE_ONE, PAGE_TWO], consent="reject")
+        records = list(self.bot(page).discover(QUERY))
+        self.assertEqual(len(records), 3)
+        self.assertEqual(len(page.clicks), 1)
+
+    def test_consent_page_that_cannot_be_declined_says_so(self):
+        with self.assertRaises(ConnectorError) as ctx:
+            list(self.bot(FakeSearchPage([PAGE_ONE], consent="stuck")).discover(QUERY))
+        self.assertEqual(ctx.exception.code, "consent")
 
     def test_missing_results_retry_but_no_match_is_empty(self):
         with self.assertRaises(ConnectorError) as ctx:

@@ -104,7 +104,10 @@ enrichment** → **scoring** → **CRM storage**.
 
 **The experimental browser does not evade blocking.** It uses the browser's
 own user agent, with no proxy rotation, stealth plugins or CAPTCHA solving.
-A consent, CAPTCHA or "unusual traffic" page stops the run. There is a
+Google's cookie consent page is a privacy choice, not bot detection: the bot
+clicks *Reject all* once and carries on (the job stops with code `consent`
+if it cannot). A CAPTCHA or "unusual traffic" page is bot detection: the run
+stops with code `captcha` and the bot never tries to pass it. There is a
 minimum 2-second delay between places and a hard cap of 100 places per
 search. Google changes its page often; when it does, the connector returns
 fewer or no results rather than wrong data.
@@ -132,7 +135,8 @@ connector needs *Source Policy Reviewed*. Search-derived fields are kept for
 them. Google Search blocks automated browsers from server addresses faster
 than Maps does, so use an API provider for regular runs. The browser bot
 waits at least 3 seconds between result pages, caps each search at 50
-results, and stops on a consent, CAPTCHA or "unusual traffic" page.
+results, declines Google's consent page like the Maps bot, and stops on a
+CAPTCHA or "unusual traffic" page.
 
 **Enrichment after discovery:**
 - **Website finder.** When a listing has no website and ScrapingBee or

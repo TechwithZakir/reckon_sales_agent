@@ -32,7 +32,7 @@ from reckon_sales_agent.connectors.base import (
 )
 from reckon_sales_agent.connectors.maps_common import (
     city_from_address,
-    looks_blocked,
+    guard_google_page,
     maps_field_policy,
     require_maps_terms,
 )
@@ -121,6 +121,7 @@ class GoogleMapsBrowserConnector:
         self.retention_days = retention_days
         self.playwright_factory = playwright_factory
         self.sleep = sleep
+        self._declined = False  # Google's consent wall, declined at most once
 
     def capabilities(self) -> dict:
         return {"live": True, "network": True, "experimental": True, "official_api": False,
@@ -203,13 +204,7 @@ class GoogleMapsBrowserConnector:
         self._check(page)
 
     def _check(self, page) -> None:
-        try:
-            text = page.inner_text("body")[:5000]
-        except Exception:
-            text = ""
-        if looks_blocked(page.url, text):
-            raise ConnectorError("Google showed a consent, CAPTCHA or unusual-traffic page; stopping.",
-                                 permanent=True, code="blocked")
+        self._declined = guard_google_page(page, self._declined)
 
     def _collect_links(self, page, limit: int) -> list[str]:
         try:
