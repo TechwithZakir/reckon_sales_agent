@@ -132,6 +132,14 @@ def clean_brief(data: dict, read_urls: set[str], max_segments: int = MAX_SEGMENT
     }
 
 
+def singular(phrase: str) -> str:
+    """'super stockists' -> 'super stockist' (simple English plurals only)."""
+    words = phrase.split()
+    if words and len(words[-1]) > 3 and words[-1].endswith("s") and not words[-1].endswith("ss"):
+        words[-1] = words[-1][:-3] + "y" if words[-1].endswith("ies") else words[-1][:-1]
+    return " ".join(words)
+
+
 def rule_brief(profile: dict) -> dict:
     """A plan without AI: one segment per target industry (or one core segment) from the profile itself."""
     types = lines(profile, "business_types")
@@ -139,7 +147,9 @@ def rule_brief(profile: dict) -> dict:
     negatives = lines(profile, "competitors") + lines(profile, "exclusions")
     segments = []
     for priority, industry in enumerate(industries[:MAX_SEGMENTS], start=1):
-        keywords = types[:8] or [industry]
+        # "Pharmaceutical distributor" finds pharma distributors; "distributors" alone finds every trade.
+        keywords = ([f"{industry} {singular(kind)}" for kind in types[:5]] or [industry]) \
+            if industry != "Core market" else types[:8]
         segments.append({
             "segment_name": f"{industry}" if industry != "Core market" else "Core market",
             "priority": min(priority, 5),

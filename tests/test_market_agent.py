@@ -202,7 +202,8 @@ class MarketPlanTests(unittest.TestCase):
     def test_rule_brief_without_ai(self):
         brief = rule_brief(PROFILE)
         self.assertEqual([s["segment_name"] for s in brief["segments"]], ["Pharmaceutical", "FMCG"])
-        self.assertEqual(brief["segments"][0]["keywords"], ["distributors", "wholesalers"])
+        self.assertEqual(brief["segments"][0]["keywords"], ["Pharmaceutical distributor", "Pharmaceutical wholesaler"])
+        self.assertEqual(brief["segments"][1]["keywords"], ["FMCG distributor", "FMCG wholesaler"])
         self.assertIn("Rival Soft", brief["segments"][0]["negative_keywords"])
 
     def test_segment_becomes_a_targeting_profile(self):
