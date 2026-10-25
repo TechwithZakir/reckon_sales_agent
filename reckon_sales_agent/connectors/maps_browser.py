@@ -44,6 +44,7 @@ SEARCH_URL = "https://www.google.com/maps/search/{query}?hl={language}"
 SEARCH_BOX = 'input#searchboxinput, input[name="q"]'
 FEED = 'div[role="feed"]'
 PLACE_LINKS = 'a[href*="/maps/place/"]'
+NO_RESULTS = re.compile(r"can't find|cannot find|no results|কোনো ফলাফল", re.I)
 EXTRACT_JS = """() => {
   const q = (s) => document.querySelector(s);
   const attr = (s, a) => { const el = q(s); return el ? el.getAttribute(a) : null; };
@@ -212,9 +213,18 @@ class GoogleMapsBrowserConnector:
 
     def _collect_links(self, page, limit: int) -> list[str]:
         try:
-            page.wait_for_selector(FEED, timeout=15_000)
-        except Exception:
-            return []
+            page.wait_for_selector(FEED, timeout=25_000)
+        except Exception as exc:
+            if "/maps/place/" in page.url:
+                return []  # a single place opened directly; the caller reads it
+            try:
+                text = page.inner_text("body")[:5000]
+            except Exception:
+                text = ""
+            if NO_RESULTS.search(text):
+                return []
+            # Slow load or a layout change: say so (and let the runner retry) rather than report 0 leads.
+            raise ConnectorError("Google Maps did not show a results list in time.", code="no_results_list") from exc
         links: list[str] = []
         stale = 0
         while len(links) < limit and stale < 3:

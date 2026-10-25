@@ -231,10 +231,12 @@ class ApifyTests(unittest.TestCase):
 class FakePage:
     """Stands in for a Playwright page on Google Maps."""
 
-    def __init__(self, places, blocked=False, has_search_box=True):
+    def __init__(self, places, blocked=False, has_search_box=True, feed=True, body="Results"):
         self.places = places
         self.blocked = blocked
         self.has_search_box = has_search_box
+        self.feed = feed
+        self.body = body
         self.url = ""
         self.visited = []
         self.typed = []
@@ -247,11 +249,13 @@ class FakePage:
         self.visited.append(url)
 
     def inner_text(self, selector):
-        return "Our systems have detected unusual traffic" if self.blocked else "Results"
+        return "Our systems have detected unusual traffic" if self.blocked else self.body
 
     def wait_for_selector(self, selector, timeout=None):
         if "searchboxinput" in selector and not self.has_search_box:
             raise TimeoutError("no search box")
+        if 'role="feed"' in selector and not self.feed:
+            raise TimeoutError("no feed")
         return True
 
     def fill(self, selector, text):
@@ -357,6 +361,20 @@ class BrowserConnectorTests(unittest.TestCase):
             list(connector.discover(QUERY))
         self.assertEqual(ctx.exception.code, "blocked")
         self.assertTrue(ctx.exception.permanent)
+
+    def test_missing_results_list_is_a_retryable_error_not_zero_leads(self):
+        connector = GoogleMapsBrowserConnector(enabled=True, terms_ack=True, sleep=lambda s: None,
+                                               playwright_factory=FakePlaywright(FakePage(self.PLACES, feed=False)))
+        with self.assertRaises(ConnectorError) as ctx:
+            list(connector.discover(QUERY))
+        self.assertEqual(ctx.exception.code, "no_results_list")
+        self.assertFalse(ctx.exception.permanent)
+
+    def test_genuine_no_results_is_empty(self):
+        page = FakePage(self.PLACES, feed=False, body="Google Maps can't find pharmacy in Nowhere")
+        connector = GoogleMapsBrowserConnector(enabled=True, terms_ack=True, sleep=lambda s: None,
+                                               playwright_factory=FakePlaywright(page))
+        self.assertEqual(list(connector.discover(QUERY)), [])
 
     def test_pure_parsers(self):
         self.assertEqual(clean_label("Address: Road 5, Dhaka "), "Road 5, Dhaka")
