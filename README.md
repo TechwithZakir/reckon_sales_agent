@@ -109,6 +109,31 @@ minimum 2-second delay between places and a hard cap of 100 places per
 search. Google changes its page often; when it does, the connector returns
 fewer or no results rather than wrong data.
 
+### Google Search lead sources
+
+These search Google for "keyword in location" and turn each organic result
+that is a business's own website into a lead. Social networks,
+marketplaces, directories, news, government and reference sites are
+skipped, and each domain counts once. The lead keeps the site's home page, a
+name cleaned from the result title, and a phone number if the snippet shows
+one. Website research then reads the site for emails, phones and evidence.
+
+| Connector | How it searches | Needs |
+| --- | --- | --- |
+| `scrapingdog_google_search` | Scrapingdog Google Search API (JSON, 0-based `page`) | Scrapingdog key (same as Maps) |
+| `scrapingbee_google_search` | ScrapingBee Google API (JSON; key in the Authorization header) | ScrapingBee key (same as Maps) |
+| `serpapi_google_search` | SerpAPI `engine=google` (JSON, `start` offset) | SerpAPI key (same as Maps) |
+| `google_search_browser_experimental` | **Experimental.** Headless Chromium types the search on google.com and follows *Next* | Same Playwright install as the Maps browser |
+
+The same rules as Maps apply: each source is off until the vendor enables it
+and ticks *I Accept Responsibility for Google Search Data Use*. Each tenant
+connector needs *Source Policy Reviewed*. Search-derived fields are kept for
+*Search Data Retention (Days)* unless the company's own website confirms
+them. Google Search blocks automated browsers from server addresses faster
+than Maps does, so use an API provider for regular runs. The browser bot
+waits at least 3 seconds between result pages, caps each search at 50
+results, and stops on a consent, CAPTCHA or "unusual traffic" page.
+
 **Enrichment after discovery:**
 - **Website finder.** When a listing has no website and ScrapingBee or
   Scrapingdog is enabled, a Google search for "business + city" finds the site. A result is

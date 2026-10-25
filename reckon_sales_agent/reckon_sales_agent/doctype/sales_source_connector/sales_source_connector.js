@@ -26,6 +26,17 @@ frappe.ui.form.on("Sales Source Connector", {
 				__("Keys and permission are set by the platform vendor. Maps data is kept only for the vendor's retention window unless the company's website confirms it."),
 				frm.doc.connector_type.endsWith("experimental") ? "orange" : "blue");
 		}
+		const search = {
+			scrapingdog_google_search: __("Scrapingdog runs the Google search; results that are a business's own website become leads."),
+			scrapingbee_google_search: __("ScrapingBee runs the Google search; results that are a business's own website become leads."),
+			serpapi_google_search: __("SerpAPI runs the Google search; results that are a business's own website become leads."),
+			google_search_browser_experimental: __("EXPERIMENTAL headless browser on google.com. Unsupported by Google and restricted by its terms; Google blocks server traffic quickly and the run stops when it does."),
+		};
+		if (search[frm.doc.connector_type]) {
+			frm.set_intro(search[frm.doc.connector_type] + " " +
+				__("Social, marketplace, directory and news sites are skipped. Keys and permission are set by the platform vendor."),
+				frm.doc.connector_type.endsWith("experimental") ? "orange" : "blue");
+		}
 		if (frm.doc.connector_type === "google_places_api") {
 			frm.set_intro(__("Uses the official Google Places API with the platform's key. Google content is kept only for the platform's retention window unless the company's own website confirms it."), "blue");
 		}

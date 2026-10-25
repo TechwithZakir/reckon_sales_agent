@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-26 10:00:00.000000",
+ "modified": "2026-10-25 21:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -47,6 +47,20 @@
   "maps_browser_col",
   "maps_browser_delay",
   "maps_browser_language",
+  "search_section",
+  "search_terms_ack",
+  "search_data_retention_days",
+  "search_country",
+  "search_language",
+  "search_col",
+  "search_scrapingdog_enabled",
+  "search_scrapingbee_enabled",
+  "search_serpapi_enabled",
+  "search_browser_section",
+  "search_browser_enabled",
+  "search_browser_max_results",
+  "search_browser_col",
+  "search_browser_delay",
   "research_section",
   "research_enabled",
   "user_agent",
@@ -239,6 +253,89 @@
    "fieldtype": "Data",
    "label": "Language (hl)",
    "default": "en"
+  },
+  {
+   "fieldname": "search_section",
+   "fieldtype": "Section Break",
+   "label": "Google Search Lead Sources",
+   "description": "Finds business websites in Google Search results through the providers above (same API keys). Google's Terms of Service restrict automated searching; enable only after your own legal review."
+  },
+  {
+   "fieldname": "search_terms_ack",
+   "fieldtype": "Check",
+   "label": "I Accept Responsibility for Google Search Data Use",
+   "default": "0"
+  },
+  {
+   "fieldname": "search_data_retention_days",
+   "fieldtype": "Int",
+   "label": "Search Data Retention (Days)",
+   "default": "30",
+   "description": "How long search-derived fields are kept unless the company's own website confirms them. 0 keeps them."
+  },
+  {
+   "fieldname": "search_country",
+   "fieldtype": "Data",
+   "label": "Search Country (gl)",
+   "default": "bd",
+   "description": "Two-letter country code Google searches from."
+  },
+  {
+   "fieldname": "search_language",
+   "fieldtype": "Data",
+   "label": "Search Language (hl)",
+   "default": "en"
+  },
+  {
+   "fieldname": "search_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "search_scrapingdog_enabled",
+   "fieldtype": "Check",
+   "label": "Enable Scrapingdog (Google Search)",
+   "default": "0"
+  },
+  {
+   "fieldname": "search_scrapingbee_enabled",
+   "fieldtype": "Check",
+   "label": "Enable ScrapingBee (Google Search)",
+   "default": "0"
+  },
+  {
+   "fieldname": "search_serpapi_enabled",
+   "fieldtype": "Check",
+   "label": "Enable SerpAPI (Google Search)",
+   "default": "0"
+  },
+  {
+   "fieldname": "search_browser_section",
+   "fieldtype": "Section Break",
+   "label": "Experimental: Google Search Headless Browser (Playwright)",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "search_browser_enabled",
+   "fieldtype": "Check",
+   "label": "Enable google_search_browser_experimental",
+   "default": "0",
+   "description": "Unstable and unsupported by Google, which blocks server traffic quickly. No proxies, CAPTCHA solving or stealth: the run stops when Google blocks it."
+  },
+  {
+   "fieldname": "search_browser_max_results",
+   "fieldtype": "Int",
+   "label": "Max Results per Search",
+   "default": "30"
+  },
+  {
+   "fieldname": "search_browser_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "search_browser_delay",
+   "fieldtype": "Float",
+   "label": "Delay Between Result Pages (Seconds)",
+   "default": "4"
   },
   {
    "fieldname": "research_section",

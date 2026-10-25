@@ -15,10 +15,12 @@ from reckon_sales_agent.connectors.google_places import GooglePlacesConnector
 MAPS_SOURCES = frozenset({"google_places_api", "serpapi_google_maps", "scrapingdog_google_maps",
                           "scrapingbee_google_maps",
                           "apify_google_maps", "google_maps_browser_experimental"})
+SEARCH_SOURCES = frozenset({"scrapingdog_google_search", "scrapingbee_google_search", "serpapi_google_search",
+                            "google_search_browser_experimental"})
 # Sources whose terms we do not control: tenants may only tighten their policy.
-RESTRICTED_SOURCES = MAPS_SOURCES
+RESTRICTED_SOURCES = MAPS_SOURCES | SEARCH_SOURCES
 # Sources that need an explicit "policy reviewed" confirmation before running.
-EXTERNAL_SOURCES = MAPS_SOURCES | {"permitted_directory"}
+EXTERNAL_SOURCES = RESTRICTED_SOURCES | {"permitted_directory"}
 
 
 def _json(value) -> dict:
@@ -47,6 +49,8 @@ def build_connector(connector_doc):
         return CSVImportConnector(_attached_csv(connector_doc))
     if kind in MAPS_SOURCES:
         return _maps_connector(kind)
+    if kind in SEARCH_SOURCES:
+        return _search_connector(kind)
     if kind == "permitted_directory":
         from reckon_sales_agent.connectors.directory_crawler import DirectoryCrawler
         from reckon_sales_agent.usage import platform_settings
@@ -102,6 +106,36 @@ def _maps_connector(kind: str):
         terms_reviewed=bool(s.places_terms_reviewed),
         retention_days=s.places_retention_days or 30,
     )
+
+
+def _search_connector(kind: str):
+    from reckon_sales_agent.connectors.search_api import (
+        ScrapingBeeSearchConnector,
+        ScrapingdogSearchConnector,
+        SerpAPISearchConnector,
+    )
+    from reckon_sales_agent.connectors.search_browser import GoogleSearchBrowserConnector
+    from reckon_sales_agent.usage import platform_settings
+
+    s = platform_settings()
+    common = {
+        "terms_ack": bool(s.search_terms_ack),
+        "retention_days": s.search_data_retention_days if s.search_data_retention_days is not None else 30,
+        "country": s.search_country or "bd",
+        "language": s.search_language or "en",
+    }
+    secret = lambda field: s.get_password(field, raise_exception=False)  # noqa: E731
+    if kind == "scrapingdog_google_search":
+        return ScrapingdogSearchConnector(secret("scrapingdog_api_key"), enabled=bool(s.search_scrapingdog_enabled),
+                                          **common)
+    if kind == "scrapingbee_google_search":
+        return ScrapingBeeSearchConnector(secret("scrapingbee_api_key"), enabled=bool(s.search_scrapingbee_enabled),
+                                          **common)
+    if kind == "serpapi_google_search":
+        return SerpAPISearchConnector(secret("serpapi_api_key"), enabled=bool(s.search_serpapi_enabled), **common)
+    return GoogleSearchBrowserConnector(enabled=bool(s.search_browser_enabled),
+                                        max_results=s.search_browser_max_results or 30,
+                                        delay=s.search_browser_delay or 4, **common)
 
 
 AI_LISTING_SCHEMA = {

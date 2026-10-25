@@ -24,7 +24,8 @@ from reckon_sales_agent.usage import (
 )
 
 # Connector catalogue shown as icon cards. ``vendor`` lists the Platform
-# Settings flags that must all be on; ``maps`` adds the Maps responsibility tick.
+# Settings flags that must all be on; ``maps`` adds the Maps responsibility tick
+# and ``ack`` names any other responsibility tick (Google Search).
 CATALOG = (
     {"type": "scrapingbee_google_maps", "title": "Google Maps · ScrapingBee", "group": "Google Maps",
      "icon": "map", "subtitle": "Reliable Maps search through ScrapingBee's API.",
@@ -44,6 +45,18 @@ CATALOG = (
     {"type": "google_maps_browser_experimental", "title": "Maps Browser Bot", "group": "Google Maps",
      "icon": "browser", "subtitle": "Experimental headless browser on maps.google.com.",
      "vendor": ("maps_browser_enabled",), "maps": True, "experimental": True},
+    {"type": "scrapingdog_google_search", "title": "Google Search · Scrapingdog", "group": "Google Search",
+     "icon": "search", "subtitle": "Business websites from Google results via Scrapingdog.",
+     "vendor": ("search_scrapingdog_enabled",), "maps": False, "ack": "search_terms_ack"},
+    {"type": "scrapingbee_google_search", "title": "Google Search · ScrapingBee", "group": "Google Search",
+     "icon": "search", "subtitle": "Business websites from Google results via ScrapingBee.",
+     "vendor": ("search_scrapingbee_enabled",), "maps": False, "ack": "search_terms_ack"},
+    {"type": "serpapi_google_search", "title": "Google Search · SerpAPI", "group": "Google Search",
+     "icon": "search", "subtitle": "Business websites from Google results via SerpAPI.",
+     "vendor": ("search_serpapi_enabled",), "maps": False, "ack": "search_terms_ack"},
+    {"type": "google_search_browser_experimental", "title": "Search Browser Bot", "group": "Google Search",
+     "icon": "browser", "subtitle": "Experimental headless browser on google.com.",
+     "vendor": ("search_browser_enabled",), "maps": False, "ack": "search_terms_ack", "experimental": True},
     {"type": "permitted_directory", "title": "Directory Crawler", "group": "Web",
      "icon": "globe", "subtitle": "Crawl a business directory you may use.",
      "vendor": ("research_enabled",), "maps": False, "needs_urls": True},
@@ -80,6 +93,8 @@ def _availability(item: dict, platform) -> tuple[bool, str]:
         return False, _("Not enabled by your provider yet.")
     if item["maps"] and not platform.get("maps_terms_ack"):
         return False, _("Your provider has not enabled Google Maps sources yet.")
+    if item.get("ack") and not platform.get(item["ack"]):
+        return False, _("Your provider has not enabled this source yet.")
     return True, _("Ready")
 
 
