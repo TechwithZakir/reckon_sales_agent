@@ -199,6 +199,10 @@ class MarketPlanTests(unittest.TestCase):
         self.assertEqual(chains["keywords"], ["pharmacy"])  # de-duplicated
         self.assertEqual(chains["evidence_urls"], ["https://read.example/a"])  # invented source dropped
 
+    def test_unknowns_keep_whole_sentences(self):
+        sentence = "The pages contain no direct data on the number or size of distributors per region in Bangladesh."
+        self.assertEqual(clean_brief({"segments": [], "unknowns": [sentence]}, set())["unknowns"], [sentence])
+
     def test_rule_brief_without_ai(self):
         brief = rule_brief(PROFILE)
         self.assertEqual([s["segment_name"] for s in brief["segments"]], ["Pharmaceutical", "FMCG"])

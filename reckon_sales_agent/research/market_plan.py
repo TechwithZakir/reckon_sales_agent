@@ -97,10 +97,10 @@ def profile_prompt(profile: dict) -> str:
     return "\n".join(f"{label}: {', '.join(split_lines(profile.get(field))) or '-'}" for label, field in labels)
 
 
-def _items(value, limit: int) -> list[str]:
+def _items(value, limit: int, length: int = 80) -> list[str]:
     out: list[str] = []
     for item in value if isinstance(value, list) else []:
-        text = " ".join(str(item).split())[:80]
+        text = " ".join(str(item).split())[:length]
         if text and text.lower() not in {o.lower() for o in out}:
             out.append(text)
     return out[:limit]
@@ -128,7 +128,7 @@ def clean_brief(data: dict, read_urls: set[str], max_segments: int = MAX_SEGMENT
     return {
         "summary": " ".join(str(data.get("summary") or "").split())[:3000],
         "segments": segments[:max_segments],
-        "unknowns": _items(data.get("unknowns"), 10),
+        "unknowns": _items(data.get("unknowns"), 10, length=400),  # sentences, not keywords
     }
 
 
