@@ -93,6 +93,18 @@ def _skipped(domain: str, skip: str) -> bool:
     return skip in domain  # a brand fragment: "yellowpages"
 
 
+SECOND_LEVEL = {"com", "co", "net", "org", "gov", "edu", "ac", "info", "biz"}
+
+
+def site_key(url: str | None) -> str:
+    """One key per business site: web.praavahealth.com and praavahealth.com are the same business;
+    shop.example.com.bd -> example.com.bd."""
+    labels = (normalize_domain(url or "") or "").split(".")
+    if len(labels) >= 3 and labels[-2] in SECOND_LEVEL and len(labels[-1]) == 2:
+        return ".".join(labels[-3:])
+    return ".".join(labels[-2:])
+
+
 def is_business_site(url: str | None) -> bool:
     domain = normalize_domain(url or "")
     return bool(domain) and not any(_skipped(domain, skip) for skip in SKIP_DOMAINS)
@@ -175,7 +187,7 @@ def records_from_results(results: list[dict], query: DiscoveryQuery, source_key:
             continue
         if is_listing_page(result.get("title"), link):
             continue
-        domain = normalize_domain(link)
+        domain = site_key(link)
         if domain in seen:
             continue
         name = business_name(result.get("title"), link, query.keyword)

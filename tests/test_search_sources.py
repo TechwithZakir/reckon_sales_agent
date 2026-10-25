@@ -115,6 +115,14 @@ class ResultFilterTests(unittest.TestCase):
         self.assertEqual([r.fields["business_name"] for r in records],
                          ["BRAC Healthcare", "Gulshan Homeo Pharmacy", "Islamia Pharmacy Ltd.", "ACI Limited"])
 
+    def test_one_lead_per_business_site(self):
+        live = [{"title": "praava pharmacy", "url": "https://web.praavahealth.com/pharmacy"},
+                {"title": "Praava Health", "url": "https://www.praavahealth.com/"},
+                {"title": "Lazz Pharma", "url": "https://shop.lazzpharma.com.bd/"},
+                {"title": "Lazz Pharma Kalabagan", "url": "https://lazzpharma.com.bd/kalabagan"}]
+        records = records_from_results(live, QUERY, "brave_web_search", set(), 10)
+        self.assertEqual([r.external_id for r in records], ["praavahealth.com", "lazzpharma.com.bd"])
+
     def test_generic_page_title_falls_back_to_the_domain(self):
         self.assertEqual(business_name("Pharmacy", "https://www.tcm-model-pharmacy.com/", "pharmacy"),
                          "Tcm Model Pharmacy")

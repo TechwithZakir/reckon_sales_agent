@@ -30,6 +30,7 @@ from reckon_sales_agent.connectors.search_common import (
     name_matches_domain,
     phone_from,
     search_field_policy,
+    site_key,
 )
 from reckon_sales_agent.discovery.normalize import normalize_domain, normalize_space
 
@@ -245,7 +246,7 @@ class BraveLLMContextConnector(_BraveConnector):
             return None  # a page about the business on someone else's site
         return SourceRecord(
             source_key=self.source_key,
-            external_id=normalize_domain(url) if own_site else f"{name.lower()}@{normalize_domain(url)}"[:140],
+            external_id=site_key(url) if own_site else f"{name.lower()}@{normalize_domain(url)}"[:140],
             source_url=url,
             fields={
                 "business_name": name[:140],
