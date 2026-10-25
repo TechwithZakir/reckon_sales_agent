@@ -67,12 +67,20 @@ def get_limit(company: str, usage_type: str) -> int:
 
 
 def get_used(company: str, usage_type: str, period: str | None = None) -> int:
-    rows = frappe.get_all(
-        "Sales Usage Ledger",
-        filters={"company": company, "usage_type": usage_type, "period": period or current_period()},
-        fields=["sum(quantity) as total"],
-    )
-    return int((rows[0].total if rows else 0) or 0)
+    # Query builder aggregate: Frappe 16 rejects SQL functions written as strings in ``fields``.
+    from frappe.query_builder.functions import Sum
+
+    ledger = frappe.qb.DocType("Sales Usage Ledger")
+    total = (
+        frappe.qb.from_(ledger)
+        .select(Sum(ledger.quantity))
+        .where(
+            (ledger.company == company)
+            & (ledger.usage_type == usage_type)
+            & (ledger.period == (period or current_period()))
+        )
+    ).run()
+    return int((total[0][0] if total else 0) or 0)
 
 
 def remaining(company: str, usage_type: str) -> int:

@@ -41,12 +41,10 @@ def campaign_metrics(campaign_name: str) -> dict:
     leads = [m.crm_lead for m in members if m.crm_lead]
     deals = []
     if leads:
-        fields = ["name", "status"]
-        if frappe.db.has_column("CRM Deal", "deal_value"):
-            fields.append("deal_value")
-        elif frappe.db.has_column("CRM Deal", "annual_revenue"):
-            fields.append("annual_revenue as deal_value")
-        deals = frappe.get_all("CRM Deal", filters={"lead": ["in", leads]}, fields=fields)
+        value_field = next((f for f in ("deal_value", "annual_revenue") if frappe.db.has_column("CRM Deal", f)), None)
+        fields = ["name", "status"] + ([value_field] if value_field else [])
+        deals = [{**d, "deal_value": d.get(value_field) if value_field else 0}
+                 for d in frappe.get_all("CRM Deal", filters={"lead": ["in", leads]}, fields=fields)]
     return summarize(events, members, deals)
 
 

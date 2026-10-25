@@ -245,15 +245,11 @@ def _start(job, campaign) -> None:
 def _finish(job, campaign, status: str, code: str | None = None, detail: str | None = None) -> None:
     job.db_set({"status": status, "finished_at": now_datetime(), "error_code": code,
                 "error_detail": (detail or "")[:500] or None})
-    counts = frappe.db.get_all(
-        "Sales Prospect",
-        filters={"company": job.company, "discovery_campaign": campaign.name},
-        fields=["count(name) as total", "sum(case when qualification_status='Qualified' then 1 else 0 end) as qualified"],
-    )[0]
+    in_campaign = {"company": job.company, "discovery_campaign": campaign.name}
     campaign.db_set({
         "status": {"Completed": "Completed", "Cancelled": "Cancelled"}.get(status, "Planned"),
-        "prospects_found": counts.total or 0,
-        "qualified_count": counts.qualified or 0,
+        "prospects_found": frappe.db.count("Sales Prospect", in_campaign),
+        "qualified_count": frappe.db.count("Sales Prospect", {**in_campaign, "qualification_status": "Qualified"}),
         "duplicates_found": (campaign.duplicates_found or 0) + (job.duplicate_count or 0),
     })
     log_activity(job.company, f"discovery_{status.lower()}", job, detail or "", actor_type="system")
