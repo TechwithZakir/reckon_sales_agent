@@ -46,6 +46,42 @@ def city_from_address(address: str | None, fallback: str = "") -> str:
     return fallback
 
 
+def provider_message(response, secret: str | None = None, limit: int = 200) -> str:
+    """The provider's own error text (JSON message/error or body), with the secret redacted."""
+    text = ""
+    try:
+        data = response.json()
+        if isinstance(data, dict):
+            text = str(data.get("message") or data.get("error") or data.get("detail") or data)
+        else:
+            text = str(data)
+    except Exception:
+        text = getattr(response, "text", "") or ""
+    text = " ".join(text.split())
+    if secret:
+        text = text.replace(secret, "***")
+    return text[:limit]
+
+
+def http_error(provider: str, response, secret: str | None = None):
+    """A ConnectorError explaining an HTTP failure, using the provider's documented meanings."""
+    from reckon_sales_agent.connectors.base import ConnectorError
+
+    status = response.status_code
+    meaning = {
+        401: "the API key is invalid or missing",
+        402: "the account has no credit left",
+        403: "the plan does not include this API, or credits are used up",
+        429: "the rate limit was reached",
+    }.get(status, "the request failed")
+    detail = provider_message(response, secret)
+    return ConnectorError(
+        f"{provider} HTTP {status}: {meaning}." + (f" Provider says: {detail}" if detail else ""),
+        permanent=status in (400, 401, 402, 403, 404),
+        code={401: "auth", 402: "billing", 403: "forbidden", 429: "rate_limited"}.get(status, "http_error"),
+    )
+
+
 def looks_blocked(url: str, text: str = "") -> bool:
     haystack = f"{url} {text[:5000]}".lower()
     return any(marker in haystack for marker in BLOCK_MARKERS)

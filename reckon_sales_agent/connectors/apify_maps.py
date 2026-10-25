@@ -28,7 +28,7 @@ class ApifyMapsConnector:
 
     def __init__(self, token: str | None, *, enabled: bool, terms_ack: bool, actor: str | None = None,
                  retention_days: int = 30, session=None):
-        self.token = token
+        self.token = (token or "").strip() or None
         self.enabled = enabled
         self.terms_ack = terms_ack
         self.actor = (actor or "compass~crawler-google-places").strip()
@@ -66,15 +66,10 @@ class ApifyMapsConnector:
             )
         except requests.RequestException as exc:
             raise ConnectorError(f"Apify request failed: {type(exc).__name__}") from exc
-        if response.status_code in (401, 403):
-            raise ConnectorError("Apify rejected the token.", permanent=True, code="auth")
-        if response.status_code == 402:
-            raise ConnectorError("Apify account has no credit left.", permanent=True, code="billing")
         if response.status_code == 408:
             raise ConnectorError("The Apify run timed out; try fewer results per search.", code="timeout")
         if response.status_code >= 400:
-            raise ConnectorError(f"Apify error {response.status_code}.", permanent=response.status_code < 500,
-                                 code="http_error")
+            raise http_error("Apify", response, self.token)
         now = datetime.now(timezone.utc).isoformat()
         for item in (response.json() or [])[: query.max_results]:
             if not isinstance(item, dict) or not item.get("title"):

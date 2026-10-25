@@ -127,6 +127,31 @@ class ScrapingdogTests(unittest.TestCase):
         self.assertEqual(session.calls[0][2]["ll"], "@23.8103,90.4125,12z")
 
 
+class ProviderErrorTests(unittest.TestCase):
+    def test_error_explains_status_and_redacts_key(self):
+        body = {"success": False, "message": "Invalid API key sd-SECRET-123"}
+        session = FakeSession([response(401, body)])
+        connector = ScrapingdogMapsConnector("  sd-SECRET-123
+", enabled=True, terms_ack=True, session=session)
+        with self.assertRaises(ConnectorError) as ctx:
+            list(connector.discover(QUERY))
+        message = str(ctx.exception)
+        self.assertIn("HTTP 401", message)
+        self.assertIn("invalid or missing", message)
+        self.assertIn("Invalid API key ***", message)
+        self.assertNotIn("SECRET", message)
+        self.assertEqual(session.calls[0][2]["api_key"], "sd-SECRET-123")  # whitespace trimmed
+        self.assertTrue(ctx.exception.permanent)
+
+    def test_forbidden_means_plan_or_credits(self):
+        session = FakeSession([response(403, {"message": "Your plan does not include this API"})])
+        connector = ScrapingdogMapsConnector("k", enabled=True, terms_ack=True, session=session)
+        with self.assertRaises(ConnectorError) as ctx:
+            list(connector.discover(QUERY))
+        self.assertEqual(ctx.exception.code, "forbidden")
+        self.assertIn("does not include this API", str(ctx.exception))
+
+
 class ApifyTests(unittest.TestCase):
     def test_actor_run_and_token_in_header(self):
         items = [{"title": "Padma Drugs", "placeId": "ChIJ1", "address": "Uttara, Dhaka", "city": "Dhaka",

@@ -46,7 +46,7 @@ class ScrapingdogMapsConnector:
 
     def __init__(self, api_key: str | None, *, enabled: bool, terms_ack: bool, retention_days: int = 30,
                  session=None, timeout: int = 60):
-        self.api_key = api_key
+        self.api_key = (api_key or "").strip() or None
         self.enabled = enabled
         self.terms_ack = terms_ack
         self.retention_days = retention_days
@@ -102,11 +102,6 @@ class ScrapingdogMapsConnector:
             response = self.session.get(ENDPOINT, params=params, timeout=self.timeout)
         except requests.RequestException as exc:
             raise ConnectorError(f"Scrapingdog request failed: {type(exc).__name__}") from exc
-        if response.status_code in (401, 403):
-            raise ConnectorError("Scrapingdog rejected the key or has no credits.", permanent=True, code="auth")
-        if response.status_code == 429:
-            raise ConnectorError("Scrapingdog rate limit reached.", code="rate_limited")
         if response.status_code >= 400:
-            raise ConnectorError(f"Scrapingdog error {response.status_code}.", permanent=response.status_code < 500,
-                                 code="http_error")
+            raise http_error("Scrapingdog", response, self.api_key)
         return response.json() or {}

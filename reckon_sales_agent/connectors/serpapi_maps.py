@@ -28,7 +28,7 @@ class SerpAPIMapsConnector:
 
     def __init__(self, api_key: str | None, *, enabled: bool, terms_ack: bool, retention_days: int = 30,
                  session=None, timeout: int = 30):
-        self.api_key = api_key
+        self.api_key = (api_key or "").strip() or None
         self.enabled = enabled
         self.terms_ack = terms_ack
         self.retention_days = retention_days
@@ -67,13 +67,8 @@ class SerpAPIMapsConnector:
             response = self.session.get(ENDPOINT, params=params, timeout=self.timeout)
         except requests.RequestException as exc:
             raise ConnectorError(f"SerpAPI request failed: {type(exc).__name__}") from exc
-        if response.status_code in (401, 403):
-            raise ConnectorError("SerpAPI rejected the key.", permanent=True, code="auth")
-        if response.status_code == 429:
-            raise ConnectorError("SerpAPI rate limit or plan quota reached.", code="rate_limited")
         if response.status_code >= 400:
-            raise ConnectorError(f"SerpAPI error {response.status_code}.", permanent=response.status_code < 500,
-                                 code="http_error")
+            raise http_error("SerpAPI", response, self.api_key)
         data = response.json()
         if data.get("error") and "hasn't returned any results" not in str(data["error"]):
             raise ConnectorError(f"SerpAPI: {str(data['error'])[:200]}", permanent=True, code="provider_error")

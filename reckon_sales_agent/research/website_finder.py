@@ -38,7 +38,7 @@ def find_website(api_key: str, business_name: str, city: str | None, session=Non
     session = session or requests.Session()
     try:
         response = session.get(SERP_ENDPOINT, params={
-            "api_key": api_key, "query": f"{business_name} {city or ''} Bangladesh".strip(),
+            "api_key": (api_key or "").strip(), "query": f"{business_name} {city or ''} Bangladesh".strip(),
             "country": "bd", "page": 0,
         }, timeout=timeout)
     except requests.RequestException:
