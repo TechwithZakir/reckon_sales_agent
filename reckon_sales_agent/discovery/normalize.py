@@ -137,3 +137,13 @@ def apply_field_policy(fields: dict, policy: dict, retrieved_at: str, source: st
             expiry = today + timedelta(days=int(days))
             retention_until = min(retention_until, expiry) if retention_until else expiry
     return kept, provenance, retention_until
+
+
+URL_FIELDS = {"website", "source_url"}
+
+
+def fit_length(value: str, limit: int, url: bool = False) -> str | None:
+    """Fit text into a column of ``limit`` characters; a URL that does not fit is dropped."""
+    if len(value) <= limit:
+        return value
+    return None if url else value[:limit].rstrip()

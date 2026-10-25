@@ -21,7 +21,9 @@ from reckon_sales_agent.connectors.registry import build_connector, field_policy
 from reckon_sales_agent.constants import USAGE_DISCOVERY
 from reckon_sales_agent.discovery.dedup import find_duplicate, find_possible_duplicate
 from reckon_sales_agent.discovery.normalize import (
+    URL_FIELDS,
     apply_field_policy,
+    fit_length,
     normalize_domain,
     normalize_email,
     normalize_name,
@@ -97,6 +99,18 @@ def run_discovery_job(discovery_job: str | None = None, **kwargs) -> None:
     campaign = frappe.get_doc("Sales Discovery Campaign", job.discovery_campaign)
     _start(job, campaign)
     try:
+        _run(job, campaign)
+    except Exception as exc:
+        # Never leave a job "Running" after a crash; the traceback goes to the Error Log.
+        frappe.db.rollback()
+        frappe.log_error(title="Sales Agent discovery job crashed", reference_doctype="Sales Discovery Job",
+                         reference_name=job.name)
+        job.reload()
+        _finish(job, campaign, "Failed", "internal_error", str(exc))
+
+
+def _run(job, campaign) -> None:
+    try:
         connector_doc = frappe.get_doc("Sales Source Connector", campaign.source_connector)
         connector = build_connector(connector_doc)
         policy = field_policy(connector_doc, connector)
@@ -135,7 +149,15 @@ def run_discovery_job(discovery_job: str | None = None, **kwargs) -> None:
         for record in records:
             if targeting and excluded(" ".join(str(v) for v in record.fields.values() if v), targeting):
                 continue
-            outcome, prospect = upsert_prospect(job.company, campaign, connector_doc, record, policy)
+            frappe.db.savepoint("sales_agent_record")
+            try:
+                outcome, prospect = upsert_prospect(job.company, campaign, connector_doc, record, policy)
+            except Exception:
+                # One malformed source record must not stop the rest of the search.
+                frappe.db.rollback(save_point="sales_agent_record")
+                frappe.log_error(title="Sales Agent could not store a discovered record",
+                                 reference_doctype="Sales Discovery Job", reference_name=job.name)
+                continue
             if outcome == "created":
                 created += 1
                 new_prospects.append(prospect)
@@ -199,6 +221,7 @@ def upsert_prospect(company: str, campaign, connector_doc, record, policy: dict)
         prospect.last_seen = now
         if changed:
             _set_normalized(prospect)
+        _fit_lengths(prospect)
         prospect.save(ignore_permissions=True)
         return "duplicate", prospect.name
 
@@ -224,8 +247,21 @@ def upsert_prospect(company: str, campaign, connector_doc, record, policy: dict)
     if is_suppressed(company, email=prospect.email, phone=prospect.phone, website=prospect.website):
         prospect.do_not_contact = 1
         prospect.contactability = "Suppressed"
+    _fit_lengths(prospect)
     prospect.insert(ignore_permissions=True)
     return "created", prospect.name
+
+
+def _fit_lengths(doc) -> None:
+    """Clip source text to its column so one long value cannot reject a whole record.
+
+    Links are dropped rather than cut, since a truncated URL points somewhere else.
+    """
+    for df in doc.meta.get("fields", {"fieldtype": "Data"}):
+        value = doc.get(df.fieldname)
+        if isinstance(value, str):
+            doc.set(df.fieldname, fit_length(value, df.length or 140, url=df.fieldname in URL_FIELDS
+                                             or df.options == "URL"))
 
 
 def _set_normalized(prospect) -> None:

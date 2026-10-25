@@ -66,6 +66,14 @@ def place_id_from_url(url: str) -> str | None:
     return match.group(1) if match else None
 
 
+def canonical_place_url(url: str | None) -> str | None:
+    """Drop Google's tracking query (?authuser=..&g_ep=..&rclk=..) from a place URL."""
+    if not url:
+        return None
+    parts = urlsplit(url)
+    return f"{parts.scheme}://{parts.netloc}{parts.path}"
+
+
 def clean_label(value: str | None) -> str:
     """'Address: Road 5, Dhaka' / 'Phone: 01711-000000 ' -> the value only."""
     text = normalize_space(value)
@@ -170,7 +178,8 @@ class GoogleMapsBrowserConnector:
                         continue
                     fields = parse_place(page.evaluate(EXTRACT_JS) or {}, page.url, query)
                     if fields:
-                        yield SourceRecord(self.source_key, place_id_from_url(page.url) or link, page.url,
+                        yield SourceRecord(self.source_key, place_id_from_url(page.url) or link,
+                                           canonical_place_url(page.url),
                                            fields, now, warnings=["experimental browser source"])
             finally:
                 browser.close()

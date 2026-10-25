@@ -13,6 +13,7 @@ from reckon_sales_agent.connectors.base import ConnectorError, ConnectorNotPermi
 from reckon_sales_agent.connectors.directory_crawler import DirectoryCrawler, verified_ai_listings  # noqa: E402
 from reckon_sales_agent.connectors.maps_browser import (  # noqa: E402
     GoogleMapsBrowserConnector,
+    canonical_place_url,
     clean_label,
     parse_place,
     place_id_from_url,
@@ -30,7 +31,7 @@ from reckon_sales_agent.connectors.scrapingbee_maps import (  # noqa: E402
 )
 from reckon_sales_agent.connectors.scrapingdog_maps import ScrapingdogMapsConnector, coordinates_for  # noqa: E402
 from reckon_sales_agent.connectors.serpapi_maps import SerpAPIMapsConnector  # noqa: E402
-from reckon_sales_agent.discovery.normalize import apply_field_policy  # noqa: E402
+from reckon_sales_agent.discovery.normalize import apply_field_policy, fit_length  # noqa: E402
 from reckon_sales_agent.qualification.scoring import score  # noqa: E402
 from reckon_sales_agent.research.evidence import rule_facts  # noqa: E402
 from reckon_sales_agent.research.parser import parse_html  # noqa: E402
@@ -363,6 +364,21 @@ class BrowserConnectorTests(unittest.TestCase):
         self.assertIsNone(unwrap_website("javascript:alert(1)"))
         self.assertEqual(place_id_from_url("https://www.google.com/maps/place/X/@1,2z"), "X")
         self.assertIsNone(parse_place({"name": ""}, "u", QUERY))
+
+
+class LongValueTests(unittest.TestCase):
+    PLACE = ("https://www.google.com/maps/place/Ferdousi+Pharmacy+%28Main+Branch%29/data=!4m7!3m6!1s0x3755c43c31ac4581"
+             ":0xdc3c1635b9ee7c70!8m2!3d23.87!4d90.39!16s%2Fg%2F11c608k7fk?authuser=0&hl=en&g_ep=EgoyMDI2&rclk=1")
+
+    def test_place_url_loses_tracking_query_but_keeps_the_place(self):
+        url = canonical_place_url(self.PLACE)
+        self.assertNotIn("?", url)
+        self.assertEqual(place_id_from_url(url), "0x3755c43c31ac4581:0xdc3c1635b9ee7c70")
+
+    def test_fit_length_clips_text_and_drops_urls(self):
+        self.assertEqual(fit_length("short", 140), "short")
+        self.assertEqual(fit_length("x" * 200, 140), "x" * 140)
+        self.assertIsNone(fit_length(self.PLACE, 100, url=True))
 
 
 class AIListingTests(unittest.TestCase):
