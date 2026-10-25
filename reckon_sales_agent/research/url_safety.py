@@ -173,3 +173,13 @@ def _pool(scheme: str, ip: str, port: int, host: str, timeout: float):
             cert_reqs="CERT_REQUIRED", ca_certs=certifi.where(), timeout=t, maxsize=1,
         )
     return urllib3.HTTPConnectionPool(ip, port=port, timeout=t, maxsize=1)
+
+
+# RFC 2606/6761 names that never resolve (demo data uses them); research skips them.
+RESERVED_TLDS = (".example", ".test", ".invalid", ".localhost")
+
+
+def is_reserved_domain(website: str) -> bool:
+    url = website.strip() if "://" in website else "https://" + website.strip()
+    host = (urlsplit(url).hostname or "").rstrip(".").lower()
+    return host.endswith(RESERVED_TLDS) or host in {t[1:] for t in RESERVED_TLDS}

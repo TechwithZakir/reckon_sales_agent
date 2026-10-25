@@ -8,6 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parents[1]))
 
 from reckon_sales_agent.discovery.schedule import first_run, is_due, next_run, parse_time  # noqa: E402
+from reckon_sales_agent.research.url_safety import is_reserved_domain  # noqa: E402
 
 APP = Path(__file__).parents[1] / "reckon_sales_agent"
 
@@ -38,6 +39,14 @@ class ScheduleTests(unittest.TestCase):
         self.assertEqual(next_run("Daily", date(2026, 10, 26)), date(2026, 10, 27))
         self.assertEqual(next_run("Weekly", date(2026, 10, 26)), date(2026, 11, 2))
         self.assertEqual(next_run("Monthly", date(2026, 12, 31)), date(2027, 1, 28))
+
+
+class DemoDomainTests(unittest.TestCase):
+    def test_demo_websites_are_skipped_not_failed(self):
+        for site in ("https://shapla-pharmacy.example", "foo.test", "http://x.invalid/a", "localhost"):
+            self.assertTrue(is_reserved_domain(site), site)
+        for site in ("https://example.com", "acme.com.bd", "https://testpharma.com"):
+            self.assertFalse(is_reserved_domain(site), site)
 
 
 class StudioWiringTests(unittest.TestCase):

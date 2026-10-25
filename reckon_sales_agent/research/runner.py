@@ -20,7 +20,7 @@ from reckon_sales_agent.research.evidence import (
     verified_ai_facts,
 )
 from reckon_sales_agent.research.parser import parse_html
-from reckon_sales_agent.research.url_safety import FetchError, UnsafeURL, fetch
+from reckon_sales_agent.research.url_safety import FetchError, UnsafeURL, fetch, is_reserved_domain
 from reckon_sales_agent.usage import (
     get_settings,
     log_activity,
@@ -44,7 +44,7 @@ def research_prospect(prospect_name: str) -> str | None:
         if found:
             prospect.db_set("website", found)
             prospect.reload()
-    if not prospect.website:
+    if not prospect.website or is_reserved_domain(prospect.website):
         prospect.db_set("research_status", "Skipped")
         _qualify(prospect.name)
         return None

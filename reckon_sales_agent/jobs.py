@@ -34,10 +34,13 @@ def enqueue_discovery(campaign) -> str:
     if existing:
         return existing
     settings = get_settings(campaign.company)
-    active = frappe.db.count("Sales Discovery Job", {"company": campaign.company,
-                                                     "status": ["in", ["Queued", "Running"]]})
-    if active >= (settings.max_concurrent_jobs or 1):
-        frappe.throw(_("Too many jobs are running for your Company. Try again when one finishes."))
+    active = frappe.get_all("Sales Discovery Job", filters={"company": campaign.company,
+                                                            "status": ["in", ["Queued", "Running"]]}, pluck="name")
+    if len(active) >= (settings.max_concurrent_jobs or 1):
+        frappe.throw(_("Your plan runs {0} discovery job(s) at a time, and {1} is still running. "
+                       "Wait for it to finish, or open it and cancel it.").format(
+                           settings.max_concurrent_jobs or 1, ", ".join(active)),
+                     title=_("A discovery job is already running"))
     if not campaign.planned_queries:
         frappe.throw(_("Preview the planned searches first."))
     job = frappe.get_doc({

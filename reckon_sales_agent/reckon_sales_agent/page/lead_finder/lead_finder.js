@@ -34,6 +34,11 @@
 			stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${LFS_ICONS[name] || LFS_ICONS.spark}</svg>`;
 	}
 	const e = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
+	// "9:30:00" (Frappe Time) -> "09:30"
+	const hhmm = (t) => {
+		const [h, m] = String(t || "").split(":");
+		return h && m ? `${h.padStart(2, "0")}:${m.padStart(2, "0")}` : "";
+	};
 	const lines = (v) => (v || "").split("\n").map((s) => s.trim()).filter(Boolean);
 
 	class LeadFinderStudio {
@@ -395,7 +400,7 @@
 								this.render();
 							} else {
 								frappe.msgprint({ title: __("Scheduled"), indicator: "green",
-									message: __("The agent will run this campaign on {0} at {1}, then repeat.", [e(r.next_run_on), e(r.run_at_time || "")]) });
+									message: __("The agent will run this campaign on {0} at {1}, then repeat.", [e(r.next_run_on), e(hhmm(r.run_at_time))]) });
 								this.reset();
 							}
 						})
@@ -406,7 +411,7 @@
 
 		render_progress(body) {
 			const panel = $(`<div class="lfs-panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-				<h3>${__("Discovery in progress")}</h3><span class="lfs-state Queued lfs-status">${__("Queued")}</span></div>
+				<h3 class="lfs-title">${__("Discovery in progress")}</h3><span class="lfs-state Queued lfs-status">${__("Queued")}</span></div>
 				<div class="lfs-progress indeterminate" style="margin-top:12px"><div></div></div>
 				<div class="lfs-stats">
 					<div class="lfs-stat"><div class="v lfs-s-search">0/0</div><div class="k">${__("Searches done")}</div></div>
@@ -432,6 +437,8 @@
 				const pct = total ? Math.round((100 * (j.progress_done || 0)) / total) : 0;
 				const running = ["Queued", "Running"].includes(j.status);
 				panel.find(".lfs-status").attr("class", `lfs-state ${e(j.status)} lfs-status`).text(__(j.status));
+				panel.find(".lfs-title").text({ Completed: __("Discovery complete"), Failed: __("Discovery stopped"),
+					Cancelled: __("Discovery cancelled") }[j.status] || __("Discovery in progress"));
 				panel.find(".lfs-progress").toggleClass("indeterminate", j.status === "Queued").find("div").css("width", j.status === "Queued" ? "" : `${j.status === "Completed" ? 100 : pct}%`);
 				panel.find(".lfs-s-search").text(`${j.progress_done || 0}/${total}`);
 				panel.find(".lfs-s-new").text(j.created_count || 0);
@@ -472,7 +479,7 @@
 			if (!rows.length) return;
 			el.html(`<div class="lfs-group-title">${__("Your discovery campaigns")}</div><div class="lfs-list">${rows.map((c) => `
 				<div class="lfs-row"><div class="main"><div><a href="/desk/sales-discovery-campaign/${encodeURIComponent(c.name)}">${e(c.campaign_name)}</a></div>
-				<div class="meta">${c.schedule ? e(__("{0} at {1} · next {2}", [__(c.schedule), (c.run_at_time || "").slice(0, 5) || "—", c.next_run_on || "—"])) : e(__("Manual"))}
+				<div class="meta">${c.schedule ? e(__("{0} at {1} · next {2}", [__(c.schedule), hhmm(c.run_at_time) || "—", c.next_run_on || "—"])) : e(__("Manual"))}
 				· ${e(__("{0} leads", [c.prospects_found || 0]))}</div></div>
 				<div style="display:flex;gap:6px;align-items:center"><span class="lfs-state ${e(c.status)}">${e(__(c.status))}</span>
 				${c.last_job ? `<button class="btn btn-xs btn-default lfs-watch" data-job="${e(c.last_job)}">${__("Progress")}</button>` : ""}</div></div>`).join("")}</div>`);
