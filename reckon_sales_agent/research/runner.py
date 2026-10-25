@@ -57,7 +57,9 @@ def research_prospect(prospect_name: str) -> str | None:
     frappe.db.commit()  # no transaction across network calls
     try:
         if not _robots_allow(home, user_agent, limits):
-            return _save_report(prospect, "Blocked", pages, [], {}, "The website's robots.txt disallows our crawler.")
+            name = _save_report(prospect, "Blocked", pages, [], {}, "The website's robots.txt disallows our crawler.")
+            _qualify(prospect.name)  # still score from the listing data
+            return name
         queue, seen = [home], set()
         while queue and len(pages) < (platform.max_pages_per_site or 4):
             url = queue.pop(0)
@@ -81,7 +83,9 @@ def research_prospect(prospect_name: str) -> str | None:
         frappe.db.commit()
 
     if not pages:
-        return _save_report(prospect, "Failed", [], [], {}, "; ".join(errors)[:500] or "No page could be fetched.")
+        name = _save_report(prospect, "Failed", [], [], {}, "; ".join(errors)[:500] or "No page could be fetched.")
+        _qualify(prospect.name)  # an unreachable site must not leave a real lead unscored
+        return name
 
     profile = _profile_for(prospect)
     facts = rule_facts(pages, profile or {})
