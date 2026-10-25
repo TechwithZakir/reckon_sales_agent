@@ -169,6 +169,10 @@
 				nextLabel: __("Research my market"), nextIcon: "spark",
 			});
 			$(`<button class="btn btn-default btn-sm">${__("Skip, I know who to target")}</button>`).prependTo($a.find(".right")).on("click", () => this.go(2));
+			if (canManage) {
+				$(`<button class="btn btn-default btn-sm">${__("Save")}</button>`).prependTo($a.find(".right")).on("click", () =>
+					this.save_business().then(() => frappe.show_alert({ message: __("Business profile saved"), indicator: "green" })));
+			}
 			const briefName = this.state.briefName || ((this.data.business || {}).brief || {}).name;
 			if (briefName) this.load_brief(panel.find(".lfs-brief"), briefName);
 		}

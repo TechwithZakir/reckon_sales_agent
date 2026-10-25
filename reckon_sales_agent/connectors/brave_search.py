@@ -31,6 +31,7 @@ from reckon_sales_agent.connectors.search_common import (
     phone_from,
     search_field_policy,
     site_key,
+    tidy_name,
 )
 from reckon_sales_agent.discovery.normalize import normalize_domain, normalize_space
 
@@ -160,7 +161,7 @@ class BravePlaceSearchConnector(_BraveConnector):
     def _record(self, place: dict, query: DiscoveryQuery, now: str) -> SourceRecord | None:
         if not isinstance(place, dict):
             return None
-        name = clean(place.get("title"))[:140]
+        name = tidy_name(clean(place.get("title")), query.keyword)[:140]
         if not name:
             return None
         address = place.get("postal_address") or {}
@@ -254,7 +255,7 @@ class BraveLLMContextConnector(_BraveConnector):
             return None  # a list or directory page, not one business (local poi/map entries are businesses)
         text = " ".join(clean(s) for s in entry.get("snippets") or [] if s)
         local = bool(clean(entry.get("name")))  # poi/map entries name a real local business
-        name = clean(entry.get("name"))
+        name = tidy_name(clean(entry.get("name")), query.keyword) if entry.get("name") else ""
         if not name or is_generic_name(name, query.keyword):
             name = business_name(title, url, query.keyword)
         if not name:

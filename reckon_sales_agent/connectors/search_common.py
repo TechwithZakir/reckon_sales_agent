@@ -48,6 +48,8 @@ SKIP_DOMAINS = (
 LISTICLE_TITLE = re.compile(
     r"^\s*(the\s+)?(top|best)\s+\d+|^\s*(the\s+)?\d+\s+(best|top|great)\b|^\s*list\s+of\b"
     r"|^\s*(the\s+)?best\s+\w+\s+(in|near|around)\b"
+    r"|^\s*[\w\s&-]*\b(wholesalers|distributors|suppliers|dealers|pharmacies|shops|stores|companies|manufacturers"
+    r"|importers|exporters)\s+(in|of|near)\s+"
     r"|\b(directory|directories|yellow\s*pages|near\s+me|discounts?\s+list|in\s+the\s+city|domains?\s+for\s+sale"
     r"|is\s+for\s+sale|hugedomains)\b",
     re.I,
@@ -58,7 +60,7 @@ NAME_STOPWORDS = {
     "shop", "store", "stores", "center", "centre", "services", "service", "online", "best", "new", "home", "www", "com",
 }
 DIRECTORY_PATH = re.compile(r"/(listings?|directory|category|categories|tags?|search|places?|top-\d+|best-\d+)(/|$)", re.I)
-TITLE_SEPARATORS = re.compile(r"\s+[|\-–—:·•»]\s+")
+TITLE_SEPARATORS = re.compile(r"\s+[|\-–—·•»]\s+|\s*[:｜]\s+")
 GENERIC_TITLE_PARTS = {
     "home", "home page", "homepage", "official website", "official site", "welcome", "about us", "contact us",
     "contact", "best", "top", "online", "bangladesh", "dhaka", "index",
@@ -153,6 +155,11 @@ def business_name(title: str | None, url: str, keyword: str = "") -> str:
     domain = normalize_domain(url) or ""
     label = domain.split(".")[0].replace("-", " ")
     return label.title()[:140] if label else ""
+
+
+def tidy_name(name: str | None, keyword: str = "") -> str:
+    """A listing name without its tagline: 'Saif Pharma - Oncology Medicine Supplier' -> 'Saif Pharma'."""
+    return business_name(name, "", keyword) or normalize_space(name)[:140]
 
 
 def phone_from(text: str | None) -> str | None:

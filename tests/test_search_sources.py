@@ -26,6 +26,7 @@ from reckon_sales_agent.connectors.search_common import (  # noqa: E402
     phone_from,
     records_from_results,
     search_field_policy,
+    tidy_name,
 )
 
 QUERY = DiscoveryQuery("pharmacy", "Mirpur, Dhaka", "pharmacy in Mirpur, Dhaka", 3)
@@ -122,6 +123,19 @@ class ResultFilterTests(unittest.TestCase):
                 {"title": "Lazz Pharma Kalabagan", "url": "https://lazzpharma.com.bd/kalabagan"}]
         records = records_from_results(live, QUERY, "brave_web_search", set(), 10)
         self.assertEqual([r.external_id for r in records], ["praavahealth.com", "lazzpharma.com.bd"])
+
+    def test_trade_listing_titles_and_taglines(self):
+        # Seen live on Smart Sources for "medicine wholesaler in Mitford, Dhaka".
+        self.assertTrue(is_listing_page("Medicine Wholesalers in Bangladesh", "https://medicines1.com/"))
+        self.assertTrue(is_listing_page("Pharmaceutical Distributors of Dhaka", "https://x.example/"))
+        for title in ("Islamia Drug House", "Rahman Distributors", "Biorex Healthcare Ltd."):
+            self.assertFalse(is_listing_page(title, "https://x.example/"), title)
+        self.assertEqual(tidy_name("Saif Pharma - Oncology Medicine Supplier", "medicine wholesaler"), "Saif Pharma")
+        self.assertEqual(tidy_name("Mediaid Pharmacy: Oncology Medicines Supplier In Bangladesh"), "Mediaid Pharmacy")
+        self.assertEqual(tidy_name("Medicine For World (MFW) | Online lifesaving medicine supplier"),
+                         "Medicine For World (MFW)")
+        self.assertEqual(tidy_name("HOMEO MEDICINE SELL"), "HOMEO MEDICINE SELL")
+        self.assertEqual(tidy_name("Pharmacy", "pharmacy"), "Pharmacy")  # nothing better to use
 
     def test_generic_page_title_falls_back_to_the_domain(self):
         self.assertEqual(business_name("Pharmacy", "https://www.tcm-model-pharmacy.com/", "pharmacy"),
