@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-26 01:00:00.000000",
+ "modified": "2026-10-26 02:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -263,12 +263,12 @@
    "fieldname": "brave_section",
    "fieldtype": "Section Break",
    "label": "Brave Search API",
-   "description": "Brave's official web search API (its own index, no scraping or CAPTCHAs). Billed by Brave per request; get a key at api-dashboard.search.brave.com."
+   "description": "Brave's official APIs on its own index (no scraping or CAPTCHAs): Web Search, Place Search and LLM Context, all on the Search plan and billed by Brave per request. Get a key at api-dashboard.search.brave.com."
   },
   {
    "fieldname": "brave_enabled",
    "fieldtype": "Check",
-   "label": "Enable Brave Search",
+   "label": "Enable Brave Search (Web, Places, LLM Context)",
    "default": "0"
   },
   {
@@ -284,7 +284,7 @@
    "fieldname": "brave_country",
    "fieldtype": "Data",
    "label": "Brave Country (optional)",
-   "description": "Two-letter code Brave supports (e.g. US, GB, IN). Leave empty to search all countries; the location in each search still narrows results."
+   "description": "Two-letter country code, e.g. BD. Web Search and LLM Context use Brave's default when empty; Place Search uses BD when empty."
   },
   {
    "fieldname": "search_section",

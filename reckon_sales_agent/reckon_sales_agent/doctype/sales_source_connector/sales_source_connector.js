@@ -28,6 +28,8 @@ frappe.ui.form.on("Sales Source Connector", {
 		}
 		const search = {
 			brave_web_search: __("Brave's official search API runs the search; results that are a business's own website become leads."),
+			brave_place_search: __("Brave Place Search finds local businesses (name, website, phone, address, rating) around the search location."),
+			brave_llm_context: __("Brave LLM Context returns search results with text from each page, so phones and emails come from the page itself."),
 			scrapingdog_google_search: __("Scrapingdog runs the Google search; results that are a business's own website become leads."),
 			scrapingbee_google_search: __("ScrapingBee runs the Google search; results that are a business's own website become leads."),
 			serpapi_google_search: __("SerpAPI runs the Google search; results that are a business's own website become leads."),

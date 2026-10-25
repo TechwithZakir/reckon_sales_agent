@@ -104,6 +104,18 @@ def phone_from(text: str | None) -> str | None:
     return normalize_space(match.group(0)) if match else None
 
 
+EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,24}")
+
+
+def email_from(text: str | None) -> str | None:
+    """The first plausible email in page text (not image names like logo@2x.png)."""
+    for match in EMAIL.finditer(text or ""):
+        email = match.group(0).strip(".").lower()
+        if not email.endswith((".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg")):
+            return email
+    return None
+
+
 def records_from_results(results: list[dict], query: DiscoveryQuery, source_key: str, seen: set[str],
                          limit: int) -> list[SourceRecord]:
     """Organic results ({title, link|url, snippet|description}) -> one record per new business domain."""
@@ -133,6 +145,7 @@ def records_from_results(results: list[dict], query: DiscoveryQuery, source_key:
                 "business_name": name,
                 "website": home_page(link),
                 "phone": phone_from(snippet),
+                "email": email_from(snippet),
                 "industry": query.keyword or None,
                 "city": (query.location or "").split(",")[-1].strip() or None,
             },

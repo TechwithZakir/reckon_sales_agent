@@ -7,7 +7,11 @@ from types import SimpleNamespace
 sys.path.insert(0, str(Path(__file__).parents[1]))
 
 from reckon_sales_agent.connectors.base import ConnectorError, ConnectorNotPermitted, DiscoveryQuery  # noqa: E402
-from reckon_sales_agent.connectors.brave_search import BraveSearchConnector  # noqa: E402
+from reckon_sales_agent.connectors.brave_search import (  # noqa: E402
+    BraveLLMContextConnector,
+    BravePlaceSearchConnector,
+    BraveSearchConnector,
+)
 from reckon_sales_agent.connectors.search_api import (  # noqa: E402
     ScrapingBeeSearchConnector,
     ScrapingdogSearchConnector,
@@ -16,6 +20,7 @@ from reckon_sales_agent.connectors.search_api import (  # noqa: E402
 from reckon_sales_agent.connectors.search_browser import GoogleSearchBrowserConnector  # noqa: E402
 from reckon_sales_agent.connectors.search_common import (  # noqa: E402
     business_name,
+    email_from,
     is_business_site,
     phone_from,
     search_field_policy,
@@ -326,8 +331,9 @@ class BraveSearchTests(unittest.TestCase):
         self.assertNotIn("country", params)  # all countries unless the vendor sets one
         self.assertEqual(len(session.calls), 1)  # a short page means no more results: no second paid request
 
-    def test_pages_by_offset_until_enough_leads(self):
+    def test_pages_by_offset_while_brave_says_there_are_more(self):
         full = self.brave_page(*[(f"Shop {i}", f"https://shop{i}.com/", "") for i in range(20)])
+        full["query"] = {"more_results_available": True}
         session = FakeSession([response(200, full)])
         query = DiscoveryQuery("pharmacy", "Dhaka", "pharmacy in Dhaka", 25)
         more = self.brave_page(*[(f"Store {i}", f"https://store{i}.com/", "") for i in range(20)])
@@ -359,6 +365,85 @@ class BraveSearchTests(unittest.TestCase):
     def test_attributed_to_brave(self):
         policy = BraveSearchConnector("k", enabled=True).default_field_policy()
         self.assertEqual(policy["website"]["attribution"], "Brave Search")
+        self.assertEqual(BravePlaceSearchConnector("k", enabled=True).default_field_policy()["phone"]["attribution"],
+                         "Brave Places")
+
+
+PLACES = {"type": "locations", "results": [
+    {"type": "location_result", "id": "ephemeral-1", "title": "Lazz Pharma", "url": "https://www.lazzpharma.com/",
+     "provider_url": "https://search.brave.com/local/x", "coordinates": [23.80652, 90.37231],
+     "postal_address": {"displayAddress": "Kalabagan, Dhaka 1205", "addressLocality": "Dhaka", "country": "BD"},
+     "contact": {"telephone": "+880 1711-000111", "email": "Info@LazzPharma.com"},
+     "rating": {"ratingValue": 4.4, "reviewCount": 900}, "categories": ["Pharmacy", "Health"]},
+    {"type": "location_result", "id": "ephemeral-2", "title": "Corner Chemist", "url": "https://www.facebook.com/cc",
+     "coordinates": [23.81, 90.36], "postal_address": {"displayAddress": "Mirpur 10"}, "contact": {}},
+    {"type": "location_result", "title": ""},
+]}
+
+
+class BravePlaceSearchTests(unittest.TestCase):
+    def test_places_become_rich_leads_in_one_request(self):
+        session = FakeSession([response(200, PLACES)])
+        query = DiscoveryQuery("pharmacy", "Mirpur, Dhaka", "pharmacy in Mirpur, Dhaka", 20)
+        records = list(BravePlaceSearchConnector("secret", enabled=True, session=session).discover(query))
+        self.assertEqual(len(records), 2)
+        lazz = records[0].fields
+        self.assertEqual((lazz["business_name"], lazz["phone"], lazz["email"]),
+                         ("Lazz Pharma", "+880 1711-000111", "info@lazzpharma.com"))
+        self.assertEqual((lazz["address"], lazz["city"], lazz["industry"]), ("Kalabagan, Dhaka 1205", "Dhaka", "Pharmacy"))
+        self.assertEqual((lazz["rating"], lazz["review_count"]), (4.4, 900))
+        self.assertEqual(lazz["website"], "https://www.lazzpharma.com/")
+        self.assertEqual(records[0].external_id, "lazz pharma@23.8065,90.3723")  # not Brave's expiring id
+        self.assertIsNone(records[1].fields["website"])  # a Facebook page is not the business's site
+        url, params, headers = session.calls[0]
+        self.assertEqual(url, "https://api.search.brave.com/res/v1/local/place_search")
+        self.assertEqual(headers["X-Subscription-Token"], "secret")
+        self.assertEqual((params["q"], params["location"], params["country"], params["count"]),
+                         ("pharmacy", "mirpur dhaka bangladesh", "BD", 20))
+        self.assertEqual(len(session.calls), 1)
+
+    def test_location_string_and_caps(self):
+        connector = BravePlaceSearchConnector("k", enabled=True, country="in")
+        self.assertEqual(connector.place_location("Andheri, Mumbai"), "andheri mumbai india")
+        self.assertEqual(connector.place_location("Gulshan, Dhaka, Bangladesh"), "gulshan dhaka bangladesh")
+        session = FakeSession([response(200, {"results": []})])
+        list(BravePlaceSearchConnector("k", enabled=True, session=session).discover(
+            DiscoveryQuery("pharmacy", "", "pharmacy", 500)))
+        self.assertEqual(session.calls[0][1]["count"], 100)
+        self.assertNotIn("location", session.calls[0][1])
+
+
+class BraveLLMContextTests(unittest.TestCase):
+    GROUNDING = {"grounding": {
+        "generic": [
+            {"url": "https://www.lazzpharma.com/contact", "title": "Contact | Lazz Pharma",
+             "snippets": ["Call us: 01711-000111", "Email: sales@lazzpharma.com"]},
+            {"url": "https://en.wikipedia.org/wiki/Pharmacy", "title": "Pharmacy - Wikipedia", "snippets": ["..."]},
+        ],
+        "poi": {"name": "Tamanna Pharmacy", "url": "https://tamannapharmacy.com.bd/", "title": "Tamanna Pharmacy",
+                "snippets": ["{\"telephone\": \"02-9001234\"}"]},
+        "map": [{"name": "Care Pharmacy", "url": "https://care-pharmacy.com/", "title": "Care", "snippets": []}],
+    }, "sources": {}}
+
+    def test_page_text_gives_contacts_and_local_entries_become_leads(self):
+        session = FakeSession([response(200, self.GROUNDING)])
+        query = DiscoveryQuery("pharmacy", "Mirpur, Dhaka", "pharmacy in Mirpur, Dhaka", 10)
+        records = list(BraveLLMContextConnector("k", enabled=True, country="bd", session=session).discover(query))
+        names = [r.fields["business_name"] for r in records]
+        self.assertEqual(names, ["Tamanna Pharmacy", "Care Pharmacy", "Lazz Pharma"])  # local entries first
+        lazz = records[2].fields
+        self.assertEqual((lazz["phone"], lazz["email"], lazz["website"]),
+                         ("01711-000111", "sales@lazzpharma.com", "https://www.lazzpharma.com/"))
+        self.assertEqual(records[0].fields["phone"], "02-9001234")
+        url, params, headers = session.calls[0]
+        self.assertEqual(url, "https://api.search.brave.com/res/v1/llm/context")
+        self.assertEqual((params["q"], params["enable_local"], params["country"]),
+                         ("pharmacy in Mirpur, Dhaka", "true", "BD"))
+        self.assertEqual((headers["X-Loc-City"], headers["X-Loc-Country"]), ("Dhaka", "BD"))
+
+    def test_email_finder_ignores_image_names(self):
+        self.assertEqual(email_from("logo@2x.png and hello@shop.com.bd"), "hello@shop.com.bd")
+        self.assertIsNone(email_from("no contact here"))
 
 
 class WiringTests(unittest.TestCase):
@@ -374,7 +459,8 @@ class WiringTests(unittest.TestCase):
         used = set(re.findall(r"\bs\.((?:search|brave)_\w+)", registry))
         used |= set(re.findall(r'"((?:search|brave)_\w+)"', registry))
         used |= set(re.findall(r'"((?:search|brave)_\w+)"', (app / "api_studio.py").read_text(encoding="utf-8")))
-        used = {name for name in used if not name.endswith(("_web_search", "_google_search"))}  # connector types
+        connector_types = ("_web_search", "_google_search", "_place_search", "_llm_context")
+        used = {name for name in used if not name.endswith(connector_types)}
         self.assertIn("brave_api_key", used)
         self.assertTrue(used)
         self.assertEqual(used - fields, set())

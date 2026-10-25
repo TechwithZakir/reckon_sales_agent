@@ -1,55 +1,234 @@
-"""Brave Search API lead source (https://api.search.brave.com/res/v1/web/search).
+"""Brave Search API lead sources (https://api-dashboard.search.brave.com/documentation).
 
-Brave's official web search API with its own index: no scraping and no
-CAPTCHAs, billed per request. It searches "keyword in location" and, like
-the Google Search sources, keeps only results that are a business's own
-website. The key goes in the ``X-Subscription-Token`` header, never the URL.
+Brave's official APIs on its own index: no scraping, no CAPTCHAs, billed per
+request. The key goes in the ``X-Subscription-Token`` header, never the URL.
+
+* ``brave_web_search``: Web Search (``/res/v1/web/search``). Results that are
+  a business's own website become leads (same filtering as Google Search).
+* ``brave_place_search``: Place Search (``/res/v1/local/place_search``).
+  Local businesses with name, website, phone, email, address, rating and
+  categories, like a Maps listing, up to 100 in one request.
+* ``brave_llm_context``: LLM Context (``/res/v1/llm/context``). Search results
+  with text extracted from each page, so phones and emails come from the page
+  itself; local business entries (``poi``/``map``) become leads too.
 """
 
 from __future__ import annotations
 
 import re
+from datetime import datetime, timezone
 
-from reckon_sales_agent.connectors.base import ConnectorNotPermitted
+from reckon_sales_agent.connectors.base import ConnectorNotPermitted, DiscoveryQuery, SourceRecord
 from reckon_sales_agent.connectors.search_api import _SearchAPIConnector
-from reckon_sales_agent.connectors.search_common import search_field_policy
+from reckon_sales_agent.connectors.search_common import (
+    business_name,
+    email_from,
+    home_page,
+    is_business_site,
+    phone_from,
+    search_field_policy,
+)
+from reckon_sales_agent.discovery.normalize import normalize_domain, normalize_space
 
-ENDPOINT = "https://api.search.brave.com/res/v1/web/search"
-PAGE_SIZE = 20  # Brave's maximum per request
+API = "https://api.search.brave.com/res/v1"
+WEB_PAGE_SIZE = 20  # Brave's maximum per Web Search request
+WEB_MAX_OFFSET = 9
+PLACE_MAX = 100
 TAGS = re.compile(r"<[^>]+>")
+# Place Search wants "city country" with no commas; these are the countries we expect to sell in.
+COUNTRY_NAMES = {
+    "BD": "bangladesh", "IN": "india", "PK": "pakistan", "NP": "nepal", "LK": "sri lanka", "AE": "united arab emirates",
+    "SA": "saudi arabia", "QA": "qatar", "MY": "malaysia", "SG": "singapore", "GB": "united kingdom",
+    "US": "united states", "CA": "canada", "AU": "australia",
+}
 
 
-class BraveSearchConnector(_SearchAPIConnector):
-    """``offset`` is the page number (0-based); results are in ``web.results``."""
+def clean(text) -> str:
+    return normalize_space(TAGS.sub("", str(text or "")))
 
-    source_key = "brave_web_search"
+
+class _BraveConnector(_SearchAPIConnector):
     provider = "Brave Search"
-    page_size = PAGE_SIZE
+    attribution = "Brave Search"
 
     def __init__(self, api_key: str | None, *, enabled: bool, retention_days: int = 30, country: str = "",
                  language: str = "en", session=None, timeout: int = 30):
         # Brave is an official API, so there is no Google-style responsibility tick to accept.
         super().__init__(api_key, enabled=enabled, terms_ack=True, retention_days=retention_days,
                          country=country, language=language, session=session, timeout=timeout)
-        self.country = (country or "").strip().upper()[:2]  # empty: Brave's default (all countries)
+        self.country = (country or "").strip().upper()[:2]  # empty: Brave's default
+        self.language = (language or "en").split("-")[0][:8]
 
     def default_field_policy(self) -> dict:
-        return search_field_policy(self.retention_days, attribution="Brave Search")
+        return search_field_policy(self.retention_days, attribution=self.attribution)
 
     def validate_configuration(self) -> None:
         if not self.enabled:
-            raise ConnectorNotPermitted("Brave Search is disabled by the platform vendor.")
+            raise ConnectorNotPermitted(f"{self.provider} is disabled by the platform vendor.")
         if not self.api_key:
             raise ConnectorNotPermitted("No Brave Search API key is configured.")
 
+    def _brave(self, path: str, params: dict, headers: dict | None = None) -> dict:
+        return self._get(f"{API}{path}", params, headers={"Accept": "application/json",
+                                                           "X-Subscription-Token": self.api_key, **(headers or {})})
+
+
+class BraveSearchConnector(_BraveConnector):
+    """Web Search: ``offset`` is the page number (0-9); results are in ``web.results``."""
+
+    source_key = "brave_web_search"
+    page_size = WEB_PAGE_SIZE
+
+    def discover(self, query: DiscoveryQuery):
+        self._more = True
+        yield from super().discover(query)
+
     def _page(self, text: str, page: int) -> list[dict]:
-        params = {"q": text[:400], "count": PAGE_SIZE, "offset": page, "result_filter": "web",
-                  "search_lang": self.language.split("-")[0]}
+        if not self._more or page > WEB_MAX_OFFSET:
+            return []  # Brave said there are no more results: no paid request
+        params = {"q": text[:400], "count": WEB_PAGE_SIZE, "offset": page, "search_lang": self.language}
         if self.country:
             params["country"] = self.country
-        data = self._get(ENDPOINT, params, headers={"Accept": "application/json",
-                                                    "X-Subscription-Token": self.api_key})
+        data = self._brave("/web/search", params)
+        self._more = bool((data.get("query") or {}).get("more_results_available"))
         results = ((data.get("web") or {}).get("results")) or []
-        return [{"title": TAGS.sub("", r.get("title") or ""), "url": r.get("url"),
-                 "description": TAGS.sub("", r.get("description") or "")}
+        return [{"title": clean(r.get("title")), "url": r.get("url"),
+                 "description": " ".join([clean(r.get("description"))]
+                                         + [clean(s) for s in r.get("extra_snippets") or []])}
                 for r in results if isinstance(r, dict)]
+
+
+class BravePlaceSearchConnector(_BraveConnector):
+    """Place Search: local businesses for "keyword" around "location", one request of up to 100."""
+
+    source_key = "brave_place_search"
+    provider = "Brave Place Search"
+    attribution = "Brave Places"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.country = self.country or "BD"
+
+    def place_location(self, location: str) -> str:
+        """'Mirpur, Dhaka' -> 'mirpur dhaka bangladesh' (Brave wants no commas)."""
+        words = normalize_space((location or "").replace(",", " ")).lower()
+        if any(name in words for name in COUNTRY_NAMES.values()):
+            return words  # the location already names its country
+        country = COUNTRY_NAMES.get(self.country, "")
+        return normalize_space(f"{words} {country}") if country else words
+
+    def discover(self, query: DiscoveryQuery):
+        self.validate_configuration()
+        params = {"q": (query.keyword or query.query_text)[:400], "count": max(1, min(query.max_results, PLACE_MAX)),
+                  "country": self.country, "search_lang": self.language, "units": "metric"}
+        if query.location:
+            params["location"] = self.place_location(query.location)
+        data = self._brave("/local/place_search", params)
+        now = datetime.now(timezone.utc).isoformat()
+        seen: set[str] = set()
+        returned = 0
+        for place in data.get("results") or []:
+            if returned >= query.max_results:
+                return
+            record = self._record(place, query, now)
+            if record and record.external_id not in seen:
+                seen.add(record.external_id)
+                returned += 1
+                yield record
+
+    def _record(self, place: dict, query: DiscoveryQuery, now: str) -> SourceRecord | None:
+        if not isinstance(place, dict):
+            return None
+        name = clean(place.get("title"))[:140]
+        if not name:
+            return None
+        address = place.get("postal_address") or {}
+        contact = place.get("contact") or {}
+        rating = place.get("rating") or {}
+        coordinates = place.get("coordinates") or []
+        url = place.get("url") or ""
+        website = url if url.startswith(("http://", "https://")) and is_business_site(url) else None
+        categories = [clean(c) for c in place.get("categories") or [] if clean(c)]
+        # Brave's place ids expire after ~8 hours, so the stable key is name + position.
+        key = f"{name.lower()}@{','.join(f'{float(c):.4f}' for c in coordinates[:2])}" if len(coordinates) >= 2 \
+            else f"{name.lower()}@{clean(address.get('displayAddress')).lower()}"
+        return SourceRecord(
+            source_key=self.source_key,
+            external_id=key[:140],
+            source_url=place.get("provider_url") or url or None,
+            fields={
+                "business_name": name,
+                "website": website,
+                "phone": clean(contact.get("telephone")) or None,
+                "email": clean(contact.get("email")).lower() or None,
+                "address": clean(address.get("displayAddress") or address.get("streetAddress")) or None,
+                "city": clean(address.get("addressLocality")) or (query.location or "").split(",")[-1].strip() or None,
+                "country": clean(address.get("country")) or None,
+                "industry": categories[0] if categories else query.keyword or None,
+                "rating": rating.get("ratingValue"),
+                "review_count": rating.get("reviewCount"),
+            },
+            retrieved_at=now,
+        )
+
+
+class BraveLLMContextConnector(_BraveConnector):
+    """LLM Context: grounding results with page text; one request per search (up to 50 sources)."""
+
+    source_key = "brave_llm_context"
+    provider = "Brave LLM Context"
+    attribution = "Brave Search"
+
+    def discover(self, query: DiscoveryQuery):
+        self.validate_configuration()
+        params = {"q": query.query_text[:600], "count": max(1, min(query.max_results * 2, 50)),
+                  "search_lang": self.language, "enable_local": "true",
+                  "maximum_number_of_tokens_per_url": 1024, "maximum_number_of_tokens": 16384}
+        if self.country:
+            params["country"] = self.country
+        headers = {}
+        city = (query.location or "").split(",")[-1].strip()
+        if city:
+            headers["X-Loc-City"] = city
+        if self.country:
+            headers["X-Loc-Country"] = self.country
+        grounding = (self._brave("/llm/context", params, headers) or {}).get("grounding") or {}
+        entries = list(grounding.get("generic") or [])
+        poi = grounding.get("poi")
+        entries = ([poi] if isinstance(poi, dict) else []) + list(grounding.get("map") or []) + entries
+        now = datetime.now(timezone.utc).isoformat()
+        seen: set[str] = set()
+        returned = 0
+        for entry in entries:
+            if returned >= query.max_results:
+                return
+            record = self._record(entry, query, now)
+            if record and record.external_id not in seen:
+                seen.add(record.external_id)
+                returned += 1
+                yield record
+
+    def _record(self, entry: dict, query: DiscoveryQuery, now: str) -> SourceRecord | None:
+        if not isinstance(entry, dict):
+            return None
+        url = entry.get("url") or ""
+        if not url.startswith(("http://", "https://")) or not is_business_site(url):
+            return None
+        text = " ".join(clean(s) for s in entry.get("snippets") or [] if s)
+        name = clean(entry.get("name")) or business_name(clean(entry.get("title")), url)
+        if not name:
+            return None
+        return SourceRecord(
+            source_key=self.source_key,
+            external_id=normalize_domain(url),
+            source_url=url,
+            fields={
+                "business_name": name[:140],
+                "website": home_page(url),
+                "phone": phone_from(text),
+                "email": email_from(text),
+                "industry": query.keyword or None,
+                "city": (query.location or "").split(",")[-1].strip() or None,
+            },
+            retrieved_at=now,
+        )

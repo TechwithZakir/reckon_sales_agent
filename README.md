@@ -124,6 +124,8 @@ one. Website research then reads the site for emails, phones and evidence.
 
 | Connector | How it searches | Needs |
 | --- | --- | --- |
+| `brave_place_search` | **Brave Place Search** (`/local/place_search`): local businesses with website, phone, email, address, rating and categories; up to 100 per request | Brave key; *Enable Brave Search* |
+| `brave_llm_context` | **Brave LLM Context** (`/llm/context`): results with extracted page text, so phones and emails come from the page; local business entries too | Brave key; *Enable Brave Search* |
 | `brave_web_search` | **Brave Search API** (official; own index, no scraping or CAPTCHAs; key in the `X-Subscription-Token` header; 20 results per request) | Brave key; *Enable Brave Search* (no Google responsibility tick) |
 | `scrapingdog_google_search` | Scrapingdog Google Search API (JSON, 0-based `page`) | Scrapingdog key (same as Maps) |
 | `scrapingbee_google_search` | ScrapingBee Google API (JSON; key in the Authorization header) | ScrapingBee key (same as Maps) |
