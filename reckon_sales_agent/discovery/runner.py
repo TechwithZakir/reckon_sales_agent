@@ -110,6 +110,10 @@ def run_discovery_job(discovery_job: str | None = None, **kwargs) -> None:
 
 
 def _run(job, campaign) -> None:
+    if not any(row.status == "Planned" for row in campaign.planned_queries):
+        _finish(job, campaign, "Failed", "nothing_planned",
+                _("Every planned search has already run. Preview the searches again, then start."))
+        return
     try:
         connector_doc = frappe.get_doc("Sales Source Connector", campaign.source_connector)
         connector = build_connector(connector_doc)

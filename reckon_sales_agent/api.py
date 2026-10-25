@@ -66,6 +66,12 @@ def start_discovery(campaign: str) -> str:
 
     doc = get_tenant_doc("Sales Discovery Campaign", campaign, "write")
     assert_entitled(doc.company)
+    if not any(row.status == "Planned" for row in doc.planned_queries):
+        # Every search already ran: plan them afresh, as scheduled runs do (dedup prevents duplicates).
+        from reckon_sales_agent.discovery.runner import build_plan
+
+        build_plan(doc)
+        doc.save()
     return enqueue_discovery(doc)
 
 

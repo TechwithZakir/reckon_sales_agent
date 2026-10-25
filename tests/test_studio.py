@@ -60,6 +60,14 @@ class ResearchOutcomeTests(unittest.TestCase):
             self.assertTrue(any("_qualify(prospect.name)" in line for line in lines[i + 1:i + 4]), lines[i])
 
 
+class RerunTests(unittest.TestCase):
+    def test_run_again_replans_and_an_empty_plan_never_reports_completed(self):
+        api = (APP / "api.py").read_text(encoding="utf-8").split("def start_discovery(")[1].split("\ndef ")[0]
+        self.assertLess(api.index("build_plan(doc)"), api.index("enqueue_discovery(doc)"))
+        run = (APP / "discovery" / "runner.py").read_text(encoding="utf-8").split("def _run(")[1].split("\ndef ")[0]
+        self.assertLess(run.index('"nothing_planned"'), run.index("for row in campaign.planned_queries:"))
+
+
 class StudioWiringTests(unittest.TestCase):
     def test_page_files_and_access(self):
         folder = APP / "reckon_sales_agent" / "page" / "lead_finder"
