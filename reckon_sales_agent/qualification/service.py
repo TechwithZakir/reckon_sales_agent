@@ -85,7 +85,8 @@ def qualify_prospect(prospect_name: str) -> str:
         "latest_qualification": qualification.name,
         "qualification_status": qualification.override_result or result["result"],
         "fit_score": combined,
-        "ai_fit_score": ai.get("ai_fit_score"),
+        # db_set skips Frappe's None -> 0 cast, and v16 Float columns are NOT NULL.
+        "ai_fit_score": ai.get("ai_fit_score") or 0,
         "buying_signal_score": result["buying_signal_score"],
         "evidence_confidence": result["evidence_confidence"],
         "contactability": result["contactability"],

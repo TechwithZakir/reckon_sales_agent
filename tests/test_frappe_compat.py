@@ -1,4 +1,5 @@
 """Frappe 15/16 compatibility guards over the source code (no bench needed)."""
+import json
 import re
 import unittest
 from pathlib import Path
@@ -23,6 +24,23 @@ class FrappeCompatTests(unittest.TestCase):
             for match in STRING_ALIAS.finditer(path.read_text(encoding="utf-8")):
                 offenders.append(f"{path.relative_to(APP)}: {match.group(0)[:80]}")
         self.assertEqual(offenders, [], "Use frappe.qb or frappe.db.count instead:\n" + "\n".join(offenders))
+
+    def test_numeric_db_set_values_are_never_none(self):
+        # db_set skips the None -> 0 cast, and Frappe 16 numeric columns are NOT NULL.
+        numeric = set()
+        for path in APP.rglob("doctype/*/*.json"):
+            for field in json.loads(path.read_text(encoding="utf-8")).get("fields", []):
+                if field.get("fieldtype") in ("Float", "Int", "Currency", "Percent", "Check", "Rating"):
+                    numeric.add(field["fieldname"])
+        names = "|".join(sorted(numeric))
+        pattern = re.compile(r"""["'](""" + names + r""")["']\s*:\s*([^,\n}]*\.get\([^)]*\))\s*[,}\n]""")
+        offenders = []
+        for path in APP.rglob("*.py"):
+            text = path.read_text(encoding="utf-8")
+            for call in re.finditer(r"(db_set|set_value)\(\{.*?\}\)", text, re.S):
+                for match in pattern.finditer(call.group(0)):
+                    offenders.append(f"{path.relative_to(APP)}: {match.group(1)} = {match.group(2)}")
+        self.assertEqual(offenders, [], "Add `or 0`:\n" + "\n".join(offenders))
 
 
 if __name__ == "__main__":
