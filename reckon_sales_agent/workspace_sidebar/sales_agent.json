@@ -20,6 +20,17 @@
   },
   {
    "type": "Link",
+   "label": "Lead Finder Studio",
+   "link_to": "lead-finder",
+   "link_type": "Page",
+   "icon": "search",
+   "child": 0,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
    "label": "Prospect Review",
    "link_to": "sales-review",
    "link_type": "Page",

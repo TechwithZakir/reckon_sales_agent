@@ -123,6 +123,35 @@ fewer or no results rather than wrong data.
   appears on the page, and a phone, email or website only if it appears there
   verbatim.
 
+## Lead Finder Studio
+
+`/desk/lead-finder` (sidebar: **Lead Finder Studio**; home: **Find Leads**) takes a user
+from nothing to a running discovery job on one page, in four stages:
+
+1. **Source:** icon cards for every connector, grouped by Google Maps, Web and
+   Your data. Each card shows *Ready*, *Not enabled* (by your provider) or
+   *Experimental*. Managers enable a source in one click after confirming they
+   may use it; the directory crawler also asks for start URLs.
+2. **Who to find:** saved or new targeting profiles. Keywords, buyer types (B2B
+   segments), industries, needs, locations (`Area, City`) and exclusions are
+   chips; press Enter to add one. **Suggest with AI** adds keywords, Bangla
+   variants and buyer types for you to keep or remove.
+3. **Campaign and schedule:**
+   - leads per run, capped by your plan;
+   - **Run now**, **Now + repeat** or **Schedule only**, Daily, Weekly or
+     Monthly at a chosen time (server time; the scheduler checks hourly);
+   - automatic website research, and AI-widened searches;
+   - **Preview searches** shows the exact search list before anything runs.
+4. **Launch and live progress:** a progress bar, searches done, new leads,
+   duplicates skipped, researched leads, each search's status and the newest
+   leads, refreshed every 3 seconds. If a job waits because no background
+   worker is running, the page says so.
+
+The page uses Reckon Aura's theme variables when the theme is installed and
+Frappe's defaults otherwise, works in dark mode and on phones, and its text is
+translatable (Bangla included). Jobs stuck in *Queued* for 30 minutes are
+re-queued automatically.
+
 ## Autonomous agent (autopilot)
 
 Every autonomous step can be switched off, respects the kill switch and the

@@ -4,9 +4,8 @@ frappe.pages["sales-agent"].on_page_load = function (wrapper) {
 		title: __("Sales Agent"),
 		single_column: true,
 	});
-	page.set_primary_action(__("New Discovery Campaign"), () =>
-		frappe.new_doc("Sales Discovery Campaign")
-	);
+	page.set_primary_action(__("Find Leads"), () => frappe.set_route("lead-finder"));
+	page.add_inner_button(__("New Discovery Campaign (form)"), () => frappe.new_doc("Sales Discovery Campaign"));
 	page.add_inner_button(__("Review Prospects"), () => frappe.set_route("sales-review"));
 	page.add_inner_button(__("Campaigns"), () => frappe.set_route("List", "Sales Campaign"));
 	page.add_inner_button(__("Open CRM"), () => (window.location.href = "/crm"));

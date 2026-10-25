@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-20 09:00:00.000000",
+ "modified": "2026-10-26 11:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -35,6 +35,7 @@
   "per_query_limit",
   "auto_research",
   "schedule",
+  "run_at_time",
   "next_run_on",
   "last_run_on",
   "plan_section",
@@ -164,6 +165,13 @@
    "fieldtype": "Select",
    "label": "Run Automatically",
    "options": "\nDaily\nWeekly\nMonthly"
+  },
+  {
+   "fieldname": "run_at_time",
+   "fieldtype": "Time",
+   "label": "Run At (Time)",
+   "depends_on": "schedule",
+   "description": "Local time of day for scheduled runs. Blank runs at the first check of the day."
   },
   {
    "fieldname": "next_run_on",

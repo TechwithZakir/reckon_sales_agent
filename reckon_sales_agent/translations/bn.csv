@@ -63,3 +63,45 @@ Link not valid,লিংকটি সঠিক নয়
 All outbound activity is paused (kill switch).,সব বহির্গামী কার্যক্রম বন্ধ আছে (কিল সুইচ)।
 "Outbound sending is off: approved messages are logged as dry runs.","বার্তা পাঠানো বন্ধ: অনুমোদিত বার্তা শুধু ড্রাই রান হিসেবে লগ হয়।"
 Only Sales Agent admins and managers can do this.,শুধু সেলস এজেন্ট অ্যাডমিন ও ম্যানেজার এটি করতে পারেন।
+Lead Finder Studio,লিড ফাইন্ডার স্টুডিও
+Find Leads,লিড খুঁজুন
+Find your next customers,আপনার পরবর্তী গ্রাহক খুঁজুন
+Source,উৎস
+Who to find,কাদের খুঁজবেন
+Campaign & schedule,ক্যাম্পেইন ও সময়সূচি
+Launch,শুরু করুন
+Where should the agent look?,এজেন্ট কোথায় খুঁজবে?
+Who should the agent find?,এজেন্ট কাদের খুঁজবে?
+"How many leads, and when?","কতগুলো লিড, এবং কখন?"
+Ready to launch,শুরু করার জন্য প্রস্তুত
+Ready,প্রস্তুত
+Not enabled,চালু নেই
+Experimental,পরীক্ষামূলক
+Enable source,উৎস চালু করুন
+Continue,এগিয়ে যান
+Back,পেছনে
+Save & continue,সংরক্ষণ করে এগিয়ে যান
+Run now,এখনই চালান
+Now + repeat,এখন + পুনরাবৃত্তি
+Schedule only,শুধু সময়সূচি
+Repeat,পুনরাবৃত্তি
+Daily,প্রতিদিন
+Weekly,সাপ্তাহিক
+Monthly,মাসিক
+Start discovery,অনুসন্ধান শুরু করুন
+Save schedule,সময়সূচি সংরক্ষণ করুন
+Discovery in progress,অনুসন্ধান চলছে
+Searches done,সম্পন্ন অনুসন্ধান
+New leads,নতুন লিড
+Duplicates skipped,বাদ দেওয়া ডুপ্লিকেট
+Researched,গবেষণা সম্পন্ন
+Newest leads,নতুন লিডসমূহ
+Review leads,লিড পর্যালোচনা করুন
+New search,নতুন অনুসন্ধান
+Background worker online,ব্যাকগ্রাউন্ড ওয়ার্কার চালু
+No background worker for jobs,কাজের জন্য কোনো ব্যাকগ্রাউন্ড ওয়ার্কার নেই
+Suggest with AI,এআই দিয়ে পরামর্শ নিন
+Search keywords,অনুসন্ধানের কীওয়ার্ড
+Locations,অবস্থান
+Industries,শিল্পখাত
+Preview searches,অনুসন্ধানের প্রিভিউ

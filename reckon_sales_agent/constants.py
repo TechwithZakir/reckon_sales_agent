@@ -10,6 +10,7 @@ MODULE_NAME = "Reckon Sales Agent"
 HOME_PAGE = "sales-agent"
 REVIEW_PAGE = "sales-review"
 ANALYTICS_PAGE = "sales-analytics"
+STUDIO_PAGE = "lead-finder"
 HOME_ROUTE = f"/desk/{HOME_PAGE}"
 WORKSPACE_SIDEBAR = "Sales Agent"
 
@@ -82,7 +83,7 @@ LOOKUP_ONLY_DOCTYPES = frozenset(
     | set(CHILD_DOCTYPES)
     | set(CRM_DOCTYPES)
 )
-ALLOWED_PAGES = frozenset({HOME_PAGE, REVIEW_PAGE, ANALYTICS_PAGE, "print", "user-profile", "home"})
+ALLOWED_PAGES = frozenset({HOME_PAGE, REVIEW_PAGE, ANALYTICS_PAGE, STUDIO_PAGE, "print", "user-profile", "home"})
 
 LEAD_SOURCE = "Sales Agent"
 

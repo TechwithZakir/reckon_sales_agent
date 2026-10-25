@@ -1,0 +1,30 @@
+{
+ "doctype": "Page",
+ "name": "lead-finder",
+ "page_name": "lead-finder",
+ "title": "Lead Finder Studio",
+ "icon": "search",
+ "module": "Reckon Sales Agent",
+ "standard": "Yes",
+ "roles": [
+  {
+   "role": "Reckon Sales Agent Admin"
+  },
+  {
+   "role": "Reckon Sales Agent Manager"
+  },
+  {
+   "role": "Reckon Sales Agent User"
+  },
+  {
+   "role": "Reckon Vendor Superuser"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
+ "creation": "2026-10-19 12:00:00.000000",
+ "modified": "2026-10-26 12:00:00.000000",
+ "owner": "Administrator",
+ "modified_by": "Administrator"
+}

@@ -14,6 +14,18 @@ RESEARCH_BATCH = 10
 EXPIRED_NAME = "Expired source record"
 
 
+def _enqueue_job(job_name: str) -> None:
+    frappe.enqueue(
+        "reckon_sales_agent.discovery.runner.run_discovery_job",
+        queue="long",
+        timeout=3600,
+        job_id=f"sales_agent_discovery_{job_name}",
+        deduplicate=True,
+        enqueue_after_commit=True,
+        job_name=job_name,
+    )
+
+
 def enqueue_discovery(campaign) -> str:
     """Start (or return the already running) discovery job for a campaign."""
     existing = frappe.db.get_value("Sales Discovery Job", {"discovery_campaign": campaign.name,
@@ -36,42 +48,36 @@ def enqueue_discovery(campaign) -> str:
         "idempotency_key": f"discovery:{campaign.name}:{frappe.generate_hash(length=10)}",
         "progress_total": len(campaign.planned_queries),
     }).insert(ignore_permissions=True)
-    frappe.enqueue(
-        "reckon_sales_agent.discovery.runner.run_discovery_job",
-        queue="long",
-        timeout=3600,
-        job_id=f"sales_agent_discovery_{job.name}",
-        deduplicate=True,
-        enqueue_after_commit=True,
-        job_name=job.name,
-    )
+    _enqueue_job(job.name)
     log_activity(campaign.company, "discovery_queued", job, campaign.name)
     return job.name
 
 
 def next_run_date(schedule: str):
-    from frappe.utils import add_months
+    from reckon_sales_agent.discovery.schedule import next_run
 
-    today = nowdate()
-    return {"Daily": add_days(today, 1), "Weekly": add_days(today, 7)}.get(schedule) or add_months(today, 1)
+    return next_run(schedule, getdate(nowdate()))
 
 
 def run_scheduled_discovery() -> None:
-    """Daily: re-plan and start campaigns whose automatic run is due.
+    """Hourly: re-plan and start campaigns whose scheduled date and time have come.
 
     Each run rebuilds the plan from the targeting profile (with AI expansion
     when enabled), so new keywords and locations apply; deduplication keeps
     re-runs from creating duplicates.
     """
+    from frappe.utils import now_datetime
+
     from reckon_sales_agent.discovery.runner import build_plan
+    from reckon_sales_agent.discovery.schedule import is_due
     from reckon_sales_agent.usage import NotEntitled, assert_entitled
 
-    today = getdate(nowdate())
+    now = now_datetime()
     for name in frappe.get_all("Sales Discovery Campaign",
                                filters={"schedule": ["in", ["Daily", "Weekly", "Monthly"]],
                                         "status": ["!=", "Running"]}, pluck="name"):
         campaign = frappe.get_doc("Sales Discovery Campaign", name)
-        if campaign.next_run_on and getdate(campaign.next_run_on) > today:
+        if not is_due(campaign.schedule, campaign.next_run_on, campaign.get("run_at_time"), now):
             continue
         try:
             assert_entitled(campaign.company)
@@ -156,10 +162,36 @@ def purge_expired_source_data() -> None:
 
 
 def recover_stuck_jobs() -> None:
-    """Hourly: jobs still 'Running' after the worker died are failed so they can be re-run."""
-    cutoff = frappe.utils.add_to_date(frappe.utils.now_datetime(), hours=-3)
+    """Hourly: fail jobs whose worker died, and re-queue jobs no worker ever picked up."""
+    now = frappe.utils.now_datetime()
+    cutoff = frappe.utils.add_to_date(now, hours=-3)
     for name in frappe.get_all("Sales Discovery Job", filters={"status": "Running", "modified": ["<", cutoff]},
                                pluck="name"):
         frappe.db.set_value("Sales Discovery Job", name, {"status": "Failed", "error_code": "worker_lost",
                                                           "error_detail": "No progress for 3 hours."})
+    queued_cutoff = frappe.utils.add_to_date(now, minutes=-30)
+    for name in frappe.get_all("Sales Discovery Job", filters={"status": "Queued", "modified": ["<", queued_cutoff]},
+                               pluck="name"):
+        _enqueue_job(name)  # deduplicated: harmless if it is still waiting in the queue
+        frappe.db.set_value("Sales Discovery Job", name, "retry_count",
+                            (frappe.db.get_value("Sales Discovery Job", name, "retry_count") or 0) + 1)
     frappe.db.commit()
+
+
+def worker_status() -> dict:
+    """Whether background workers are running, and whether one serves the 'long' queue."""
+    try:
+        from frappe.utils.background_jobs import get_workers
+
+        workers = get_workers()
+    except Exception:
+        return {"known": False, "workers": 0, "long": False}
+    long_queue = False
+    for worker in workers:
+        try:
+            names = worker.queue_names()
+        except Exception:
+            names = []
+        if any(str(n).split(":")[-1] == "long" for n in names):
+            long_queue = True
+    return {"known": True, "workers": len(workers), "long": long_queue}
