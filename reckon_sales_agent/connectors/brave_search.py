@@ -25,6 +25,8 @@ from reckon_sales_agent.connectors.search_common import (
     email_from,
     home_page,
     is_business_site,
+    is_generic_name,
+    is_listing_page,
     phone_from,
     search_field_policy,
 )
@@ -227,8 +229,13 @@ class BraveLLMContextConnector(_BraveConnector):
         url = entry.get("url") or ""
         if not url.startswith(("http://", "https://")) or not is_business_site(url):
             return None
+        title = clean(entry.get("title"))
+        if not entry.get("name") and is_listing_page(title, url):
+            return None  # a list or directory page, not one business (local poi/map entries are businesses)
         text = " ".join(clean(s) for s in entry.get("snippets") or [] if s)
-        name = clean(entry.get("name")) or business_name(clean(entry.get("title")), url)
+        name = clean(entry.get("name"))
+        if not name or is_generic_name(name, query.keyword):
+            name = business_name(title, url, query.keyword)
         if not name:
             return None
         return SourceRecord(

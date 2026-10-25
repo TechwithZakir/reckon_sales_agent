@@ -40,7 +40,16 @@ SKIP_DOMAINS = (
     "prothomalo.com", "thedailystar.net", "bdnews24.com", "dhakatribune.com", "tbsnews.net", "jugantor.com",
     "kalerkantho.com", "samakal.com", "ittefaq.com.bd", "banglanews24.com", "risingbd.com", "bbc.", "cnn.com",
     "gov.bd", "edu.bd",
+    "medex.com.bd", "mawbiz.com.bd", "bangladeshyp", "bdbusinessdirectory", "infoisinfo", "hotfrog", "brownbook",
+    "cylex", "tuugo", "bizdirlib", "allbiz", "lacartes", "nicelocal", "top-rated.online", "helpmecovid",
 )
+# Pages about many businesses (lists, rankings, directories) rather than one business's own site.
+LISTICLE_TITLE = re.compile(
+    r"^\s*(the\s+)?(top|best)\s+\d+|^\s*(the\s+)?\d+\s+(best|top|great)\b|^\s*list\s+of\b|\b(directory|directories|yellow\s*pages"
+    r"|near\s+me|discounts?\s+list|in\s+the\s+city)\b",
+    re.I,
+)
+DIRECTORY_PATH = re.compile(r"/(listings?|directory|category|categories|tags?|search|places?|top-\d+|best-\d+)(/|$)", re.I)
 TITLE_SEPARATORS = re.compile(r"\s+[|\-–—:·•»]\s+")
 GENERIC_TITLE_PARTS = {
     "home", "home page", "homepage", "official website", "official site", "welcome", "about us", "contact us",
@@ -86,12 +95,25 @@ def home_page(url: str) -> str:
     return f"{parts.scheme or 'https'}://{parts.netloc}/"
 
 
-def business_name(title: str | None, url: str) -> str:
+def is_listing_page(title: str | None, url: str) -> bool:
+    """A page about many businesses ("Top 10 pharmacies in Dhaka", /category/...), not one business."""
+    return bool(LISTICLE_TITLE.search(normalize_space(title)) or DIRECTORY_PATH.search(urlsplit(url).path or ""))
+
+
+def is_generic_name(name: str, keyword: str = "") -> bool:
+    """'Pharmacy' or 'Home' is a page label, not a business name."""
+    lowered = normalize_space(name).lower()
+    word = normalize_space(keyword).lower()
+    forms = {word, f"{word}s", f"{word[:-1]}ies" if word.endswith("y") else f"{word}s"} if word else set()
+    return lowered in GENERIC_TITLE_PARTS or lowered in forms
+
+
+def business_name(title: str | None, url: str, keyword: str = "") -> str:
     """'ABC Pharma | Best Pharmacy in Dhaka' -> 'ABC Pharma'; falls back to the domain."""
     parts = [normalize_space(p) for p in TITLE_SEPARATORS.split(normalize_space(title)) if normalize_space(p)]
     for part in parts:
         part = re.sub(r"^(welcome to|home of)\s+", "", part, flags=re.I)
-        if part.lower() in GENERIC_TITLE_PARTS or len(part) < 2:
+        if is_generic_name(part, keyword) or len(part) < 2:
             continue
         return part[:140]
     domain = normalize_domain(url) or ""
@@ -129,10 +151,12 @@ def records_from_results(results: list[dict], query: DiscoveryQuery, source_key:
         link = result.get("link") or result.get("url") or ""
         if not link.startswith(("http://", "https://")) or not is_business_site(link):
             continue
+        if is_listing_page(result.get("title"), link):
+            continue
         domain = normalize_domain(link)
         if domain in seen:
             continue
-        name = business_name(result.get("title"), link)
+        name = business_name(result.get("title"), link, query.keyword)
         if not name:
             continue
         seen.add(domain)

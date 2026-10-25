@@ -22,7 +22,9 @@ from reckon_sales_agent.connectors.search_common import (  # noqa: E402
     business_name,
     email_from,
     is_business_site,
+    is_listing_page,
     phone_from,
+    records_from_results,
     search_field_policy,
 )
 
@@ -76,6 +78,35 @@ class ResultFilterTests(unittest.TestCase):
         self.assertEqual(business_name("Home - Tamanna Pharmacy", "https://t.com.bd"), "Tamanna Pharmacy")
         self.assertEqual(business_name("Welcome to Care Pharmacy Ltd", "https://c.com"), "Care Pharmacy Ltd")
         self.assertEqual(business_name("", "https://www.green-life-pharma.com/"), "Green Life Pharma")
+
+    def test_lists_and_directories_are_not_leads(self):
+        # Titles Brave Web Search returned for "pharmacy in Dhanmondi, Dhaka" on the live site.
+        for title, url in (
+            ("List of pharmacies in Bangladesh", "https://example-blog.com/pharmacies"),
+            ("Top 10 Pharmacy / Drugstore in Dhaka", "https://some-site.com/top-10"),
+            ("The 6 Best Drugstores in Dhanmondi", "https://guide.example.com/dhaka"),
+            ("Dhanmondi Hospital Discounts List", "https://discounts.example.com/"),
+            ("Dhanmondi Pharmacy 2 in the city Dhaka", "https://citylocal.example.com/x"),
+            ("Pharmacies near me", "https://finder.example.com/"),
+            ("Square Pharmacy", "https://shops.example.com/listing/square-pharmacy"),
+            ("Pharmacy", "https://site.example.com/category/pharmacy"),
+        ):
+            self.assertTrue(is_listing_page(title, url), title)
+        self.assertFalse(is_business_site("https://medex.com.bd/companies"))
+        self.assertFalse(is_business_site("https://www.mawbiz.com.bd/x"))
+        for title, url in (("Lazz Pharma | Online Pharmacy", "https://lazzpharma.com/"),
+                           ("Best Pharma Ltd", "https://bestpharma.com.bd/about"),
+                           ("Aster Pharmacy", "https://asterpharmacy.com/company/about")):
+            self.assertFalse(is_listing_page(title, url), title)
+
+    def test_generic_page_title_falls_back_to_the_domain(self):
+        self.assertEqual(business_name("Pharmacy", "https://www.tcm-model-pharmacy.com/", "pharmacy"),
+                         "Tcm Model Pharmacy")
+        self.assertEqual(business_name("Pharmacies | Home", "https://greenlife.com.bd/", "pharmacy"), "Greenlife")
+        records = records_from_results([{"title": "Top 10 Pharmacy in Dhaka", "link": "https://x.com.bd/top"},
+                                        {"title": "Pharmacy", "link": "https://wellbeing-pharmacy.com/"}],
+                                       QUERY, "brave_web_search", set(), 10)
+        self.assertEqual([r.fields["business_name"] for r in records], ["Wellbeing Pharmacy"])
 
     def test_phone_from_snippet(self):
         self.assertEqual(phone_from("Call 01711-000111 today"), "01711-000111")
