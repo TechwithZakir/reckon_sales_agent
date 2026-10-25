@@ -15,7 +15,7 @@ from reckon_sales_agent.connectors.google_places import GooglePlacesConnector
 MAPS_SOURCES = frozenset({"google_places_api", "serpapi_google_maps", "scrapingdog_google_maps",
                           "scrapingbee_google_maps",
                           "apify_google_maps", "google_maps_browser_experimental"})
-SEARCH_SOURCES = frozenset({"scrapingdog_google_search", "scrapingbee_google_search", "serpapi_google_search",
+SEARCH_SOURCES = frozenset({"brave_web_search", "scrapingdog_google_search", "scrapingbee_google_search", "serpapi_google_search",
                             "google_search_browser_experimental"})
 # Sources whose terms we do not control: tenants may only tighten their policy.
 RESTRICTED_SOURCES = MAPS_SOURCES | SEARCH_SOURCES
@@ -125,6 +125,12 @@ def _search_connector(kind: str):
         "language": s.search_language or "en",
     }
     secret = lambda field: s.get_password(field, raise_exception=False)  # noqa: E731
+    if kind == "brave_web_search":
+        from reckon_sales_agent.connectors.brave_search import BraveSearchConnector
+
+        return BraveSearchConnector(secret("brave_api_key"), enabled=bool(s.brave_enabled),
+                                    retention_days=common["retention_days"], country=s.brave_country or "",
+                                    language=common["language"])
     if kind == "scrapingdog_google_search":
         return ScrapingdogSearchConnector(secret("scrapingdog_api_key"), enabled=bool(s.search_scrapingdog_enabled),
                                           **common)

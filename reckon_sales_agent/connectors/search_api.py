@@ -27,6 +27,7 @@ MAX_PAGES = 5  # ~50 organic results per search; directories and social sites ar
 class _SearchAPIConnector:
     source_key = ""
     provider = ""
+    page_size = 0  # when known, a shorter page means there are no more results (saves a paid request)
 
     def __init__(self, api_key: str | None, *, enabled: bool, terms_ack: bool, retention_days: int = 30,
                  country: str = COUNTRY, language: str = "en", session=None, timeout: int = 60):
@@ -57,7 +58,7 @@ class _SearchAPIConnector:
             for record in records_from_results(results, query, self.source_key, seen, query.max_results - returned):
                 returned += 1
                 yield record
-            if returned >= query.max_results or not results:
+            if returned >= query.max_results or not results or len(results) < self.page_size:
                 return
 
     def _page(self, text: str, page: int) -> list[dict]:

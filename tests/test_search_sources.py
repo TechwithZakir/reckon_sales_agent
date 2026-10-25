@@ -1,4 +1,4 @@
-"""Google Search lead sources: result filtering, SERP API providers and the browser bot (no network)."""
+"""Web search lead sources: result filtering, Brave and SERP API providers, the browser bot (no network)."""
 import sys
 import unittest
 from pathlib import Path
@@ -7,6 +7,7 @@ from types import SimpleNamespace
 sys.path.insert(0, str(Path(__file__).parents[1]))
 
 from reckon_sales_agent.connectors.base import ConnectorError, ConnectorNotPermitted, DiscoveryQuery  # noqa: E402
+from reckon_sales_agent.connectors.brave_search import BraveSearchConnector  # noqa: E402
 from reckon_sales_agent.connectors.search_api import (  # noqa: E402
     ScrapingBeeSearchConnector,
     ScrapingdogSearchConnector,
@@ -295,6 +296,62 @@ class SearchBrowserTests(unittest.TestCase):
         self.assertEqual(GoogleSearchBrowserConnector(enabled=True, terms_ack=True, max_results=500).max_results, 50)
 
 
+class BraveSearchTests(unittest.TestCase):
+    @staticmethod
+    def brave_page(*items):
+        return {"web": {"results": [{"title": t, "url": u, "description": d} for t, u, d in items]}}
+
+    def test_needs_vendor_switch_and_key_but_no_google_tick(self):
+        with self.assertRaises(ConnectorNotPermitted):
+            BraveSearchConnector("k", enabled=False).validate_configuration()
+        with self.assertRaises(ConnectorNotPermitted):
+            BraveSearchConnector(None, enabled=True).validate_configuration()
+        BraveSearchConnector("k", enabled=True).validate_configuration()
+
+    def test_searches_with_header_key_and_filters_results(self):
+        page = self.brave_page(
+            ("<strong>Lazz Pharma</strong> | Online Pharmacy", "https://www.lazzpharma.com/", "Call <strong>01711-000111</strong>"),
+            ("Lazz Pharma - Facebook", "https://www.facebook.com/lazzpharma", ""),
+            ("Tamanna Pharmacy", "https://tamannapharmacy.com.bd/", "Mirpur 10"),
+        )
+        session = FakeSession([response(200, page)])
+        records = list(BraveSearchConnector("secret", enabled=True, session=session).discover(QUERY))
+        self.assertEqual([r.fields["business_name"] for r in records], ["Lazz Pharma", "Tamanna Pharmacy"])
+        self.assertEqual(records[0].fields["phone"], "01711-000111")  # HTML tags stripped first
+        url, params, headers = session.calls[0]
+        self.assertEqual(url, "https://api.search.brave.com/res/v1/web/search")
+        self.assertEqual(headers["X-Subscription-Token"], "secret")
+        self.assertNotIn("secret", str(params))
+        self.assertEqual((params["q"], params["count"], params["offset"]), ("pharmacy in Mirpur, Dhaka", 20, 0))
+        self.assertNotIn("country", params)  # all countries unless the vendor sets one
+        self.assertEqual(len(session.calls), 1)  # a short page means no more results: no second paid request
+
+    def test_pages_by_offset_until_enough_leads(self):
+        full = self.brave_page(*[(f"Shop {i}", f"https://shop{i}.com/", "") for i in range(20)])
+        session = FakeSession([response(200, full)])
+        query = DiscoveryQuery("pharmacy", "Dhaka", "pharmacy in Dhaka", 25)
+        more = self.brave_page(*[(f"Store {i}", f"https://store{i}.com/", "") for i in range(20)])
+        session.pages.append(response(200, more))
+        records = list(BraveSearchConnector("k", enabled=True, country="us", session=session).discover(query))
+        self.assertEqual(len(records), 25)
+        self.assertEqual([c[1]["offset"] for c in session.calls], [0, 1])
+        self.assertEqual(session.calls[0][1]["country"], "US")
+
+    def test_bad_key_and_rate_limit(self):
+        session = FakeSession([response(401, {"error": {"detail": "Invalid token"}})])
+        with self.assertRaises(ConnectorError) as ctx:
+            list(BraveSearchConnector("k", enabled=True, session=session).discover(QUERY))
+        self.assertTrue(ctx.exception.permanent)
+        session = FakeSession([response(429, {})])
+        with self.assertRaises(ConnectorError) as ctx:
+            list(BraveSearchConnector("k", enabled=True, session=session).discover(QUERY))
+        self.assertFalse(ctx.exception.permanent)  # retried by the runner
+
+    def test_attributed_to_brave(self):
+        policy = BraveSearchConnector("k", enabled=True).default_field_policy()
+        self.assertEqual(policy["website"]["attribution"], "Brave Search")
+
+
 class WiringTests(unittest.TestCase):
     def test_settings_read_by_the_registry_and_studio_exist(self):
         import json
@@ -304,8 +361,12 @@ class WiringTests(unittest.TestCase):
         settings = json.loads((app / "reckon_sales_agent" / "doctype" / "sales_agent_platform_settings"
                                / "sales_agent_platform_settings.json").read_text(encoding="utf-8"))
         fields = {f["fieldname"] for f in settings["fields"]}
-        used = set(re.findall(r"\bs\.(search_\w+)", (app / "connectors" / "registry.py").read_text(encoding="utf-8")))
-        used |= set(re.findall(r'"(search_\w+)"', (app / "api_studio.py").read_text(encoding="utf-8")))
+        registry = (app / "connectors" / "registry.py").read_text(encoding="utf-8")
+        used = set(re.findall(r"\bs\.((?:search|brave)_\w+)", registry))
+        used |= set(re.findall(r'"((?:search|brave)_\w+)"', registry))
+        used |= set(re.findall(r'"((?:search|brave)_\w+)"', (app / "api_studio.py").read_text(encoding="utf-8")))
+        used = {name for name in used if not name.endswith(("_web_search", "_google_search"))}  # connector types
+        self.assertIn("brave_api_key", used)
         self.assertTrue(used)
         self.assertEqual(used - fields, set())
         self.assertEqual(settings["field_order"], [f["fieldname"] for f in settings["fields"]])

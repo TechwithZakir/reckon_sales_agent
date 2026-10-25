@@ -112,9 +112,10 @@ minimum 2-second delay between places and a hard cap of 100 places per
 search. Google changes its page often; when it does, the connector returns
 fewer or no results rather than wrong data.
 
-### Google Search lead sources
+### Web search lead sources (Brave and Google)
 
-These search Google for "keyword in location" and turn each organic result
+These search the web for "keyword in location" (Brave's official API, or
+Google through a provider or the browser bot) and turn each organic result
 that is a business's own website into a lead. Social networks,
 marketplaces, directories, news, government and reference sites are
 skipped, and each domain counts once. The lead keeps the site's home page, a
@@ -123,12 +124,14 @@ one. Website research then reads the site for emails, phones and evidence.
 
 | Connector | How it searches | Needs |
 | --- | --- | --- |
+| `brave_web_search` | **Brave Search API** (official; own index, no scraping or CAPTCHAs; key in the `X-Subscription-Token` header; 20 results per request) | Brave key; *Enable Brave Search* (no Google responsibility tick) |
 | `scrapingdog_google_search` | Scrapingdog Google Search API (JSON, 0-based `page`) | Scrapingdog key (same as Maps) |
 | `scrapingbee_google_search` | ScrapingBee Google API (JSON; key in the Authorization header) | ScrapingBee key (same as Maps) |
 | `serpapi_google_search` | SerpAPI `engine=google` (JSON, `start` offset) | SerpAPI key (same as Maps) |
 | `google_search_browser_experimental` | **Experimental.** Headless Chromium types the search on google.com and follows *Next* | Same Playwright install as the Maps browser |
 
-The same rules as Maps apply: each source is off until the vendor enables it
+Brave is an official API, so it needs only *Enable Brave Search* and a key.
+For the Google sources the same rules as Maps apply: each source is off until the vendor enables it
 and ticks *I Accept Responsibility for Google Search Data Use*. Each tenant
 connector needs *Source Policy Reviewed*. Search-derived fields are kept for
 *Search Data Retention (Days)* unless the company's own website confirms

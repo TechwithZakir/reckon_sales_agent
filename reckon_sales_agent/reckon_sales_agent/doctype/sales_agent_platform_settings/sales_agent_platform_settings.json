@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-25 21:00:00.000000",
+ "modified": "2026-10-26 01:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -47,6 +47,11 @@
   "maps_browser_col",
   "maps_browser_delay",
   "maps_browser_language",
+  "brave_section",
+  "brave_enabled",
+  "brave_api_key",
+  "brave_col",
+  "brave_country",
   "search_section",
   "search_terms_ack",
   "search_data_retention_days",
@@ -253,6 +258,33 @@
    "fieldtype": "Data",
    "label": "Language (hl)",
    "default": "en"
+  },
+  {
+   "fieldname": "brave_section",
+   "fieldtype": "Section Break",
+   "label": "Brave Search API",
+   "description": "Brave's official web search API (its own index, no scraping or CAPTCHAs). Billed by Brave per request; get a key at api-dashboard.search.brave.com."
+  },
+  {
+   "fieldname": "brave_enabled",
+   "fieldtype": "Check",
+   "label": "Enable Brave Search",
+   "default": "0"
+  },
+  {
+   "fieldname": "brave_api_key",
+   "fieldtype": "Password",
+   "label": "Brave Search API Key"
+  },
+  {
+   "fieldname": "brave_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "brave_country",
+   "fieldtype": "Data",
+   "label": "Brave Country (optional)",
+   "description": "Two-letter code Brave supports (e.g. US, GB, IN). Leave empty to search all countries; the location in each search still narrows results."
   },
   {
    "fieldname": "search_section",

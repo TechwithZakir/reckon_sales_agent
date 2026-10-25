@@ -30,7 +30,7 @@ COUNTRY = "bd"
 # Not a business's own site: social, marketplaces, directories, news, reference, search engines.
 SKIP_DOMAINS = (
     "facebook.com", "fb.com", "linkedin.com", "instagram.com", "youtube.com", "twitter.com", "x.com",
-    "tiktok.com", "pinterest.", "whatsapp.com", "t.me", "google.", "bing.com", "yahoo.com", "duckduckgo.com",
+    "tiktok.com", "pinterest.", "whatsapp.com", "t.me", "google.", "bing.com", "yahoo.com", "duckduckgo.com", "brave.com",
     "wikipedia.org", "wikimedia.org", "quora.com", "reddit.com", "medium.com", "blogspot.", "wordpress.com",
     "amazon.", "alibaba.com", "aliexpress.", "ebay.", "daraz.com", "bikroy.com", "chaldal.com", "foodpanda.",
     "pathao.com", "shohoz.com", "othoba.com", "evaly.com", "ajkerdeal.com", "pickaboo.com",
@@ -49,10 +49,10 @@ GENERIC_TITLE_PARTS = {
 BD_PHONE = re.compile(r"(?:\+?880[\s-]?|0)1[3-9]\d(?:[\s-]?\d){7}|(?:\+?880[\s-]?|0)2[\s-]?\d(?:[\s-]?\d){6,7}")
 
 
-def search_field_policy(retention_days: int | None) -> dict:
+def search_field_policy(retention_days: int | None, attribution: str = ATTRIBUTION) -> dict:
     days = int(retention_days or 0) or None
     return {
-        field: {"persist": True, "retention_days": days, "crm_sync": days is None, "attribution": ATTRIBUTION}
+        field: {"persist": True, "retention_days": days, "crm_sync": days is None, "attribution": attribution}
         for field in PROSPECT_FIELDS
     }
 

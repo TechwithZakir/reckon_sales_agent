@@ -27,6 +27,7 @@ frappe.ui.form.on("Sales Source Connector", {
 				frm.doc.connector_type.endsWith("experimental") ? "orange" : "blue");
 		}
 		const search = {
+			brave_web_search: __("Brave's official search API runs the search; results that are a business's own website become leads."),
 			scrapingdog_google_search: __("Scrapingdog runs the Google search; results that are a business's own website become leads."),
 			scrapingbee_google_search: __("ScrapingBee runs the Google search; results that are a business's own website become leads."),
 			serpapi_google_search: __("SerpAPI runs the Google search; results that are a business's own website become leads."),
