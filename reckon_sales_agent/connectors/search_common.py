@@ -42,13 +42,21 @@ SKIP_DOMAINS = (
     "gov.bd", "edu.bd",
     "medex.com.bd", "mawbiz.com.bd", "bangladeshyp", "bdbusinessdirectory", "infoisinfo", "hotfrog", "brownbook",
     "cylex", "tuugo", "bizdirlib", "allbiz", "lacartes", "nicelocal", "top-rated.online", "helpmecovid",
+    "vymaps.com", "medicare24bd.com", "dhakasnob.com", "hugedomains.com", "sedo.com", "dan.com", "afternic.com",
 )
 # Pages about many businesses (lists, rankings, directories) rather than one business's own site.
 LISTICLE_TITLE = re.compile(
-    r"^\s*(the\s+)?(top|best)\s+\d+|^\s*(the\s+)?\d+\s+(best|top|great)\b|^\s*list\s+of\b|\b(directory|directories|yellow\s*pages"
-    r"|near\s+me|discounts?\s+list|in\s+the\s+city)\b",
+    r"^\s*(the\s+)?(top|best)\s+\d+|^\s*(the\s+)?\d+\s+(best|top|great)\b|^\s*list\s+of\b"
+    r"|^\s*(the\s+)?best\s+\w+\s+(in|near|around)\b"
+    r"|\b(directory|directories|yellow\s*pages|near\s+me|discounts?\s+list|in\s+the\s+city|domains?\s+for\s+sale"
+    r"|is\s+for\s+sale|hugedomains)\b",
     re.I,
 )
+# Words that say nothing about which business a domain belongs to.
+NAME_STOPWORDS = {
+    "the", "and", "ltd", "limited", "company", "co", "inc", "plc", "pvt", "private", "group", "bangladesh", "dhaka",
+    "shop", "store", "stores", "center", "centre", "services", "service", "online", "best", "new", "home", "www", "com",
+}
 DIRECTORY_PATH = re.compile(r"/(listings?|directory|category|categories|tags?|search|places?|top-\d+|best-\d+)(/|$)", re.I)
 TITLE_SEPARATORS = re.compile(r"\s+[|\-–—:·•»]\s+")
 GENERIC_TITLE_PARTS = {
@@ -98,6 +106,20 @@ def home_page(url: str) -> str:
 def is_listing_page(title: str | None, url: str) -> bool:
     """A page about many businesses ("Top 10 pharmacies in Dhaka", /category/...), not one business."""
     return bool(LISTICLE_TITLE.search(normalize_space(title)) or DIRECTORY_PATH.search(urlsplit(url).path or ""))
+
+
+def name_matches_domain(name: str, url: str, keyword: str = "") -> bool:
+    """Does the site belong to this business? 'BRAC Healthcare' fits brachealthcare.com; 'Gulshan Pharma' does not
+    fit medicare24bd.com (a directory page about it). Acronyms of 3 capitals (ACI, BRAC) count as distinctive."""
+    host = re.sub(r"[^a-z0-9]", "", (normalize_domain(url) or "").rsplit(".", 1)[0].lower())
+    if not host:
+        return False
+    generic = NAME_STOPWORDS | {normalize_space(keyword).lower()} | set(GENERIC_TITLE_PARTS)
+    tokens = [t for t in re.findall(r"[A-Za-z0-9]+", name or "")
+              if t.lower() not in generic and (len(t) >= 4 or (len(t) == 3 and t.isupper()))]
+    if not tokens:
+        return True  # nothing distinctive to compare (the name likely came from the domain itself)
+    return any(t.lower() in host for t in tokens)
 
 
 def is_generic_name(name: str, keyword: str = "") -> bool:
@@ -157,8 +179,8 @@ def records_from_results(results: list[dict], query: DiscoveryQuery, source_key:
         if domain in seen:
             continue
         name = business_name(result.get("title"), link, query.keyword)
-        if not name:
-            continue
+        if not name or not name_matches_domain(name, link, query.keyword):
+            continue  # a page about the business on someone else's site (directory, marketplace, parked domain)
         seen.add(domain)
         snippet = result.get("snippet") or result.get("description") or ""
         records.append(SourceRecord(

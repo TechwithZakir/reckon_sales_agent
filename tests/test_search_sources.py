@@ -99,6 +99,22 @@ class ResultFilterTests(unittest.TestCase):
                            ("Aster Pharmacy", "https://asterpharmacy.com/company/about")):
             self.assertFalse(is_listing_page(title, url), title)
 
+    def test_only_a_businesss_own_site_is_a_lead(self):
+        # Brave Web Search for "pharmacy in Gulshan, Dhaka" on the live site, after the listicle filter.
+        live = [
+            {"title": "HugeDomains.com", "url": "http://www.dhakapharma.com/"},
+            {"title": "BRAC Healthcare", "url": "https://brachealthcare.com/"},
+            {"title": "Best Pharmacies in Dhaka at DhakaSnob.com", "url": "https://www.dhakasnob.com/"},
+            {"title": "Gulshan Homeo Pharmacy", "url": "https://gulshanhomeopharmacy.com/"},
+            {"title": "GULSHAN PHARMA, Gulshan, Dhaka, Bangladesh", "url": "https://medicare24bd.com/gulshan-pharma"},
+            {"title": "Gulshan Pharma, pharmacy at Dhaka 1212", "url": "https://vymaps.com/BD/Gulshan-Pharma"},
+            {"title": "Islamia Pharmacy Ltd.", "url": "https://islamiapharmacyltd.com/"},
+            {"title": "ACI Limited | Home", "url": "https://www.aci-bd.com/"},
+        ]
+        records = records_from_results(live, QUERY, "brave_web_search", set(), 20)
+        self.assertEqual([r.fields["business_name"] for r in records],
+                         ["BRAC Healthcare", "Gulshan Homeo Pharmacy", "Islamia Pharmacy Ltd.", "ACI Limited"])
+
     def test_generic_page_title_falls_back_to_the_domain(self):
         self.assertEqual(business_name("Pharmacy", "https://www.tcm-model-pharmacy.com/", "pharmacy"),
                          "Tcm Model Pharmacy")
