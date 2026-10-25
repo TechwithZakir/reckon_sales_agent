@@ -343,6 +343,20 @@ class BraveSearchTests(unittest.TestCase):
         self.assertEqual([c[1]["offset"] for c in session.calls], [0, 1])
         self.assertEqual(session.calls[0][1]["country"], "US")
 
+    def test_only_brave_supported_country_codes_are_sent(self):
+        def country_sent(code):
+            session = FakeSession([response(200, self.brave_page())])
+            list(BraveSearchConnector("k", enabled=True, country=code, session=session).discover(QUERY))
+            return session.calls[0][1].get("country")
+
+        self.assertEqual(country_sent("BD"), "ALL")  # 422 otherwise
+        self.assertEqual(country_sent("in"), "IN")
+        self.assertIsNone(country_sent(""))
+        places = FakeSession([response(200, {"results": []})])
+        list(BravePlaceSearchConnector("k", enabled=True, country="IN", session=places).discover(QUERY))
+        self.assertEqual(places.calls[0][1]["country"], "IN")
+        self.assertEqual(places.calls[0][1]["location"], "mirpur dhaka india")
+
     def test_bad_key_and_rate_limit(self):
         session = FakeSession([response(401, {"error": {"detail": "Invalid token"}})])
         with self.assertRaises(ConnectorError) as ctx:
@@ -398,8 +412,8 @@ class BravePlaceSearchTests(unittest.TestCase):
         url, params, headers = session.calls[0]
         self.assertEqual(url, "https://api.search.brave.com/res/v1/local/place_search")
         self.assertEqual(headers["X-Subscription-Token"], "secret")
-        self.assertEqual((params["q"], params["location"], params["country"], params["count"]),
-                         ("pharmacy", "mirpur dhaka bangladesh", "BD", 20))
+        self.assertEqual((params["q"], params["location"], params["count"]), ("pharmacy", "mirpur dhaka bangladesh", 20))
+        self.assertNotIn("country", params)  # Brave rejects BD; the location string carries the country
         self.assertEqual(len(session.calls), 1)
 
     def test_location_string_and_caps(self):
@@ -437,9 +451,10 @@ class BraveLLMContextTests(unittest.TestCase):
         self.assertEqual(records[0].fields["phone"], "02-9001234")
         url, params, headers = session.calls[0]
         self.assertEqual(url, "https://api.search.brave.com/res/v1/llm/context")
-        self.assertEqual((params["q"], params["enable_local"], params["country"]),
-                         ("pharmacy in Mirpur, Dhaka", "true", "BD"))
-        self.assertEqual((headers["X-Loc-City"], headers["X-Loc-Country"]), ("Dhaka", "BD"))
+        self.assertEqual((params["q"], params["enable_local"]), ("pharmacy in Mirpur, Dhaka", "true"))
+        self.assertNotIn("country", params)  # BD is not a Brave country code
+        self.assertEqual(headers["X-Loc-City"], "Dhaka")
+        self.assertNotIn("X-Loc-Country", headers)
 
     def test_email_finder_ignores_image_names(self):
         self.assertEqual(email_from("logo@2x.png and hello@shop.com.bd"), "hello@shop.com.bd")

@@ -46,7 +46,7 @@ def city_from_address(address: str | None, fallback: str = "") -> str:
     return fallback
 
 
-def provider_message(response, secret: str | None = None, limit: int = 200) -> str:
+def provider_message(response, secret: str | None = None, limit: int = 400) -> str:
     """The provider's own error text (JSON message/error or body), with the secret redacted."""
     text = ""
     try:

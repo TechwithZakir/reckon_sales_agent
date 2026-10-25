@@ -36,6 +36,12 @@ WEB_MAX_OFFSET = 9
 PLACE_MAX = 100
 TAGS = re.compile(r"<[^>]+>")
 # Place Search wants "city country" with no commas; these are the countries we expect to sell in.
+# Country codes Brave's ``country`` parameter accepts (an enum; anything else is HTTP 422). Bangladesh is not
+# one of them, so for BD the country travels in the search text and the Places location string instead.
+BRAVE_COUNTRIES = frozenset({
+    "AR", "AU", "AT", "BE", "BR", "CA", "CL", "DK", "FI", "FR", "DE", "HK", "IN", "ID", "IT", "JP", "KR", "MY",
+    "MX", "NL", "NZ", "NO", "CN", "PL", "PT", "PH", "RU", "SA", "ZA", "ES", "SE", "CH", "TW", "TR", "GB", "US",
+})
 COUNTRY_NAMES = {
     "BD": "bangladesh", "IN": "india", "PK": "pakistan", "NP": "nepal", "LK": "sri lanka", "AE": "united arab emirates",
     "SA": "saudi arabia", "QA": "qatar", "MY": "malaysia", "SG": "singapore", "GB": "united kingdom",
@@ -56,8 +62,13 @@ class _BraveConnector(_SearchAPIConnector):
         # Brave is an official API, so there is no Google-style responsibility tick to accept.
         super().__init__(api_key, enabled=enabled, terms_ack=True, retention_days=retention_days,
                          country=country, language=language, session=session, timeout=timeout)
-        self.country = (country or "").strip().upper()[:2]  # empty: Brave's default
+        self.country = (country or "").strip().upper()[:2]  # where the leads are (also unsupported codes)
         self.language = (language or "en").split("-")[0][:8]
+
+    @property
+    def brave_country(self) -> str:
+        """The ``country`` parameter to send: only codes Brave accepts, else nothing."""
+        return self.country if self.country in BRAVE_COUNTRIES else ""
 
     def default_field_policy(self) -> dict:
         return search_field_policy(self.retention_days, attribution=self.attribution)
@@ -88,7 +99,7 @@ class BraveSearchConnector(_BraveConnector):
             return []  # Brave said there are no more results: no paid request
         params = {"q": text[:400], "count": WEB_PAGE_SIZE, "offset": page, "search_lang": self.language}
         if self.country:
-            params["country"] = self.country
+            params["country"] = self.brave_country or "ALL"  # unsupported (e.g. BD): all countries
         data = self._brave("/web/search", params)
         self._more = bool((data.get("query") or {}).get("more_results_available"))
         results = ((data.get("web") or {}).get("results")) or []
@@ -120,7 +131,9 @@ class BravePlaceSearchConnector(_BraveConnector):
     def discover(self, query: DiscoveryQuery):
         self.validate_configuration()
         params = {"q": (query.keyword or query.query_text)[:400], "count": max(1, min(query.max_results, PLACE_MAX)),
-                  "country": self.country, "search_lang": self.language, "units": "metric"}
+                  "search_lang": self.language, "units": "metric"}
+        if self.brave_country:
+            params["country"] = self.brave_country
         if query.location:
             params["location"] = self.place_location(query.location)
         data = self._brave("/local/place_search", params)
@@ -184,14 +197,14 @@ class BraveLLMContextConnector(_BraveConnector):
         params = {"q": query.query_text[:600], "count": max(1, min(query.max_results * 2, 50)),
                   "search_lang": self.language, "enable_local": "true",
                   "maximum_number_of_tokens_per_url": 1024, "maximum_number_of_tokens": 16384}
-        if self.country:
-            params["country"] = self.country
+        if self.brave_country:
+            params["country"] = self.brave_country
         headers = {}
         city = (query.location or "").split(",")[-1].strip()
         if city:
             headers["X-Loc-City"] = city
-        if self.country:
-            headers["X-Loc-Country"] = self.country
+        if self.brave_country:
+            headers["X-Loc-Country"] = self.brave_country
         grounding = (self._brave("/llm/context", params, headers) or {}).get("grounding") or {}
         entries = list(grounding.get("generic") or [])
         poi = grounding.get("poi")
