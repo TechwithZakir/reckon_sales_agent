@@ -127,6 +127,7 @@ def _run(job, campaign) -> None:
     targeting = (frappe.get_doc("Sales Targeting Profile", campaign.targeting_profile).as_dict()
                  if campaign.get("targeting_profile") else {})
     new_prospects: list[str] = []
+    failed: list[ConnectorError] = []  # searches that still failed after retries
     for row in campaign.planned_queries:
         if row.status != "Planned":
             continue
@@ -148,6 +149,7 @@ def _run(job, campaign) -> None:
             if exc.permanent:
                 _finish(job, campaign, "Failed", exc.code, str(exc))
                 return
+            failed.append(exc)
             continue
         created = updated = 0
         for record in records:
@@ -177,7 +179,15 @@ def _run(job, campaign) -> None:
         })
         frappe.db.commit()
 
-    _finish(job, campaign, "Completed")
+    if failed and not (job.progress_done or 0):
+        # Every search failed: say so, with the source's own reason, instead of "Completed".
+        _finish(job, campaign, "Failed", failed[-1].code, str(failed[-1]))
+        return
+    if failed:
+        _finish(job, campaign, "Completed", failed[-1].code,
+                _("{0} search(es) failed: {1}").format(len(failed), failed[-1]))
+    else:
+        _finish(job, campaign, "Completed")
     if campaign.get("schedule"):
         from reckon_sales_agent.jobs import next_run_date
 

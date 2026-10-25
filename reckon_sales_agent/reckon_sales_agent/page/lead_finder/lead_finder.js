@@ -451,7 +451,8 @@
 				} else if (j.status === "Failed") {
 					alert = `<div class="lfs-note bad"><b>${e(j.error_code || __("Failed"))}</b>: ${e(j.error_detail || "")}</div>`;
 				} else if (j.status === "Completed") {
-					alert = `<div class="lfs-note">${lfs_icon("check", 14)} ${__("Done. Research and scoring continue in the background; leads appear in Prospect Review.")}</div>`;
+					alert = j.error_detail ? `<div class="lfs-note warn">${e(j.error_detail)}</div>` : "";
+					alert += `<div class="lfs-note">${lfs_icon("check", 14)} ${__("Done. Research and scoring continue in the background; leads appear in Prospect Review.")}</div>`;
 				}
 				panel.find(".lfs-alert").html(alert);
 				panel.find(".lfs-searches").html(r.searches.map((q) => `<div class="lfs-row"><div class="main"><div>${e(q.query_text)}</div>

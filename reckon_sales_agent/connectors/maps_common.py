@@ -72,13 +72,15 @@ def http_error(provider: str, response, secret: str | None = None):
         401: "the API key is invalid or missing",
         402: "the account has no credit left",
         403: "the plan does not include this API, or credits are used up",
+        422: "the provider rejected the request parameters",
         429: "the rate limit was reached",
     }.get(status, "the request failed")
     detail = provider_message(response, secret)
     return ConnectorError(
         f"{provider} HTTP {status}: {meaning}." + (f" Provider says: {detail}" if detail else ""),
-        permanent=status in (400, 401, 402, 403, 404),
-        code={401: "auth", 402: "billing", 403: "forbidden", 429: "rate_limited"}.get(status, "http_error"),
+        permanent=status in (400, 401, 402, 403, 404, 422),
+        code={401: "auth", 402: "billing", 403: "forbidden", 422: "invalid_request",
+              429: "rate_limited"}.get(status, "http_error"),
     )
 
 

@@ -347,6 +347,15 @@ class BraveSearchTests(unittest.TestCase):
             list(BraveSearchConnector("k", enabled=True, session=session).discover(QUERY))
         self.assertFalse(ctx.exception.permanent)  # retried by the runner
 
+    def test_rejected_parameters_stop_at_once_with_the_reason(self):
+        session = FakeSession([response(422, {"error": {"detail": "Unable to validate request parameter(s)"}})])
+        with self.assertRaises(ConnectorError) as ctx:
+            list(BraveSearchConnector("secret", enabled=True, session=session).discover(QUERY))
+        self.assertTrue(ctx.exception.permanent)
+        self.assertEqual(ctx.exception.code, "invalid_request")
+        self.assertIn("Unable to validate", str(ctx.exception))
+        self.assertNotIn("secret", str(ctx.exception))
+
     def test_attributed_to_brave(self):
         policy = BraveSearchConnector("k", enabled=True).default_field_policy()
         self.assertEqual(policy["website"]["attribution"], "Brave Search")
