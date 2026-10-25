@@ -37,7 +37,7 @@
 
 .lfs-panel { background: var(--lfs-card); border: 1px solid var(--lfs-line); border-radius: var(--lfs-radius); padding: 20px; }
 .lfs-panel h3 { font-size: 16px; margin: 0 0 4px; font-weight: 650; }
-.lfs-panel .lead { color: var(--lfs-muted); margin: 0 0 16px; }
+.lfs-panel .lead { color: var(--lfs-muted); margin: 0 0 16px; font-size: 13px; }
 .lfs-group-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--lfs-muted); margin: 14px 0 8px; }
 
 .lfs-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }

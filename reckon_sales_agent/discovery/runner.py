@@ -86,8 +86,12 @@ def build_plan(campaign) -> None:
     campaign.status = "Planned"
 
 
-def run_discovery_job(job_name: str) -> None:
-    job = frappe.get_doc("Sales Discovery Job", job_name)
+def run_discovery_job(discovery_job: str | None = None, **kwargs) -> None:
+    # Not called ``job_name``: frappe.enqueue reserves that argument for the RQ job label.
+    discovery_job = discovery_job or kwargs.get("job_name")
+    if not discovery_job:
+        frappe.throw(_("No discovery job given."))
+    job = frappe.get_doc("Sales Discovery Job", discovery_job)
     if job.status not in ("Queued", "Running"):
         return
     campaign = frappe.get_doc("Sales Discovery Campaign", job.discovery_campaign)

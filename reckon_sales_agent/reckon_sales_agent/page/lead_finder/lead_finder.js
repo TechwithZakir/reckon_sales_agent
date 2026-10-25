@@ -188,6 +188,10 @@
 		render_targeting(body) {
 			const profiles = this.data.profiles || [];
 			const p = profiles.find((x) => x.name === this.state.profile) || {};
+			// Typed values live in state so any re-render (AI suggestions, loading locations) keeps them.
+			const form = (this.state.form = this.state.form || {});
+			if (form.pname == null) form.pname = p.profile_name || "";
+			if (form.market == null) form.market = p.market || "B2B";
 			const panel = $(`<div class="lfs-panel"><h3>${__("Who should the agent find?")}</h3>
 				<p class="lead">${__("Type a word and press Enter to add it. Use English or Bangla.")}</p>
 				<div class="lfs-grid2">
@@ -195,9 +199,9 @@
 						<select class="form-control lfs-profile"><option value="">${__("New profile")}</option>
 						${profiles.map((x) => `<option value="${e(x.name)}" ${x.name === this.state.profile ? "selected" : ""}>${e(x.profile_name)}</option>`).join("")}</select></div>
 					<div class="lfs-field"><label>${__("Profile name")}</label>
-						<input class="form-control lfs-pname" value="${e(p.profile_name || "")}" placeholder="${__("e.g. Pharmacies in Dhaka")}"></div>
+						<input class="form-control lfs-pname" value="${e(form.pname)}" placeholder="${__("e.g. Pharmacies in Dhaka")}"></div>
 					<div class="lfs-field"><label>${__("Market")}</label><div class="lfs-seg lfs-market">
-						${["B2B", "B2B2C", "B2G"].map((m) => `<button type="button" data-v="${m}" class="${(p.market || "B2B") === m ? "on" : ""}">${m}</button>`).join("")}</div></div>
+						${["B2B", "B2B2C", "B2G"].map((m) => `<button type="button" data-v="${m}" class="${form.market === m ? "on" : ""}">${m}</button>`).join("")}</div></div>
 					<div></div>
 					${this.chip_field("keywords", __("Search keywords"), __("e.g. pharmacy, medicine shop, ফার্মেসি"), p.keywords)}
 					${this.chip_field("b2b_segments", __("Buyer types (B2B segments)"), __("e.g. distributors, wholesalers"), p.b2b_segments)}
@@ -208,7 +212,6 @@
 				</div>
 				<datalist id="lfs-cities">${BD_CITIES.map((c) => `<option value="${e(c)}">`).join("")}</datalist>
 				<div class="lfs-ai"></div></div>`).appendTo(body);
-			panel.find('[data-chip="locations"] input').attr("list", "lfs-cities");
 			this.bind_chips(panel);
 			if (this.state.profile && !this.state.locations_loaded) {
 				this.call("profile_locations", { profile: this.state.profile }).then((rows) => {
@@ -220,10 +223,13 @@
 			panel.find(".lfs-profile").on("change", (ev) => {
 				this.state.profile = ev.target.value || null;
 				this.state.chips = {};
+				this.state.form = null;
 				this.state.locations_loaded = false;
 				this.render();
 			});
+			panel.find(".lfs-pname").on("input", (ev) => (form.pname = ev.target.value));
 			panel.find(".lfs-market button").on("click", (ev) => {
+				form.market = ev.currentTarget.dataset.v;
 				panel.find(".lfs-market button").removeClass("on");
 				$(ev.currentTarget).addClass("on");
 			});
@@ -250,43 +256,51 @@
 		}
 
 		chip_field(key, label, placeholder, stored) {
-			if (!this.state.chips[key]) this.state.chips[key] = key === "locations" ? this.state.chips[key] || [] : lines(stored);
-			const chips = (this.state.chips[key] || []).map((v, i) =>
-				`<span class="lfs-chip">${e(v)}<button type="button" data-i="${i}" aria-label="${__("Remove")}">×</button></span>`).join("");
+			if (!this.state.chips[key]) this.state.chips[key] = key === "locations" ? [] : lines(stored);
 			return `<div class="lfs-field"><label>${e(label)}</label>
-				<div class="lfs-chips" data-chip="${key}">${chips}<input placeholder="${e(placeholder)}"></div></div>`;
+				<div class="lfs-chips" data-chip="${key}" data-placeholder="${e(placeholder)}"></div></div>`;
 		}
 
 		bind_chips(panel) {
-			panel.find(".lfs-chips").each((_, box) => {
-				const key = box.dataset.chip;
-				const $box = $(box);
-				const add = (raw) => {
-					raw.split(key === "locations" ? /;/ : /[,;]/).map((s) => s.trim()).filter(Boolean).forEach((v) => {
-						const list = this.state.chips[key] || (this.state.chips[key] = []);
-						if (!list.some((x) => x.toLowerCase() === v.toLowerCase())) list.push(v);
-					});
-					this.render();
-					this.$root.find(`[data-chip="${key}"] input`).trigger("focus");
-				};
-				$box.find("input").on("keydown", (ev) => {
-					if ((ev.key === "Enter" || (ev.key === "," && key !== "locations")) && ev.target.value.trim()) {
-						ev.preventDefault();
-						add(ev.target.value);
-					}
-				}).on("blur", (ev) => ev.target.value.trim() && add(ev.target.value));
-				$box.find(".lfs-chip button").on("click", (ev) => {
-					this.state.chips[key].splice(Number(ev.currentTarget.dataset.i), 1);
-					this.render();
+			panel.find(".lfs-chips").each((_, box) => this.draw_chips($(box)));
+		}
+
+		// Redraws one chip box only, so other typed fields on the page are untouched.
+		draw_chips($box, focus = false) {
+			const key = $box.data("chip");
+			const list = this.state.chips[key] || (this.state.chips[key] = []);
+			$box.html(list.map((v, i) =>
+				`<span class="lfs-chip">${e(v)}<button type="button" data-i="${i}" aria-label="${__("Remove")}">×</button></span>`).join("")
+				+ `<input placeholder="${e($box.data("placeholder"))}" ${key === "locations" ? 'list="lfs-cities"' : ""}>`);
+			const add = (raw) => {
+				raw.split(key === "locations" ? /;/ : /[,;]/).map((s) => s.trim()).filter(Boolean).forEach((v) => {
+					if (!list.some((x) => x.toLowerCase() === v.toLowerCase())) list.push(v);
 				});
+				this.draw_chips($box, true);
+			};
+			const $input = $box.find("input");
+			$input.on("keydown", (ev) => {
+				if ((ev.key === "Enter" || (ev.key === "," && key !== "locations")) && ev.target.value.trim()) {
+					ev.preventDefault();
+					add(ev.target.value);
+				} else if (ev.key === "Backspace" && !ev.target.value && list.length) {
+					list.pop();
+					this.draw_chips($box, true);
+				}
+			}).on("blur", (ev) => ev.target.value.trim() && add(ev.target.value));
+			$box.find(".lfs-chip button").on("click", (ev) => {
+				list.splice(Number(ev.currentTarget.dataset.i), 1);
+				this.draw_chips($box, true);
 			});
+			$box.off("click.lfs").on("click.lfs", (ev) => ev.target === $box[0] && $input.trigger("focus"));
+			if (focus) $input.trigger("focus");
 		}
 
 		save_profile(panel) {
 			const data = {
 				name: this.state.profile,
-				profile_name: panel.find(".lfs-pname").val(),
-				market: panel.find(".lfs-market button.on").data("v"),
+				profile_name: (this.state.form || {}).pname || panel.find(".lfs-pname").val(),
+				market: (this.state.form || {}).market || "B2B",
 				locations: (this.state.chips.locations || []).map((label) => {
 					const parts = label.split(",").map((s) => s.trim()).filter(Boolean);
 					return parts.length > 1 ? { area: parts.slice(0, -1).join(", "), city: parts[parts.length - 1] } : { city: parts[0] };
@@ -346,7 +360,7 @@
 				frappe.xcall("reckon_sales_agent.api.preview_targeting",
 					{ profile: this.state.profile, target_count: s.target_count, per_query_limit: s.per_query_limit }).then((rows) => {
 					panel.find(".lfs-preview").html(rows.length
-						? `<div class="lfs-group-title">${__("{0} searches will run", [rows.length])}</div><div class="lfs-list">${rows.map((r) =>
+						? `<div class="lfs-group-title">${__("Searches to run: {0}", [rows.length])}</div><div class="lfs-list">${rows.map((r) =>
 							`<div class="lfs-row"><div class="main"><div>${e(r.query_text)}</div></div><span class="meta">${__("up to {0}", [r.max_results])}</span></div>`).join("")}</div>`
 						: `<div class="lfs-note warn">${__("Add keywords or segments in the previous step.")}</div>`);
 				});

@@ -14,15 +14,16 @@ RESEARCH_BATCH = 10
 EXPIRED_NAME = "Expired source record"
 
 
-def _enqueue_job(job_name: str) -> None:
+def _enqueue_job(discovery_job: str) -> None:
+    # Pass the job as ``discovery_job``: frappe.enqueue consumes ``job_name`` itself.
     frappe.enqueue(
         "reckon_sales_agent.discovery.runner.run_discovery_job",
         queue="long",
         timeout=3600,
-        job_id=f"sales_agent_discovery_{job_name}",
+        job_id=f"sales_agent_discovery_{discovery_job}",
         deduplicate=True,
         enqueue_after_commit=True,
-        job_name=job_name,
+        discovery_job=discovery_job,
     )
 
 
