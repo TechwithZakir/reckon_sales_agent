@@ -304,6 +304,18 @@ class BrowserConnectorTests(unittest.TestCase):
         with self.assertRaises(ConnectorNotPermitted):
             GoogleMapsBrowserConnector(enabled=True, terms_ack=False, playwright_factory=FakePlaywright(None)).validate_configuration()
 
+    def test_missing_browser_binary_gives_install_instructions(self):
+        def launch(headless=True):
+            raise RuntimeError("BrowserType.launch: Executable doesn't exist at /home/x/.cache/ms-playwright/...")
+
+        playwright = FakePlaywright(FakePage(self.PLACES))
+        playwright.chromium = SimpleNamespace(launch=launch)
+        connector = GoogleMapsBrowserConnector(enabled=True, terms_ack=True, playwright_factory=playwright,
+                                               sleep=lambda s: None)
+        with self.assertRaises(ConnectorNotPermitted) as ctx:
+            list(connector.discover(QUERY))
+        self.assertIn("./env/bin/playwright install chromium", str(ctx.exception))
+
     def test_opens_maps_home_and_types_the_search(self):
         page = FakePage(self.PLACES)
         connector = GoogleMapsBrowserConnector(enabled=True, terms_ack=True, max_results=1,

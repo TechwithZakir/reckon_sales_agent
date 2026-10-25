@@ -86,7 +86,7 @@ enrichment** → **scoring** → **CRM storage**.
 | `scrapingdog_google_maps` | Scrapingdog Google Maps API (JSON; Bangladesh city coordinates built in) | Scrapingdog key |
 | `scrapingbee_google_maps` | ScrapingBee Google API with `search_type=maps` (JSON; key sent in the Authorization header) | ScrapingBee key |
 | `apify_google_maps` | Apify actor `compass~crawler-google-places` (run-sync, dataset items) | Apify token |
-| `google_maps_browser_experimental` | **Experimental.** Headless Chromium (Playwright) scrolls the Maps results feed and opens each place | `pip install "reckon_sales_agent[browser]"` and `playwright install --with-deps chromium` on the bench server |
+| `google_maps_browser_experimental` | **Experimental.** Headless Chromium (Playwright) scrolls the Maps results feed and opens each place | In the bench folder: `./env/bin/pip install playwright`; as the bench user (no sudo) `./env/bin/playwright install chromium`; once as root `sudo ./env/bin/playwright install-deps chromium` |
 
 **Rules for every Maps source:**
 - **Off until enabled.** The vendor enables each source in *Sales Agent

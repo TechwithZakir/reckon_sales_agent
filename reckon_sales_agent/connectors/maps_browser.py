@@ -10,9 +10,10 @@ responsibility. Deliberately simple and honest:
 * a delay between place pages and a hard cap on places per search.
 
 Google changes the page often, so selectors live in one place below and a
-change shows up as empty results, not wrong data. Requires
-``pip install playwright`` and ``playwright install --with-deps chromium``
-on the bench server.
+change shows up as empty results, not wrong data. Requires, in the bench
+folder: ``./env/bin/pip install playwright``; as the bench user (no sudo, so
+the browser lands in that user's cache) ``./env/bin/playwright install
+chromium``; and once as root ``sudo ./env/bin/playwright install-deps chromium``.
 """
 
 from __future__ import annotations
@@ -127,8 +128,9 @@ class GoogleMapsBrowserConnector:
                 import playwright.sync_api  # noqa: F401
             except ImportError as exc:
                 raise ConnectorNotPermitted(
-                    "Playwright is not installed on the server (pip install playwright; "
-                    "playwright install --with-deps chromium).") from exc
+                    "Playwright is not installed on the server. In the bench folder run "
+                    "./env/bin/pip install playwright, then as the bench user "
+                    "./env/bin/playwright install chromium.") from exc
 
     def discover(self, query: DiscoveryQuery) -> Iterable[SourceRecord]:
         self.validate_configuration()
@@ -139,7 +141,16 @@ class GoogleMapsBrowserConnector:
 
             factory = sync_playwright
         with factory() as playwright:
-            browser = playwright.chromium.launch(headless=True)
+            try:
+                browser = playwright.chromium.launch(headless=True)
+            except Exception as exc:
+                if "Executable doesn't exist" in str(exc) or "playwright install" in str(exc):
+                    raise ConnectorNotPermitted(
+                        "Chromium is not installed for the bench user. As that user (no sudo) run: "
+                        "./env/bin/playwright install chromium ; and once as root: "
+                        "sudo ./env/bin/playwright install-deps chromium") from exc
+                raise ConnectorError(f"Headless browser failed to start: {str(exc).splitlines()[0][:200]}",
+                                     permanent=True, code="browser_start") from exc
             try:
                 page = browser.new_context(locale=self.language).new_page()
                 page.set_default_timeout(20_000)
