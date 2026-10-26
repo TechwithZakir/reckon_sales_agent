@@ -77,12 +77,35 @@ def build_members(campaign) -> int:
         filters["discovery_campaign"] = campaign.discovery_campaign
     added = 0
     settings = get_settings(campaign.company)
+    from reckon_sales_agent.agents.analytics import in_holdout
+
+    pilot = bool(campaign.get("pilot_mode"))
+    limit = (campaign.get("pilot_max_members") or 100) if pilot else None
+    treated = frappe.db.count("Sales Campaign Member", {"campaign": campaign.name,
+                                                        "status": ["not in", ["Holdout", "Ineligible", "Eligible"]]})
+    # A person approved a larger pilot (or the full launch): members waiting on the pilot limit now start.
+    for waiting in frappe.get_all("Sales Campaign Member", filters={"campaign": campaign.name, "status": "Eligible",
+                                                                    "eligibility_reason": ["like", "Pilot audience limit%"]},
+                                  pluck="name", order_by="creation asc", limit=5000):
+        if limit is not None and treated >= limit:
+            break
+        frappe.db.set_value("Sales Campaign Member", waiting, {"status": "Active", "next_action_on": nowdate(),
+                                                                "eligibility_reason": "Started after the pilot was scaled."})
+        treated += 1
     for name in frappe.get_all("Sales Prospect", filters=filters, pluck="name", limit=5000):
         key = f"{campaign.name}:{name}"
         if frappe.db.exists("Sales Campaign Member", {"idempotency_key": key}):
             continue
         prospect = frappe.get_doc("Sales Prospect", name)
         ok, reason = eligibility(prospect, campaign, settings)
+        status = "Active" if ok else "Ineligible"
+        if ok and pilot:
+            if in_holdout(key, campaign.get("holdout_percent") or 20):
+                status, reason = "Holdout", "Pilot hold-out: not contacted, used to measure the campaign's effect."
+            elif treated >= (campaign.get("pilot_max_members") or 100):
+                status, reason = "Eligible", "Pilot audience limit reached; waits until the pilot is scaled."
+            else:
+                treated += 1
         frappe.get_doc({
             "doctype": "Sales Campaign Member",
             "company": campaign.company,
@@ -91,7 +114,7 @@ def build_members(campaign) -> int:
             "crm_lead": prospect.crm_lead,
             "email": prospect.email if ok else None,
             "phone": prospect.phone if ok else None,
-            "status": "Active" if ok else "Ineligible",
+            "status": status,
             "eligibility_reason": reason,
             "next_action_on": campaign.start_date or nowdate(),
             "idempotency_key": key,
@@ -588,12 +611,18 @@ def handle_deal(doc, method=None) -> None:
     """``CRM Deal.after_insert``: a deal from a campaign lead converts its members."""
     if not doc.get("lead"):
         return
-    for name in frappe.get_all("Sales Campaign Member", filters={"crm_lead": doc.lead,
-                                                                  "status": ["in", ["Active", "Completed", "Stopped"]]},
+    for name in frappe.get_all("Sales Campaign Member", filters={"crm_lead": doc.lead, "converted_on": ["is", "not set"],
+                                                                  "status": ["in", ["Active", "Completed", "Stopped",
+                                                                                    "Holdout", "Eligible"]]},
                                pluck="name"):
         member = frappe.get_doc("Sales Campaign Member", name)
-        member.db_set({"status": "Converted", "last_event": "converted", "next_action_on": None})
-        _cancel_pending(name, "Converted to a deal.")
+        if member.status in ("Holdout", "Eligible"):
+            # Not contacted: the conversion still counts for measuring the pilot.
+            member.db_set({"converted_on": now_datetime(), "last_event": "converted"})
+        else:
+            member.db_set({"status": "Converted", "converted_on": now_datetime(), "last_event": "converted",
+                           "next_action_on": None})
+            _cancel_pending(name, "Converted to a deal.")
         _refresh_metrics(member.campaign)
     probability = frappe.db.get_value("Sales Prospect", {"crm_lead": doc.lead}, "deal_probability")
     if probability and not doc.get("probability"):

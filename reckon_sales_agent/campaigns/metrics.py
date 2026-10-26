@@ -52,7 +52,7 @@ def summarize(events: list[dict], members: list[dict], deals: list[dict]) -> dic
     status_counts: dict[str, int] = {}
     for member in members:
         status_counts[member.get("status") or "?"] = status_counts.get(member.get("status") or "?", 0) + 1
-    reached = sum(1 for m in members if m.get("status") not in ("Ineligible", "Eligible"))
+    reached = sum(1 for m in members if m.get("status") not in ("Ineligible", "Eligible", "Holdout"))
     pipeline = sum(float(d.get("deal_value") or 0) for d in deals)
     return {
         "members": len(members),

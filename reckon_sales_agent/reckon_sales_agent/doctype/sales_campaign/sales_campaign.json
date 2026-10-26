@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-26 07:00:00.000000",
+ "modified": "2026-10-26 09:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -29,6 +29,14 @@
   "daily_limit",
   "start_date",
   "end_date",
+  "pilot_section",
+  "pilot_mode",
+  "holdout_percent",
+  "pilot_max_members",
+  "pilot_col",
+  "pilot_verdict",
+  "pilot_summary",
+  "pilot_checked_on",
   "steps_section",
   "steps",
   "content_section",
@@ -139,6 +147,57 @@
    "fieldname": "end_date",
    "fieldtype": "Date",
    "label": "End Date"
+  },
+  {
+   "fieldname": "pilot_section",
+   "fieldtype": "Section Break",
+   "label": "Pilot",
+   "description": "Run a controlled pilot first: a hold-out group is never contacted, so you can measure whether the campaign itself creates deals before scaling it."
+  },
+  {
+   "fieldname": "pilot_mode",
+   "fieldtype": "Check",
+   "label": "Pilot With Hold-out Group",
+   "default": "0"
+  },
+  {
+   "fieldname": "holdout_percent",
+   "fieldtype": "Int",
+   "label": "Hold-out %",
+   "default": "20",
+   "depends_on": "pilot_mode",
+   "description": "Share of eligible members held out (max 50)."
+  },
+  {
+   "fieldname": "pilot_max_members",
+   "fieldtype": "Int",
+   "label": "Pilot Audience Limit",
+   "default": "100",
+   "depends_on": "pilot_mode",
+   "description": "Contacted members during the pilot; the rest wait."
+  },
+  {
+   "fieldname": "pilot_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "pilot_verdict",
+   "fieldtype": "Select",
+   "label": "Pilot Verdict",
+   "read_only": 1,
+   "options": "\ntoo_early\niterate\nscale\nstop"
+  },
+  {
+   "fieldname": "pilot_summary",
+   "fieldtype": "Small Text",
+   "label": "Pilot Result",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pilot_checked_on",
+   "fieldtype": "Datetime",
+   "label": "Measured On",
+   "read_only": 1
   },
   {
    "fieldname": "steps_section",

@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-20 09:00:00.000000",
+ "modified": "2026-10-26 09:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -30,6 +30,7 @@
   "next_action_on",
   "last_event",
   "stop_reason",
+  "converted_on",
   "idempotency_key",
   "unsubscribe_token"
  ],
@@ -86,7 +87,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "Eligible\nIneligible\nActive\nCompleted\nStopped\nConverted",
+   "options": "Eligible\nIneligible\nActive\nCompleted\nStopped\nConverted\nHoldout",
    "default": "Eligible",
    "in_list_view": 1
   },
@@ -119,6 +120,13 @@
    "fieldname": "stop_reason",
    "fieldtype": "Data",
    "label": "Stop Reason"
+  },
+  {
+   "fieldname": "converted_on",
+   "fieldtype": "Datetime",
+   "label": "Converted On",
+   "read_only": 1,
+   "description": "When a CRM deal was created for this member's lead (hold-out members too)."
   },
   {
    "fieldname": "idempotency_key",

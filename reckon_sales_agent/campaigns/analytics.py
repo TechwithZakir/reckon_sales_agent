@@ -50,8 +50,10 @@ def campaign_metrics(campaign_name: str) -> dict:
 
 def analyze_campaign(campaign) -> str:
     """Store metrics and (when AI is enabled) Claude's analysis as a Sales Campaign Insight."""
+    from reckon_sales_agent.agents.analytics_agent import metrics_tips
+
     metrics = campaign_metrics(campaign.name)
-    summary, recommendations, model = _rule_insight(metrics), [], None
+    summary, recommendations, model = _rule_insight(metrics), metrics_tips(metrics), None
     llm = get_llm(campaign.company)
     if llm and remaining(campaign.company, USAGE_AI) > 0:
         try:
@@ -103,7 +105,12 @@ def analyze_active_campaigns() -> None:
     """Weekly: refresh insights for active campaigns."""
     for name in frappe.get_all("Sales Campaign", filters={"status": ["in", ["Active", "Completed"]]}, pluck="name"):
         try:
-            analyze_campaign(frappe.get_doc("Sales Campaign", name))
+            campaign = frappe.get_doc("Sales Campaign", name)
+            analyze_campaign(campaign)
+            if campaign.get("pilot_mode"):
+                from reckon_sales_agent.agents.analytics_agent import pilot_report
+
+                pilot_report(campaign)
             frappe.db.commit()
         except Exception:
             frappe.db.rollback()

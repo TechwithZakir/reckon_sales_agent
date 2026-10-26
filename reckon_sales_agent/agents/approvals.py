@@ -36,7 +36,11 @@ def campaign_payload(campaign) -> dict:
         "steps": [list(step) for step in steps],
         "offer": _get(campaign, "offer") or "",
         "audience": {"discovery_campaign": _get(campaign, "discovery_campaign") or "",
-                     "minimum_fit_score": float(_get(campaign, "minimum_fit_score") or 0)},
+                     "minimum_fit_score": float(_get(campaign, "minimum_fit_score") or 0),
+                     # Pilot settings decide who is contacted; listed only for pilots so other fingerprints stay stable.
+                     **({"pilot": [int(_get(campaign, "holdout_percent") or 0),
+                                   int(_get(campaign, "pilot_max_members") or 0)]}
+                        if _get(campaign, "pilot_mode") else {})},
         "schedule": {"start_date": str(_get(campaign, "start_date") or ""),
                      "end_date": str(_get(campaign, "end_date") or ""),
                      "daily_limit": int(_get(campaign, "daily_limit") or 0)},

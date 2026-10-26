@@ -422,12 +422,28 @@ def analyze_campaign(campaign: str) -> str:
 
 
 @frappe.whitelist()
+def analytics_overview(days: int = 180) -> dict:
+    """Attribution funnels by segment, source and campaign, with optimisation advice."""
+    from reckon_sales_agent.agents.analytics_agent import overview
+
+    return overview(current_company(), max(7, min(int(days or 180), 730)))
+
+
+@frappe.whitelist()
+def pilot_report(campaign: str) -> dict:
+    from reckon_sales_agent.agents.analytics_agent import pilot_report as report
+
+    return report(get_tenant_doc("Sales Campaign", campaign, "write"))
+
+
+@frappe.whitelist()
 def campaign_analytics() -> list[dict]:
     """Metrics for the Company's campaigns, with the latest insight text."""
     from reckon_sales_agent.campaigns.analytics import campaign_metrics
 
     rows = []
-    for campaign in frappe.get_list("Sales Campaign", fields=["name", "campaign_name", "status", "latest_insight"],
+    for campaign in frappe.get_list("Sales Campaign", fields=["name", "campaign_name", "status", "latest_insight",
+                                                              "pilot_mode", "pilot_verdict", "pilot_summary"],
                                     order_by="modified desc", page_length=20):
         insight = frappe.db.get_value("Sales Campaign Insight", campaign.latest_insight,
                                       ["summary", "recommendations", "generated_on"], as_dict=True) \

@@ -225,6 +225,34 @@ human decisions.
   - Frappe's own bounce detection (a Communication marked *Bounced*) is
     handled the same way.
 
+**Analytics agent: attribution, pilots and optimisation.**
+
+- **Attribution.** Campaign Analytics starts with "From discovery to
+  revenue". Each prospect discovered in the period is followed through the
+  funnel: approved, in the CRM, contacted, replied, positive, meeting, deal,
+  won, and won value. The funnel is grouped by **segment** (the market
+  brief's targeting profile), **source** (Brave Places, LLM Context, Google
+  Maps provider…) and **campaign**, so you see which markets and sources
+  produce revenue, not just replies.
+- **Pilot mode.** A pilot campaign holds out a deterministic share of its
+  eligible audience (*Hold-out %*, at most 50) that is never contacted. It
+  also caps how many are contacted (*Pilot Audience Limit*); the rest wait.
+  - Deals created for hold-out members still count. The pilot result
+    compares conversion in the two groups (a two-proportion z-test) and gives
+    a verdict: *too early*, *iterate*, *ready to scale* or *stop*.
+  - The verdict only recommends. Pilot settings are part of the campaign's
+    approval, so scaling up (switching the pilot off or raising the limit)
+    is an audience expansion a person approves. After that approval, waiting
+    members start.
+- **Optimisation.** Weekly insights always include rule-based advice:
+  - channels with many sends and no positive replies;
+  - unsubscribe rates above 2% and bounce rates above 5%;
+  - a final step nobody replies to;
+  - the best and worst segment or source by deal rate.
+
+  Claude adds its analysis of the aggregated numbers when AI is on. Pilot
+  campaigns are measured weekly, or on demand with *Measure now*.
+
 **Search plans spread out.** Each run divides its leads over many keyword ×
 location pairs, at least 5 leads per search, with consecutive searches
 differing in both keyword and place. Each completed run moves the plan on,

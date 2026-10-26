@@ -7,7 +7,8 @@ from reckon_sales_agent.tenant import is_system_actor, protect_fields
 
 PROTECTED = ("status", "approved_by", "approved_on", "member_count", "sent_count", "reply_count",
              "unsubscribe_count", "bounce_count", "converted_count", "approval_fingerprint", "approved_audience_size",
-             "content_status", "content_issues", "content_checked_on")
+             "content_status", "content_issues", "content_checked_on", "pilot_verdict", "pilot_summary",
+             "pilot_checked_on")
 
 
 class SalesCampaign(Document):

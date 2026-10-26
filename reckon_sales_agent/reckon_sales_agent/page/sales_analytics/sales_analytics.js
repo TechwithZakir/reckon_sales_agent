@@ -15,11 +15,42 @@ frappe.pages["sales-analytics"].on_page_show = function (wrapper) {
 class CampaignAnalytics {
 	constructor(page) {
 		this.page = page;
+		this.$overview = $('<div style="padding: 12px 0 0"></div>').appendTo(page.main);
 		this.$body = $('<div style="padding: 12px 0"></div>').appendTo(page.main);
 	}
 
 	load() {
+		frappe.call("reckon_sales_agent.api.analytics_overview").then((r) => this.render_overview(r.message || {}));
 		frappe.call("reckon_sales_agent.api.campaign_analytics").then((r) => this.render(r.message || []));
+	}
+
+	// Attribution: which segments and sources turn into deals and revenue.
+	render_overview(o) {
+		const e = frappe.utils.escape_html;
+		const t = o.totals;
+		if (!t) {
+			this.$overview.html(`<div class="text-muted">${__("No prospects in the last {0} days yet.", [o.days || 180])}</div>`);
+			return;
+		}
+		const money = (v) => format_currency(v || 0);
+		const table = (title, rows) => `<div class="col-md-6"><h6>${e(title)}</h6>
+			<table class="table table-sm"><thead><tr><th></th><th>${__("Prospects")}</th><th>${__("Contacted")}</th>
+			<th>${__("Replied")}</th><th>${__("Deals")}</th><th>${__("Won")}</th><th>${__("Won value")}</th></tr></thead><tbody>
+			${rows.slice(0, 8).map((g) => `<tr><td>${e(__(g.label))}</td><td>${g.prospects}</td><td>${g.contacted}</td>
+				<td>${g.replied} <span class="text-muted small">(${g.reply_rate}%)</span></td>
+				<td>${g.deals} <span class="text-muted small">(${g.deal_rate}%)</span></td><td>${g.won}</td>
+				<td>${money(g.won_value)}</td></tr>`).join("")}</tbody></table></div>`;
+		const stats = [[__("Prospects"), t.prospects], [__("Approved"), t.approved], [__("In CRM"), t.in_crm],
+			[__("Contacted"), t.contacted], [__("Replied"), t.replied], [__("Meetings"), t.meetings],
+			[__("Deals"), t.deals], [__("Won"), t.won]];
+		this.$overview.html(`<div class="frappe-card" style="padding:16px; margin-bottom:12px">
+			<h5 style="margin:0 0 12px">${__("From discovery to revenue (last {0} days)", [o.days])}
+				<span class="text-muted small" style="margin-left:8px">${__("Won value")}: ${money(t.won_value)}</span></h5>
+			<div class="row">${stats.map(([k, v]) => `<div class="col-sm-3 col-xs-6" style="margin-bottom:8px">
+				<div class="text-muted small">${e(k)}</div><div style="font-size:18px;font-weight:600">${v}</div></div>`).join("")}</div>
+			<div class="row" style="margin-top:8px">${table(__("By segment"), o.by_segment || [])}${table(__("By source"), o.by_source || [])}</div>
+			<div class="small"><b>${__("Recommendations")}</b><ul style="margin:6px 0 0">${(o.recommendations || [])
+				.map((r) => `<li>${e(r)}</li>`).join("")}</ul></div></div>`);
 	}
 
 	render(rows) {
@@ -29,6 +60,7 @@ class CampaignAnalytics {
 			this.$body.html(`<div class="text-muted">${__("No campaigns yet.")}</div>`);
 			return;
 		}
+		const verdicts = { too_early: __("Too early"), iterate: __("Iterate"), scale: __("Ready to scale"), stop: __("Stop") };
 		this.$body.html(
 			rows
 				.map((c) => {
@@ -42,10 +74,14 @@ class CampaignAnalytics {
 						.map(([step, b]) => `<tr><td>${__("Step")} ${e(step)}</td><td>${e(String(b.outreach))}</td>
 							<td>${pct(b.reply_rate)}</td><td>${pct(b.positive_rate)}</td></tr>`)
 						.join("");
-					const insight = c.insight
+					const insight = (c.insight
 						? `<div class="small"><b>${__("AI insight")}</b> (${e(frappe.datetime.str_to_user(c.insight.generated_on))}):
 							${e(c.insight.summary || "")}<pre style="white-space:pre-wrap">${e(c.insight.recommendations || "")}</pre></div>`
-						: `<div class="small text-muted">${__("No analysis yet.")}</div>`;
+						: `<div class="small text-muted">${__("No analysis yet.")}</div>`)
+						+ (c.pilot_mode ? `<div class="small" style="margin-top:6px"><b>${__("Pilot")}</b>
+							<span class="indicator-pill ${c.pilot_verdict === "scale" ? "green" : c.pilot_verdict === "stop" ? "red" : "orange"}">
+							${e(verdicts[c.pilot_verdict] || __("Not measured"))}</span> ${e(c.pilot_summary || "")}
+							<button class="btn btn-xs btn-default pilot" data-name="${e(c.name)}" style="margin-left:6px">${__("Measure now")}</button></div>` : "");
 					return `<div class="frappe-card" style="padding:16px; margin-bottom:12px">
 						<div style="display:flex; justify-content:space-between; align-items:center">
 							<h5 style="margin:0"><a href="/app/sales-campaign/${encodeURIComponent(c.name)}">${e(c.campaign_name)}</a>
@@ -67,6 +103,11 @@ class CampaignAnalytics {
 				})
 				.join("")
 		);
+		this.$body.find("button.pilot").on("click", (ev) => {
+			frappe
+				.call({ method: "reckon_sales_agent.api.pilot_report", args: { campaign: ev.currentTarget.dataset.name }, freeze: true })
+				.then(() => this.load());
+		});
 		this.$body.find("button.analyze").on("click", (ev) => {
 			frappe
 				.call({ method: "reckon_sales_agent.api.analyze_campaign", args: { campaign: ev.currentTarget.dataset.name }, freeze: true })
