@@ -108,7 +108,7 @@ def _sms(message) -> SendResult:
 def _whatsapp(message) -> SendResult:
     if "frappe_whatsapp" not in frappe.get_installed_apps():
         raise ChannelUnavailable("Install the frappe_whatsapp app to send WhatsApp messages.")
-    doc = frappe.get_doc({
+    values = {
         "doctype": "WhatsApp Message",
         "type": "Outgoing",
         "to": message.recipient.lstrip("+"),
@@ -116,7 +116,16 @@ def _whatsapp(message) -> SendResult:
         "content_type": "text",
         "reference_doctype": "Sales Outreach Message",
         "reference_name": message.name,
-    }).insert(ignore_permissions=True)
+    }
+    if message.get("whatsapp_template"):
+        # Outside the 24-hour window only an approved template may be sent.
+        meta = frappe.get_meta("WhatsApp Message")
+        if not (meta.has_field("message_type") and meta.has_field("template")):
+            raise ChannelUnavailable("This frappe_whatsapp version cannot send templates.")
+        values.update({"message_type": "Template", "template": message.whatsapp_template})
+        if meta.has_field("body_param") and message.get("whatsapp_params"):
+            values["body_param"] = message.whatsapp_params
+    doc = frappe.get_doc(values).insert(ignore_permissions=True)
     return SendResult(doc.get("message_id") or doc.name)
 
 

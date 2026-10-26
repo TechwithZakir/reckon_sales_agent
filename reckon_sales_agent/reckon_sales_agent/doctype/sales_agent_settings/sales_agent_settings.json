@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-20 09:00:00.000000",
+ "modified": "2026-10-26 08:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -45,6 +45,7 @@
   "ai_scoring_section",
   "ai_score_weight",
   "classify_replies_with_ai",
+  "auto_answer_questions",
   "ai_scoring_col",
   "create_crm_tasks",
   "task_due_days",
@@ -230,6 +231,13 @@
    "fieldtype": "Check",
    "label": "Classify Replies with AI",
    "default": "1"
+  },
+  {
+   "fieldname": "auto_answer_questions",
+   "fieldtype": "Check",
+   "label": "Answer Routine Questions Automatically",
+   "default": "0",
+   "description": "The Engagement agent answers questions that your approved Knowledge Library covers, without waiting for a person. Pricing exceptions, contracts, complaints and legal matters always go to a person. Off: answers wait as drafts for approval."
   },
   {
    "fieldname": "ai_scoring_col",

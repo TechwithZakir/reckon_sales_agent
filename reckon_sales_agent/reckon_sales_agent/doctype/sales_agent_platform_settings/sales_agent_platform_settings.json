@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-26 03:00:00.000000",
+ "modified": "2026-10-26 08:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -79,6 +79,8 @@
   "fetch_timeout",
   "max_page_kb",
   "max_pages_per_site",
+  "email_events_section",
+  "email_webhook_secret",
   "limits_section",
   "monthly_discovery_limit",
   "monthly_research_limit",
@@ -454,6 +456,18 @@
    "fieldtype": "Int",
    "label": "Max Pages per Website",
    "default": "4"
+  },
+  {
+   "fieldname": "email_events_section",
+   "fieldtype": "Section Break",
+   "label": "Email Delivery Events",
+   "collapsible": 1,
+   "description": "POST bounces and complaints to /api/method/reckon_sales_agent.api.email_events with header X-Reckon-Signature: HMAC-SHA256 of the raw body using this secret."
+  },
+  {
+   "fieldname": "email_webhook_secret",
+   "fieldtype": "Password",
+   "label": "Webhook Signing Secret"
   },
   {
    "fieldname": "limits_section",

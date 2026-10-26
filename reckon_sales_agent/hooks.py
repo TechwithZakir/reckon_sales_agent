@@ -127,6 +127,7 @@ doc_events = {
 for _doctype in _NAMED_BY_FIELD:
     doc_events[_doctype]["autoname"] = f"{_CRM}.set_tenant_name"
 doc_events["Communication"]["after_insert"] = "reckon_sales_agent.campaigns.engine.handle_communication"
+doc_events["Communication"]["on_update"] = "reckon_sales_agent.agents.engagement_agent.handle_communication_status"
 doc_events["CRM Deal"]["after_insert"] = "reckon_sales_agent.campaigns.engine.handle_deal"
 # Inbound WhatsApp replies (only fires when the frappe_whatsapp app is installed).
 doc_events["WhatsApp Message"] = {"after_insert": "reckon_sales_agent.campaigns.engine.handle_whatsapp"}

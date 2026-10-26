@@ -188,6 +188,43 @@ not support. A campaign with issues can be approved only by a person who
 confirms they have reviewed them: uncertain claims and commercial terms are
 human decisions.
 
+**Engagement agent: replies, answers and delivery events.**
+
+- **Duplicate events are ignored.** Each inbound reply is handled once,
+  keyed by the provider's message id.
+- **Reply intents.** Replies are classified as *interested*, *meeting
+  request*, *question*, *objection*, *not now*, *not interested*, *wrong
+  person*, *complaint*, *unsubscribe*, *out of office*, *irrelevant* or
+  *other*, in English and Bangla.
+- **Opt-outs and complaints found by the rules are final.** The AI cannot
+  overturn them. A complaint suppresses the sender and creates a
+  high-priority task for a person.
+- **Irrelevant replies leave the sequence on schedule.**
+- **Questions are answered only from the approved Knowledge Library.**
+  Pricing exceptions, contract terms, complaints, legal matters and anything
+  the library does not cover go to a person as a task. Each answer is
+  content-checked. It goes out automatically only when *Answer Routine
+  Questions Automatically* is on (off by default) and the channel allows it;
+  otherwise it waits as a draft for approval. It is sent through the normal
+  send path, which re-checks consent, suppression, the kill switch and
+  limits.
+- **WhatsApp service window.** Free-form WhatsApp messages go out only
+  within 24 hours of the customer's last message. Outside that window a step
+  must name an approved template (*WhatsApp Template* and *Template
+  Parameters*, sent through frappe_whatsapp); otherwise that step is skipped
+  with the reason recorded.
+- **Bounces and complaints.** Email providers POST them to
+  `/api/method/reckon_sales_agent.api.email_events`, signed with an
+  `X-Reckon-Signature` header: an HMAC-SHA256 of the raw body using
+  *Webhook Signing Secret*. The body is `{"events": [{"id", "type":
+  bounce|complaint|delivered, "bounce_type": hard|soft, "email",
+  "message_id"}]}`. Unsigned requests are refused and repeated event ids are
+  ignored.
+  - A hard bounce or a complaint suppresses the address and stops the
+    sequence. A soft bounce is only recorded.
+  - Frappe's own bounce detection (a Communication marked *Bounced*) is
+    handled the same way.
+
 **Search plans spread out.** Each run divides its leads over many keyword ×
 location pairs, at least 5 leads per search, with consecutive searches
 differing in both keyword and place. Each completed run moves the plan on,

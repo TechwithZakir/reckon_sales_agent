@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-26 06:00:00.000000",
+ "modified": "2026-10-26 08:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -76,6 +76,7 @@
   "consent_section",
   "sms_consent",
   "whatsapp_consent",
+  "whatsapp_last_inbound",
   "consent_col",
   "consent_source",
   "consent_date"
@@ -452,6 +453,13 @@
    "fieldtype": "Check",
    "label": "WhatsApp Opt-in",
    "default": "0"
+  },
+  {
+   "fieldname": "whatsapp_last_inbound",
+   "fieldtype": "Datetime",
+   "label": "Last WhatsApp From Them",
+   "read_only": 1,
+   "description": "Free-form WhatsApp is allowed for 24 hours after this; otherwise only templates."
   },
   {
    "fieldname": "consent_col",

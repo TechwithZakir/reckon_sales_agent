@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-20 09:00:00.000000",
+ "modified": "2026-10-26 08:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -21,7 +21,9 @@
   "delay_days",
   "subject_template",
   "body_template",
-  "use_ai_personalisation"
+  "use_ai_personalisation",
+  "whatsapp_template",
+  "whatsapp_template_params"
  ],
  "fields": [
   {
@@ -66,6 +68,20 @@
    "fieldtype": "Check",
    "label": "Personalise with AI",
    "default": "0"
+  },
+  {
+   "fieldname": "whatsapp_template",
+   "fieldtype": "Data",
+   "label": "WhatsApp Template",
+   "description": "Name of an approved WhatsApp template (frappe_whatsapp). Needed to message someone who has not written in the last 24 hours.",
+   "depends_on": "eval:doc.channel=='WhatsApp'"
+  },
+  {
+   "fieldname": "whatsapp_template_params",
+   "fieldtype": "Data",
+   "label": "Template Parameters",
+   "description": "Placeholders for {{1}}, {{2}}... in order, e.g. business_name, sender_name",
+   "depends_on": "eval:doc.channel=='WhatsApp'"
   }
  ],
  "permissions": []

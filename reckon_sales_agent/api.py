@@ -221,6 +221,35 @@ class ContentNeedsReview(frappe.ValidationError):
     pass
 
 
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+def email_events() -> dict:
+    """Email provider webhook (bounces, complaints, deliveries). Signed with the platform's shared secret."""
+    from reckon_sales_agent.agents.engagement import normalize_email_events, verify_signature
+    from reckon_sales_agent.agents.engagement_agent import apply_email_event
+    from reckon_sales_agent.usage import platform_settings
+
+    body = frappe.request.get_data() or b""
+    secret = platform_settings().get_password("email_webhook_secret", raise_exception=False)
+    if not verify_signature(secret, body, frappe.get_request_header("X-Reckon-Signature")):
+        frappe.local.response.http_status_code = 401
+        return {"ok": False, "error": "invalid signature"}
+    try:
+        payload = json.loads(body or b"{}")
+    except ValueError:
+        frappe.local.response.http_status_code = 400
+        return {"ok": False, "error": "invalid JSON"}
+    handled = 0
+    frappe.set_user("Administrator")  # verified provider event: act as the system
+    for event in normalize_email_events(payload)[:500]:
+        try:
+            handled += 1 if apply_email_event(event) else 0
+        except Exception:
+            frappe.db.rollback()
+            frappe.log_error(title="Sales Agent email event failed")
+    frappe.db.commit()
+    return {"ok": True, "handled": handled}
+
+
 @frappe.whitelist()
 def write_campaign_with_ai(campaign: str, steps: int = 3, channels: str | None = None) -> int:
     from reckon_sales_agent.agents.content_agent import write_sequence

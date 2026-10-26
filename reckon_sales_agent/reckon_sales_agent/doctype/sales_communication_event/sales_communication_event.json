@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-26 05:00:00.000000",
+ "modified": "2026-10-26 08:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -44,7 +44,7 @@
    "fieldname": "event_type",
    "fieldtype": "Select",
    "label": "Event Type",
-   "options": "drafted\napproved\nsent\ndry_run\ndelivered\nbounced\nreplied\npositive_reply\nmeeting_requested\nout_of_office\nunsubscribed\ncomplained\nfailed\nstopped\ntask_created\nauto_approved\napproval_invalidated",
+   "options": "drafted\napproved\nsent\ndry_run\ndelivered\nbounced\nreplied\npositive_reply\nmeeting_requested\nout_of_office\nunsubscribed\ncomplained\nfailed\nstopped\ntask_created\nauto_approved\napproval_invalidated\nreceived",
    "in_list_view": 1
   },
   {

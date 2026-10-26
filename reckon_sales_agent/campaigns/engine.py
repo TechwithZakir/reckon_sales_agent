@@ -8,6 +8,7 @@ While outbound sending is off, approved messages are logged as dry runs.
 
 from __future__ import annotations
 
+import json
 from html import escape as html_escape
 
 import frappe
@@ -187,6 +188,10 @@ def draft_message(campaign, member, step, key: str) -> str:
         "subject": subject,
         "body": body,
         "ai_generated": ai_generated,
+        "whatsapp_template": step.get("whatsapp_template") if channel == "WhatsApp" else None,
+        "whatsapp_params": json.dumps([str(values.get(p.strip()) or "") for p in
+                                       (step.get("whatsapp_template_params") or "").split(",") if p.strip()])
+        if channel == "WhatsApp" and step.get("whatsapp_template") else None,
         "status": "Draft" if approval else "Approved",
         "idempotency_key": key,
     }).insert(ignore_permissions=True)
@@ -255,9 +260,10 @@ def send_message(message) -> bool:
 
     if settings.kill_switch:
         return False  # paused: leave approved messages waiting
-    if campaign.status != "Active" or member.status != "Active":
+    is_reply = bool(message.get("is_reply"))  # answering someone who wrote to us, not a sequence step
+    if not is_reply and (campaign.status != "Active" or member.status != "Active"):
         return _cancel(message, "Campaign or member is no longer active.")
-    if campaign.end_date and getdate(campaign.end_date) < getdate(nowdate()):
+    if not is_reply and campaign.end_date and getdate(campaign.end_date) < getdate(nowdate()):
         return _cancel(message, "Campaign ended.")
     channel = message.get("channel") or "Email"
     if prospect.do_not_contact or is_suppressed(
@@ -284,12 +290,22 @@ def send_message(message) -> bool:
     )
     from reckon_sales_agent.agents.policy import ALLOW, NEEDS_APPROVAL, decide
 
+    if channel == "WhatsApp" and not message.get("whatsapp_template"):
+        from reckon_sales_agent.agents.engagement import within_service_window
+
+        if not within_service_window(prospect.get("whatsapp_last_inbound"), now_datetime()):
+            # WhatsApp only allows free-form business messages within 24 hours of the customer's last message.
+            _cancel(message, "Outside the 24-hour WhatsApp window: give this step an approved WhatsApp template.")
+            if not is_reply:
+                _advance(campaign, member)
+            return False
     if campaign.approval_fingerprint and not approval_current(campaign.approval_fingerprint, campaign_payload(campaign)):
         _require_reapproval(campaign, "The campaign changed after approval.")
         return False
     message_current = approval_current(message.get("approval_fingerprint"), message_payload(message))
     decision = decide("send_approved_message", {
-        "approved": bool(message.approved_by) or not settings.human_approval_required,
+        "approved": bool(message.approved_by) or bool(message.get("auto_approved_by_policy"))
+        or not settings.human_approval_required,
         "approval_current": message_current,
     })
     if decision.outcome == NEEDS_APPROVAL and message.approved_by and not message_current:
@@ -329,6 +345,8 @@ def send_message(message) -> bool:
 
 
 def _advance(campaign, member) -> None:
+    if member.status != "Active":
+        return  # answers to replies do not move a stopped sequence
     steps = sorted(campaign.steps, key=lambda s: s.step_no)
     position = (member.sequence_position or 0) + 1
     if position >= len(steps):
@@ -398,6 +416,9 @@ def handle_whatsapp(doc, method=None) -> None:
     phone = normalize_phone(doc.get("from"))
     if not phone:
         return
+    from reckon_sales_agent.agents.engagement_agent import record_whatsapp_inbound
+
+    record_whatsapp_inbound(phone)
     member = frappe.db.get_value("Sales Campaign Member", {"phone": ["in", [phone, phone.lstrip("+")]],
                                                            "status": "Active"}, "name", order_by="modified desc")
     if not member:
@@ -413,6 +434,9 @@ def receive_reply(message_name: str, text: str, source_key: str, channel: str) -
     from reckon_sales_agent.campaigns.replies import actions_for, classify_rules
 
     message = frappe.get_doc("Sales Outreach Message", message_name)
+    if frappe.db.exists("Sales Communication Event", {"idempotency_key": f"received:{source_key}"}):
+        return  # the same inbound message delivered twice: handled already
+    record_event(message, "received", f"received:{source_key}")
     member = frappe.get_doc("Sales Campaign Member", message.member)
     rule_class = classify_rules(text)
     action = actions_for(rule_class)
@@ -420,11 +444,14 @@ def receive_reply(message_name: str, text: str, source_key: str, channel: str) -
         member.db_set({"status": "Stopped", "stop_reason": "replied", "last_event": "replied",
                        "reply_classification": rule_class, "next_action_on": None})
         _cancel_pending(member.name, "Recipient replied.")
-    else:
+    elif action.get("reschedule_days"):
         member.db_set({"reply_classification": rule_class, "last_event": rule_class,
-                       "next_action_on": add_days(nowdate(), action.get("reschedule_days") or 5)})
+                       "next_action_on": add_days(nowdate(), action["reschedule_days"])})
+    else:
+        member.db_set({"reply_classification": rule_class, "last_event": rule_class})
     if action["suppress"]:
-        _suppress_member(message.company, member, channel, f"reply {source_key}")
+        _suppress_member(message.company, member, channel, f"reply {source_key}",
+                         "Complaint" if rule_class == "complaint" else "Unsubscribed")
     frappe.enqueue(
         "reckon_sales_agent.campaigns.engine.classify_and_follow_up",
         queue="short",
@@ -467,18 +494,34 @@ def classify_and_follow_up(message_name: str, text: str, source_key: str, rule_c
     action = replies.actions_for(final)
     member.db_set("reply_classification", final)
     if action["suppress"]:
-        _suppress_member(message.company, member, message.get("channel") or "Email", f"reply {source_key}")
+        _suppress_member(message.company, member, message.get("channel") or "Email", f"reply {source_key}",
+                         "Complaint" if final == "complaint" else "Unsubscribed")
     if action["stop"] and member.status == "Active":
         member.db_set({"status": "Stopped", "stop_reason": "replied", "next_action_on": None})
         _cancel_pending(member.name, "Recipient replied.")
     record_event(message, action["event"], f"{action['event']}:{source_key}", detail=summary or final)
     _note_on_lead(message, final, summary or replies.strip_quoted(text)[:500])
+    task_title = f"{final.replace('_', ' ').title()} reply"
+    if final == "question":
+        from reckon_sales_agent.agents.engagement import DRAFT, ESCALATE, SEND
+        from reckon_sales_agent.agents.engagement_agent import answer_question
+
+        route, why = answer_question(message, text, source_key)
+        task_title = {SEND: "Question answered automatically", DRAFT: "Review the suggested answer",
+                      ESCALATE: "Question needs your answer"}[route]
+        next_step = f"{why} {next_step}".strip()
+        if route == SEND:
+            action = {**action, "task": ("Medium", 1)}
+    elif final == "complaint":
+        task_title = "Complaint: handle personally"
+        log_activity(message.company, "reply_complaint", member, summary or "complaint", actor_type="agent",
+                     agent="Engagement", policy_outcome="needs a person (handle_complaint)")
     if action["task"] and settings.create_crm_tasks:
         priority, days = action["task"]
         try:
             task = create_task(
                 message.prospect,
-                f"{final.replace('_', ' ').title()} reply: {frappe.db.get_value('Sales Prospect', message.prospect, 'business_name')}",
+                f"{task_title}: {frappe.db.get_value('Sales Prospect', message.prospect, 'business_name')}",
                 f"{summary}\n\nSuggested next step: {next_step or 'follow up personally'}",
                 frappe._dict({**settings.as_dict(), "task_due_days": days}),
                 priority=priority,
@@ -495,11 +538,11 @@ def classify_and_follow_up(message_name: str, text: str, source_key: str, rule_c
     frappe.db.commit()
 
 
-def _suppress_member(company: str, member, channel: str, source: str) -> None:
+def _suppress_member(company: str, member, channel: str, source: str, reason: str = "Unsubscribed") -> None:
     if member.email:
-        suppress(company, "Email", member.email, "Unsubscribed", source)
+        suppress(company, "Email", member.email, reason, source)
     if member.phone and channel in ("SMS", "WhatsApp"):
-        suppress(company, "Phone", member.phone, "Unsubscribed", source)
+        suppress(company, "Phone", member.phone, reason, source)
 
 
 def _note_on_lead(message, classification: str, text: str) -> None:
