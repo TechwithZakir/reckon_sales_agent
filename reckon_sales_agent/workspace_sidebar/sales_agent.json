@@ -9,7 +9,7 @@
  "items": [
   {
    "type": "Link",
-   "label": "Home",
+   "label": "Agent Studio",
    "link_to": "sales-agent",
    "link_type": "Page",
    "icon": "house",

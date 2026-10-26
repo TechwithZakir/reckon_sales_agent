@@ -138,7 +138,8 @@ def create_task(prospect_name: str, title: str, description: str, settings, prio
     lead = frappe.db.get_value("Sales Prospect", prospect_name, "crm_lead") or _sync_approved(prospect_name)
     if not lead:
         return _todo(prospect_name, title, description, settings, priority)
-    owner = frappe.db.get_value("CRM Lead", lead, "lead_owner")
+    # Live test: a lead without an owner left the task unassigned; whoever found the prospect takes it.
+    owner = frappe.db.get_value("CRM Lead", lead, "lead_owner") or _finder(prospect_name)
     task = frappe.get_doc({
         "doctype": "CRM Task",
         "title": title[:140],
@@ -165,16 +166,21 @@ def _sync_approved(prospect_name: str) -> str | None:
         return None
 
 
+def _finder(prospect_name: str) -> str:
+    owner = frappe.db.get_value("Sales Prospect", prospect_name, "owner")
+    return owner if owner and owner != "Guest" else "Administrator"
+
+
 def _todo(prospect_name: str, title: str, description: str, settings, priority: str) -> SendResult:
     """A ToDo on the prospect for whoever found it, when there is no CRM lead to hang a task on."""
-    company, owner = frappe.db.get_value("Sales Prospect", prospect_name, ["company", "owner"])
+    company = frappe.db.get_value("Sales Prospect", prospect_name, "company")
     todo = frappe.get_doc({
         "doctype": "ToDo",
         "description": f"<b>{html.escape(title[:140])}</b><br>" + html.escape(description or "").replace("\n", "<br>"),
         "status": "Open",
         "priority": priority if priority in ("Low", "Medium", "High") else "Medium",
         "date": add_days(nowdate(), int(settings.task_due_days or 1)),
-        "allocated_to": owner if owner and owner != "Guest" else "Administrator",
+        "allocated_to": _finder(prospect_name),
         "reference_type": "Sales Prospect",
         "reference_name": prospect_name,
         "rsa_company": company,

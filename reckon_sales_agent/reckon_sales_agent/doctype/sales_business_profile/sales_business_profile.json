@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-26 03:00:00.000000",
- "modified": "2026-10-26 07:00:00.000000",
+ "modified": "2026-10-26 18:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -18,6 +18,8 @@
  "field_order": [
   "company",
   "business_name",
+  "website",
+  "onboarding_status",
   "what_we_sell",
   "offer_section",
   "products",
@@ -62,6 +64,19 @@
    "label": "Business Name",
    "reqd": 1,
    "in_list_view": 1
+  },
+  {
+   "fieldname": "website",
+   "fieldtype": "Data",
+   "label": "Website",
+   "options": "URL"
+  },
+  {
+   "fieldname": "onboarding_status",
+   "fieldtype": "Select",
+   "label": "Website reading",
+   "options": "\nReading website\nDone\nFailed",
+   "read_only": 1
   },
   {
    "fieldname": "what_we_sell",

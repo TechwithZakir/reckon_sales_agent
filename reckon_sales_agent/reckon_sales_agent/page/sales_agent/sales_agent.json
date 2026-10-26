@@ -2,7 +2,7 @@
  "doctype": "Page",
  "name": "sales-agent",
  "page_name": "sales-agent",
- "title": "Sales Agent",
+ "title": "Agent Studio",
  "icon": "users",
  "module": "Reckon Sales Agent",
  "standard": "Yes",
@@ -24,7 +24,7 @@
   }
  ],
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-19 12:00:00.000000",
+ "modified": "2026-10-26 18:00:00.000000",
  "owner": "Administrator",
  "modified_by": "Administrator"
 }

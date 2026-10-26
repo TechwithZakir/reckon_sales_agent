@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-26 08:00:00.000000",
+ "modified": "2026-10-26 18:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -42,6 +42,15 @@
   "auto_approve_require_contact",
   "auto_approve_daily_cap",
   "auto_sync_to_crm",
+  "agent_autopilot_section",
+  "autopilot_enabled",
+  "autopilot_auto_segments",
+  "autopilot_weekly_leads",
+  "autopilot_campaign_min_prospects",
+  "agent_autopilot_col",
+  "autopilot_consent_by",
+  "autopilot_last_run",
+  "autopilot_summary",
   "ai_scoring_section",
   "ai_score_weight",
   "classify_replies_with_ai",
@@ -213,6 +222,59 @@
    "fieldtype": "Check",
    "label": "Create CRM Leads for Auto-Approved",
    "default": "1"
+  },
+  {
+   "fieldname": "agent_autopilot_section",
+   "fieldtype": "Section Break",
+   "label": "Agent Autopilot"
+  },
+  {
+   "fieldname": "autopilot_enabled",
+   "fieldtype": "Check",
+   "label": "Autopilot",
+   "default": "0",
+   "description": "Agents research the market, find and score leads, and draft pilot campaigns on their own. Launching a campaign and sending messages still need a person."
+  },
+  {
+   "fieldname": "autopilot_auto_segments",
+   "fieldtype": "Check",
+   "label": "Choose market segments automatically",
+   "default": "1",
+   "description": "Keep the best-priority segments from each market brief."
+  },
+  {
+   "fieldname": "autopilot_weekly_leads",
+   "fieldtype": "Int",
+   "label": "Leads to find per week",
+   "default": "50"
+  },
+  {
+   "fieldname": "autopilot_campaign_min_prospects",
+   "fieldtype": "Int",
+   "label": "Approved leads before a campaign",
+   "default": "5"
+  },
+  {
+   "fieldname": "agent_autopilot_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "autopilot_consent_by",
+   "fieldtype": "Data",
+   "label": "Turned on by",
+   "read_only": 1
+  },
+  {
+   "fieldname": "autopilot_last_run",
+   "fieldtype": "Datetime",
+   "label": "Last run",
+   "read_only": 1
+  },
+  {
+   "fieldname": "autopilot_summary",
+   "fieldtype": "Small Text",
+   "label": "Last run summary",
+   "read_only": 1
   },
   {
    "fieldname": "ai_scoring_section",
