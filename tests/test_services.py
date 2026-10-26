@@ -53,9 +53,29 @@ def resolver_for(mapping):
 class PlannerTests(unittest.TestCase):
     def test_crosses_keywords_and_locations_within_budget(self):
         plan = plan_queries(None, "pharmacy\nsupershop", "Dhaka\nChattogram", 50, 20, 100)
+        # Every pair is covered, and consecutive searches differ in both keyword and place.
         self.assertEqual([p.query_text for p in plan],
-                         ["pharmacy in Dhaka", "supershop in Dhaka", "pharmacy in Chattogram"])
+                         ["pharmacy in Dhaka", "supershop in Chattogram", "pharmacy in Chattogram", "supershop in Dhaka"])
         self.assertEqual(sum(p.max_results for p in plan), 50)
+
+    def test_small_runs_spread_over_many_pairs_and_continue_next_time(self):
+        from reckon_sales_agent.discovery.planner import spread_plan
+
+        terms = ["medicine wholesaler", "pharmaceutical distributor", "pharma depot", "ঔষধ পাইকারি"]
+        places = ["Mitford, Dhaka", "Tejgaon, Dhaka", "Mirpur Road, Dhaka"]
+        first, cursor = spread_plan(terms, places, 20, 20, 100)
+        self.assertEqual(len(first), 4)  # 20 leads over four searches of 5, not one search of 20
+        self.assertEqual({p.max_results for p in first}, {5})
+        self.assertEqual(len({p.keyword for p in first}), 4)
+        second, _ = spread_plan(terms, places, 20, 20, 100, start=cursor)
+        self.assertFalse({p.query_text for p in first} & {p.query_text for p in second})
+        seen, start = set(), 0
+        for _run in range(3):  # 12 pairs, 4 per run: three runs search every pair once
+            plan, start = spread_plan(terms, places, 20, 20, 100, start=start)
+            seen |= {p.query_text for p in plan}
+        self.assertEqual(len(seen), 12)
+        self.assertEqual(start, 0)
+        self.assertEqual(spread_plan(terms, places, 0, 20, 100)[0], [])
 
     def test_job_maximum_caps_the_target(self):
         plan = plan_queries(None, "a\nb\nc", "", 500, 60, 100)

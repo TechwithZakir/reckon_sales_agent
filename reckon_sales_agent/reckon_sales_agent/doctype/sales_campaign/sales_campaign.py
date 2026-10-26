@@ -2,10 +2,11 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
+from reckon_sales_agent.agents.approvals import approval_current, campaign_payload
 from reckon_sales_agent.tenant import is_system_actor, protect_fields
 
 PROTECTED = ("status", "approved_by", "approved_on", "member_count", "sent_count", "reply_count",
-             "unsubscribe_count", "bounce_count", "converted_count")
+             "unsubscribe_count", "bounce_count", "converted_count", "approval_fingerprint", "approved_audience_size")
 
 
 class SalesCampaign(Document):
@@ -22,11 +23,16 @@ class SalesCampaign(Document):
                 frappe.throw(_("Delays cannot be negative."))
         if self.end_date and self.start_date and self.end_date < self.start_date:
             frappe.throw(_("End date is before start date."))
-        if steps_changed and self.status in ("Active", "Approved") and not is_system_actor():
-            # Edited messages need a fresh approval before anything else is sent.
+        changed = (not approval_current(self.approval_fingerprint, campaign_payload(self)) if self.approval_fingerprint
+                   else steps_changed)
+        if changed and self.status in ("Active", "Approved") and not is_system_actor():
+            # Approval covered exact content, channels, audience and schedule: any change needs a new one.
             self.status = "Pending Approval"
             self.approved_by = None
             self.approved_on = None
+            self.approval_fingerprint = None
+            frappe.msgprint(_("The campaign changed after approval, so it needs approval again before it sends."),
+                            indicator="orange", alert=True)
 
     def _steps_signature(self):
         return [(r.step_no, r.delay_days, r.subject_template, r.body_template, r.use_ai_personalisation)

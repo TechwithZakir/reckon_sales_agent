@@ -200,9 +200,14 @@ def approve_campaign(campaign: str) -> int:
     if doc.status not in ("Pending Approval", "Paused", "Approved"):
         frappe.throw(_("Submit the campaign for approval first."))
     assert_entitled(doc.company)
-    doc.db_set({"status": "Active", "approved_by": frappe.session.user, "approved_on": now_datetime()})
+    from reckon_sales_agent.agents.approvals import campaign_payload, fingerprint
+
+    doc.db_set({"status": "Active", "approved_by": frappe.session.user, "approved_on": now_datetime(),
+                "approval_fingerprint": fingerprint(campaign_payload(doc)), "approved_audience_size": 0})
     added = build_members(doc)
-    log_activity(doc.company, "campaign_approved", doc, f"{added} members added")
+    doc.db_set("approved_audience_size", frappe.db.count("Sales Campaign Member", {"campaign": doc.name}))
+    log_activity(doc.company, "campaign_approved", doc, f"{added} members added", agent="Governance",
+                 policy_outcome="approved by a person")
     return added
 
 

@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-26 11:00:00.000000",
+ "modified": "2026-10-26 05:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -40,6 +40,8 @@
   "last_run_on",
   "plan_section",
   "planned_queries",
+  "plan_cursor",
+  "plan_cursor_next",
   "results_section",
   "prospects_found",
   "duplicates_found",
@@ -195,6 +197,21 @@
    "fieldtype": "Table",
    "label": "Planned Queries",
    "options": "Sales Planned Query"
+  },
+  {
+   "fieldname": "plan_cursor",
+   "fieldtype": "Int",
+   "label": "Next Search in Plan",
+   "read_only": 1,
+   "hidden": 1,
+   "description": "Where the next run continues in the keyword x location plan."
+  },
+  {
+   "fieldname": "plan_cursor_next",
+   "fieldtype": "Int",
+   "label": "Next Start After This Run",
+   "read_only": 1,
+   "hidden": 1
   },
   {
    "fieldname": "results_section",

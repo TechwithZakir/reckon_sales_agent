@@ -9,7 +9,7 @@ user applies; nothing it proposes is searched without being saved first.
 
 from __future__ import annotations
 
-from reckon_sales_agent.discovery.planner import MAX_QUERIES, PlannedQuery, split_lines
+from reckon_sales_agent.discovery.planner import PlannedQuery, split_lines, spread_plan
 
 AI_PLAN_SCHEMA = {
     "type": "object",
@@ -56,20 +56,16 @@ def search_terms(profile: dict) -> list[str]:
     return unique
 
 
-def plan_from_profile(profile: dict, target_count: int, per_query_limit: int, max_results_per_job: int) -> list[PlannedQuery]:
-    terms = search_terms(profile)
-    places = location_labels(profile.get("locations")) or [""]
-    budget = max(0, min(int(target_count or 0), int(max_results_per_job or 0)))
-    per_query = max(1, min(int(per_query_limit or 1), 60))
-    plan: list[PlannedQuery] = []
-    for place in places:
-        for term in terms:
-            if len(plan) >= MAX_QUERIES or budget <= 0:
-                return plan
-            size = min(per_query, budget)
-            plan.append(PlannedQuery(term, place, f"{term} in {place}" if place else term, size))
-            budget -= size
-    return plan
+def plan_from_profile(profile: dict, target_count: int, per_query_limit: int, max_results_per_job: int,
+                      start: int = 0) -> list[PlannedQuery]:
+    return plan_with_cursor(profile, target_count, per_query_limit, max_results_per_job, start)[0]
+
+
+def plan_with_cursor(profile: dict, target_count: int, per_query_limit: int, max_results_per_job: int,
+                     start: int = 0) -> tuple[list[PlannedQuery], int]:
+    """This run's searches over the profile's keyword x location pairs, and where the next run starts."""
+    return spread_plan(search_terms(profile), location_labels(profile.get("locations")), target_count,
+                       per_query_limit, max_results_per_job, start)
 
 
 def excluded(text: str, profile: dict) -> bool:

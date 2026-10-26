@@ -131,13 +131,18 @@ def usage_summary(company: str) -> dict:
     }
 
 
-def log_activity(company: str, action: str, reference=None, summary: str = "", actor_type: str = "user") -> None:
+def log_activity(company: str, action: str, reference=None, summary: str = "", actor_type: str = "user",
+                 agent: str | None = None, policy_outcome: str | None = None) -> None:
     """Append-only audit record. Never pass secrets or full contact values."""
+    from reckon_sales_agent.agents.policy import agent_for
+
     frappe.get_doc(
         {
             "doctype": "Sales Agent Activity",
             "company": company,
             "action": action,
+            "agent": agent or agent_for(action),
+            "policy_outcome": policy_outcome,
             "actor_type": actor_type,
             "actor": frappe.session.user,
             "reference_doctype": reference.doctype if reference else None,

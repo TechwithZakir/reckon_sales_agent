@@ -29,7 +29,7 @@ from reckon_sales_agent.discovery.normalize import (
     normalize_name,
     normalize_phone,
 )
-from reckon_sales_agent.discovery.planner import plan_queries
+from reckon_sales_agent.discovery.planner import split_lines
 from reckon_sales_agent.usage import get_settings, log_activity, remaining, reserve
 
 MAX_ATTEMPTS = 3
@@ -58,22 +58,20 @@ def build_plan(campaign) -> None:
     With a targeting profile, the plan comes from its locations, keywords,
     segments and industries, optionally widened by Claude's suggestions.
     """
-    from reckon_sales_agent.discovery.targeting import plan_from_profile
+    from reckon_sales_agent.discovery.planner import spread_plan
+    from reckon_sales_agent.discovery.targeting import plan_with_cursor
 
     settings = get_settings(campaign.company)
     targeting = _targeting(campaign)
+    start = int(campaign.get("plan_cursor") or 0)  # continue where the last completed run stopped
     if targeting:
-        plan = plan_from_profile(targeting, campaign.target_count or 0, campaign.per_query_limit or 20,
-                                 settings.max_results_per_job or 100)
+        plan, next_start = plan_with_cursor(targeting, campaign.target_count or 0, campaign.per_query_limit or 20,
+                                            settings.max_results_per_job or 100, start)
     else:
-        plan = plan_queries(
-            campaign.industries,
-            campaign.keywords,
-            campaign.locations,
-            campaign.target_count or 0,
-            campaign.per_query_limit or 20,
-            settings.max_results_per_job or 100,
-        )
+        terms = split_lines(campaign.keywords) or split_lines(campaign.industries)
+        plan, next_start = spread_plan(terms, split_lines(campaign.locations), campaign.target_count or 0,
+                                       campaign.per_query_limit or 20, settings.max_results_per_job or 100, start)
+    campaign.plan_cursor_next = next_start
     if not plan:
         frappe.throw(_("Add at least one keyword or industry."))
     campaign.set("planned_queries", [])
@@ -183,6 +181,8 @@ def _run(job, campaign) -> None:
         # Every search failed: say so, with the source's own reason, instead of "Completed".
         _finish(job, campaign, "Failed", failed[-1].code, str(failed[-1]))
         return
+    if campaign.get("plan_cursor_next") is not None:
+        campaign.db_set("plan_cursor", campaign.plan_cursor_next)  # next run searches the next pairs
     if failed:
         _finish(job, campaign, "Completed", failed[-1].code,
                 _("{0} search(es) failed: {1}").format(len(failed), failed[-1]))

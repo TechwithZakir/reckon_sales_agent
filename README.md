@@ -112,6 +112,42 @@ minimum 2-second delay between places and a hard cap of 100 places per
 search. Google changes its page often; when it does, the connector returns
 fewer or no results rather than wrong data.
 
+### Agents and governance
+
+Four agents work for each Company. The **Research** agent handles discovery,
+company research and scoring. The **Content** agent writes drafts, localises
+them and checks facts. The **Engagement** agent handles replies, follow-ups
+and routing. The **Analytics** agent tracks conversions and attribution and
+suggests optimisations. Before any of them acts, the policy engine
+(`agents/policy.py`) applies the autonomy matrix:
+
+| Action | Default |
+| --- | --- |
+| Research a company; score a lead with evidence; create a CRM lead (deduplicated); draft content; analyse a campaign | Automatic |
+| Send already-approved content to an eligible audience; publish approved scheduled content | Automatic within limits |
+| Answer a routine question from approved facts | Automatic where the channel's rules allow |
+| Launch a campaign or expand its audience materially; change prices, discounts or terms; delete records; handle complaints, legal requests or uncertain claims | Human approval |
+| Contact someone without valid permission; ignore an unsubscribe or suppression entry | Blocked |
+
+**Approval is a permission boundary, not a confidence threshold.** No AI
+score can override a consent denial, a suppression entry, the kill switch
+or a missing approval. Unknown actions need a person.
+
+**Approvals are bound to what was approved.** A campaign approval stores a
+fingerprint of its steps (content and channel), offer, audience definition
+and schedule. A message approval stores a fingerprint of its channel,
+recipient, subject and body. Any later change voids the approval: the
+campaign returns to *Pending Approval*, or the message returns to *Draft*.
+The send path checks again before every send. An audience that grows by half
+again (and by at least 10) after approval also needs a fresh approval.
+Every audit-trail entry (*Sales Agent Activity*) names the agent that acted
+and the policy outcome.
+
+**Search plans spread out.** Each run divides its leads over many keyword ×
+location pairs, at least 5 leads per search, with consecutive searches
+differing in both keyword and place. Each completed run moves the plan on,
+so scheduled runs eventually search every pair.
+
 ### Market research agent and Smart Sources
 
 **Lead Finder Studio starts with "Your business".** You describe what you

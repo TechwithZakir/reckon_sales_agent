@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-20 09:00:00.000000",
+ "modified": "2026-10-26 05:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -32,6 +32,8 @@
   "approval_section",
   "approved_by",
   "approved_on",
+  "approval_fingerprint",
+  "approved_audience_size",
   "metrics_section",
   "member_count",
   "sent_count",
@@ -145,6 +147,20 @@
    "fieldname": "approved_on",
    "fieldtype": "Datetime",
    "label": "Approved On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "approval_fingerprint",
+   "fieldtype": "Data",
+   "label": "Approval Fingerprint",
+   "read_only": 1,
+   "hidden": 1,
+   "description": "Content, channels, audience and schedule the approval covered."
+  },
+  {
+   "fieldname": "approved_audience_size",
+   "fieldtype": "Int",
+   "label": "Approved Audience Size",
    "read_only": 1
   },
   {

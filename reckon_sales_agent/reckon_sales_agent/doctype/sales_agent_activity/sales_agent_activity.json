@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-19 12:00:00.000000",
+ "modified": "2026-10-26 05:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -20,6 +20,8 @@
   "action",
   "actor_type",
   "actor",
+  "agent",
+  "policy_outcome",
   "reference_doctype",
   "reference_name",
   "summary",
@@ -53,6 +55,19 @@
    "fieldname": "actor",
    "fieldtype": "Data",
    "label": "Actor"
+  },
+  {
+   "fieldname": "agent",
+   "fieldtype": "Select",
+   "label": "Agent",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "options": "\nResearch\nContent\nEngagement\nAnalytics\nGovernance"
+  },
+  {
+   "fieldname": "policy_outcome",
+   "fieldtype": "Data",
+   "label": "Policy Outcome"
   },
   {
    "fieldname": "reference_doctype",

@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-20 09:00:00.000000",
+ "modified": "2026-10-26 05:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -26,6 +26,7 @@
   "head_col",
   "recipient",
   "approved_by",
+  "approval_fingerprint",
   "sent_on",
   "idempotency_key",
   "content_section",
@@ -106,6 +107,13 @@
    "label": "Approved By",
    "options": "User",
    "read_only": 1
+  },
+  {
+   "fieldname": "approval_fingerprint",
+   "fieldtype": "Data",
+   "label": "Approval Fingerprint",
+   "read_only": 1,
+   "hidden": 1
   },
   {
    "fieldname": "sent_on",

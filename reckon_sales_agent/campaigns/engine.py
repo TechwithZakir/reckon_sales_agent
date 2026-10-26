@@ -98,6 +98,12 @@ def build_members(campaign) -> int:
         }).insert(ignore_permissions=True)
         added += 1
     _refresh_metrics(campaign.name)
+    from reckon_sales_agent.agents.policy import audience_grew_materially
+
+    total = frappe.db.count("Sales Campaign Member", {"campaign": campaign.name})
+    if campaign.get("approved_audience_size") and audience_grew_materially(campaign.approved_audience_size, total):
+        _require_reapproval(campaign, f"The audience grew from {campaign.approved_audience_size} to {total} "
+                                      "members after approval.")
     return added
 
 
@@ -213,9 +219,12 @@ def _personal_line(campaign, prospect) -> str:
 
 
 def approve_message(message) -> None:
+    from reckon_sales_agent.agents.approvals import fingerprint, message_payload
+
     if message.status != "Draft":
         frappe.throw(_("Only drafts can be approved."))
-    message.db_set({"status": "Approved", "approved_by": frappe.session.user})
+    message.db_set({"status": "Approved", "approved_by": frappe.session.user,
+                    "approval_fingerprint": fingerprint(message_payload(message))})
     record_event(message, "approved", f"approved:{message.name}")
 
 
@@ -268,7 +277,28 @@ def send_message(message) -> bool:
         record_event(message, "task_created", f"task:{message.name}", provider_message_id=result.provider_message_id)
         _advance(campaign, member)
         return True
-    if settings.human_approval_required and not message.approved_by:
+    from reckon_sales_agent.agents.approvals import (
+        approval_current,
+        campaign_payload,
+        message_payload,
+    )
+    from reckon_sales_agent.agents.policy import ALLOW, NEEDS_APPROVAL, decide
+
+    if campaign.approval_fingerprint and not approval_current(campaign.approval_fingerprint, campaign_payload(campaign)):
+        _require_reapproval(campaign, "The campaign changed after approval.")
+        return False
+    message_current = approval_current(message.get("approval_fingerprint"), message_payload(message))
+    decision = decide("send_approved_message", {
+        "approved": bool(message.approved_by) or not settings.human_approval_required,
+        "approval_current": message_current,
+    })
+    if decision.outcome == NEEDS_APPROVAL and message.approved_by and not message_current:
+        # Changed after approval: back to draft for a person to look at again.
+        message.db_set({"status": "Draft", "approved_by": None, "approval_fingerprint": None})
+        record_event(message, "approval_invalidated", f"invalidated:{message.name}:{now_datetime()}",
+                     detail=decision.reason)
+        return False
+    if decision.outcome != ALLOW:
         return False
     try:
         assert_entitled(message.company)
@@ -308,6 +338,14 @@ def _advance(campaign, member) -> None:
         member.db_set({"sequence_position": position, "last_event": "sent",
                        "next_action_on": add_days(nowdate(), steps[position].delay_days or 0)})
     _refresh_metrics(campaign.name)
+
+
+def _require_reapproval(campaign, reason: str) -> None:
+    """Stop a campaign from sending until a person approves it again."""
+    campaign.db_set({"status": "Pending Approval", "approved_by": None, "approved_on": None,
+                     "approval_fingerprint": None})
+    log_activity(campaign.company, "campaign_needs_approval", campaign, reason, actor_type="system",
+                 agent="Governance", policy_outcome="needs_approval")
 
 
 def _cancel(message, reason: str) -> bool:
