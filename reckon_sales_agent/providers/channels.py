@@ -130,10 +130,14 @@ def _whatsapp(message) -> SendResult:
 
 
 def create_task(prospect_name: str, title: str, description: str, settings, priority: str = "Medium") -> SendResult:
-    """A CRM Task on the prospect's lead, assigned to the lead owner."""
-    lead = frappe.db.get_value("Sales Prospect", prospect_name, "crm_lead")
+    """A CRM Task on the prospect's lead, assigned to the lead owner.
+
+    A follow-up is never dropped: an approved prospect is synced to the CRM first, and one the CRM
+    cannot take yet (its name is still held under the source's terms) gets a ToDo instead.
+    """
+    lead = frappe.db.get_value("Sales Prospect", prospect_name, "crm_lead") or _sync_approved(prospect_name)
     if not lead:
-        raise ChannelUnavailable("The prospect has no CRM lead.")
+        return _todo(prospect_name, title, description, settings, priority)
     owner = frappe.db.get_value("CRM Lead", lead, "lead_owner")
     task = frappe.get_doc({
         "doctype": "CRM Task",
@@ -147,3 +151,32 @@ def create_task(prospect_name: str, title: str, description: str, settings, prio
         "reference_docname": lead,
     }).insert(ignore_permissions=True)
     return SendResult(task.name, "task")
+
+
+def _sync_approved(prospect_name: str) -> str | None:
+    from reckon_sales_agent.crm_sync import sync_to_crm
+
+    prospect = frappe.get_doc("Sales Prospect", prospect_name)
+    if prospect.review_status != "Approved":
+        return None
+    try:
+        return sync_to_crm(prospect)
+    except frappe.ValidationError:
+        return None
+
+
+def _todo(prospect_name: str, title: str, description: str, settings, priority: str) -> SendResult:
+    """A ToDo on the prospect for whoever found it, when there is no CRM lead to hang a task on."""
+    company, owner = frappe.db.get_value("Sales Prospect", prospect_name, ["company", "owner"])
+    todo = frappe.get_doc({
+        "doctype": "ToDo",
+        "description": f"<b>{html.escape(title[:140])}</b><br>" + html.escape(description or "").replace("\n", "<br>"),
+        "status": "Open",
+        "priority": priority if priority in ("Low", "Medium", "High") else "Medium",
+        "date": add_days(nowdate(), int(settings.task_due_days or 1)),
+        "allocated_to": owner if owner and owner != "Guest" else "Administrator",
+        "reference_type": "Sales Prospect",
+        "reference_name": prospect_name,
+        "rsa_company": company,
+    }).insert(ignore_permissions=True)
+    return SendResult(todo.name, "todo")

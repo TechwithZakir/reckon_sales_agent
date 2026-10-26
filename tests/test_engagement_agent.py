@@ -118,6 +118,22 @@ class WiringTests(unittest.TestCase):
         follow = engine.split("def classify_and_follow_up(")[1].split("\ndef ")[0]
         self.assertIn("answer_question(message, text, source_key)", follow)
 
+    def test_a_follow_up_is_never_dropped(self):
+        # Live test: an escalated question from an approved prospect with no CRM lead left no task at all.
+        channels = self.read("providers", "channels.py")
+        task = channels.split("def create_task(")[1].split("\ndef ")[0]
+        self.assertNotIn("raise ChannelUnavailable", task)
+        self.assertIn("_sync_approved(prospect_name)", task)
+        self.assertIn("_todo(prospect_name", task)
+        todo = channels.split("def _todo(")[1].split("\ndef ")[0]
+        self.assertIn('"rsa_company": company', todo)  # tenant-scoped like every CRM record
+
+    def test_redelivered_email_is_recognised_by_message_id(self):
+        engine = self.read("campaigns", "engine.py")
+        handler = engine.split("def handle_communication(")[1].split("\ndef ")[0]
+        self.assertIn('doc.get("message_id")', handler)
+        self.assertIn('f"email:{key}"', handler)
+
     def test_webhook_verifies_before_acting(self):
         api = self.read("api.py")
         hook = api.split("def email_events(")[1].split("\ndef ")[0]

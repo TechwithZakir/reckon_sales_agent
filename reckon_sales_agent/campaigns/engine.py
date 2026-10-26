@@ -427,9 +427,15 @@ def handle_communication(doc, method=None) -> None:
     """``Communication.after_insert``: an email reply to an outreach message."""
     if doc.reference_doctype != "Sales Outreach Message" or doc.sent_or_received != "Received":
         return
+    import hashlib
+
     from reckon_sales_agent.providers.channels import html_to_text
 
-    receive_reply(doc.reference_name, html_to_text(doc.content or ""), f"email:{doc.name}", "Email")
+    # The email's own Message-ID, so a redelivered email (a new Communication) is still recognised.
+    key = (doc.get("message_id") or "").strip().strip("<>") or doc.name
+    if len(key) > 100:
+        key = hashlib.sha256(key.encode()).hexdigest()[:40]
+    receive_reply(doc.reference_name, html_to_text(doc.content or ""), f"email:{key}", "Email")
 
 
 def handle_whatsapp(doc, method=None) -> None:
