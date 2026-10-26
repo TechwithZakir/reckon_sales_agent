@@ -54,6 +54,30 @@ def identity_confidence(sources: list[str], *, website_confirmed: bool = False, 
     return min(score, 100.0), reasons
 
 
+# Trailing words a listing adds to describe the business ("Nahar Agro Distributor") that its own site may leave out.
+DESCRIPTORS = {
+    "distributor", "distributors", "distribution", "traders", "trading", "trade", "group", "industries", "house",
+    "agency", "agencies", "store", "stores", "shop", "wholesale", "wholesaler", "supplier", "suppliers", "dealer",
+    "dealers", "mart", "international", "corporation", "products", "office", "branch", "depot",
+}
+
+
+def name_on_site(name: str, text: str) -> bool:
+    """Whether the site shows the listed name, allowing trailing descriptors. Both are already normalised.
+
+    The core left must keep at least two words, so "Nahar Agro Distributor" matches a site that says
+    "Nahar Agro Limited", but "Square Traders" is not confirmed by any page that mentions "square".
+    """
+    words, haystack = name.split(), f" {text} "
+    if words and f" {' '.join(words)} " in haystack:
+        return True
+    while len(words) > 2 and words[-1] in DESCRIPTORS:
+        words = words[:-1]
+        if f" {' '.join(words)} " in haystack:
+            return True
+    return False
+
+
 def merge_sources(existing: str | None, *new: str) -> str:
     """Newline list of source keys, without duplicates, in first-seen order."""
     items = [line.strip() for line in (existing or "").splitlines() if line.strip()]

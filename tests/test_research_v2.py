@@ -44,6 +44,19 @@ class IdentityTests(unittest.TestCase):
         self.assertEqual(merge_sources("brave_place_search", "brave_llm_context", "brave_place_search", ""),
                          "brave_place_search\nbrave_llm_context")
 
+    def test_site_confirms_the_name_without_the_listing_descriptor(self):
+        from reckon_sales_agent.research.identity import name_on_site
+
+        # Live test: "Nahar Agro Distributor" (Brave Places) could not go to the CRM because the company's own
+        # site says "Nahar Agro Limited", so the name stayed under the source's 30-day retention.
+        site = "nahar agro group headquartered in south khulshi chattogram"
+        self.assertTrue(name_on_site("nahar agro distributor", site))
+        self.assertTrue(name_on_site("nahar agro", site))
+        self.assertFalse(name_on_site("square traders", "square pharmaceuticals"))  # one word left is too little
+        self.assertFalse(name_on_site("nahar agro foods", site))  # "foods" names the business, not a descriptor
+        self.assertFalse(name_on_site("nahar agr", site))  # whole words only
+        self.assertFalse(name_on_site("", site))
+
     def test_buying_signal_keywords(self):
         words = signal_keywords("new depot or branch\nexpanding van delivery\nhiring medical/sales reps or delivery staff")
         self.assertIn("নিয়োগ", words)  # Bangla "recruitment"

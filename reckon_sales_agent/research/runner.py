@@ -10,7 +10,7 @@ import frappe
 from frappe.utils import add_days, now_datetime, nowdate
 
 from reckon_sales_agent.constants import USAGE_AI, USAGE_RESEARCH
-from reckon_sales_agent.discovery.normalize import normalize_name
+from reckon_sales_agent.discovery.normalize import normalize_name, normalize_phone
 from reckon_sales_agent.providers.factory import get_llm
 from reckon_sales_agent.providers.llm import UNTRUSTED_RULES, LLMError, untrusted
 from reckon_sales_agent.research.evidence import (
@@ -19,6 +19,7 @@ from reckon_sales_agent.research.evidence import (
     rule_facts,
     verified_ai_facts,
 )
+from reckon_sales_agent.research.identity import name_on_site
 from reckon_sales_agent.research.parser import parse_html
 from reckon_sales_agent.research.url_safety import FetchError, UnsafeURL, fetch, is_reserved_domain
 from reckon_sales_agent.usage import (
@@ -157,7 +158,6 @@ def _verify(prospect, platform) -> None:
 
 def update_identity(prospect_name: str) -> None:
     """Recompute identity confidence from sources, the website and the web search."""
-    from reckon_sales_agent.discovery.normalize import normalize_phone
     from reckon_sales_agent.research.identity import identity_confidence
 
     prospect = frappe.get_doc("Sales Prospect", prospect_name)
@@ -312,9 +312,11 @@ def _reestablish_from_website(prospect, pages) -> None:
     if not prospect.phone and phones:
         updates["phone"] = phones[0]
         provenance["phone"] = site
+    elif prospect.phone and normalize_phone(prospect.phone) in {normalize_phone(p) for p in phones}:
+        provenance["phone"] = site  # the listing's number is printed on the business's own site
     provenance["website"] = site
     text = " ".join(f"{p.title} {p.text}" for p in pages).lower()
-    if normalize_name(prospect.business_name) and normalize_name(prospect.business_name) in normalize_name(text):
+    if name_on_site(normalize_name(prospect.business_name), normalize_name(text)):
         provenance["business_name"] = site
     if updates_social:
         updates["social_profiles"] = updates_social
