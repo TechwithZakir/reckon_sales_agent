@@ -98,6 +98,7 @@ def untriaged(company: str, limit: int = 2000) -> list[str]:
     return frappe.get_all("Sales Prospect", filters={
         "company": company, "review_status": "Pending", "qualification_status": ["in", ["Needs Review", "Qualified"]],
         "research_status": ["in", ["Done", "Skipped", "Failed"]], "ai_triaged_on": ["is", "not set"],
+        "source_type": ["!=", "fixture"],  # demo data: never worth an AI call (set aside by auto_triage)
     }, pluck="name", order_by="fit_score desc", limit=limit)
 
 

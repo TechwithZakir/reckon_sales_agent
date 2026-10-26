@@ -230,6 +230,9 @@ class WiringTests(unittest.TestCase):
         weak = source.split("def weak_pending(")[1].split("\ndef ")[0]
         # Only a low score backed by the business's own pages; no website or an unreachable one is no evidence.
         self.assertIn('"research_status": "Done"', weak)
+        # Live test: 14 of 20 AI triage calls went to made-up demo leads reopened by the patch.
+        self.assertIn('"source_type": ["!=", "fixture"]', self.read("agents", "triage.py").split("def untriaged(")[1])
+        self.assertIn("demo_pending(company)", source.split("def _auto_triage(")[1].split("\ndef ")[0])
         patch = APP / "patches" / "reopen_unresearched_set_asides.py"
         self.assertIn('"research_status": ["!=", "Done"]', patch.read_text(encoding="utf-8"))
         self.assertIn("reckon_sales_agent.patches.reopen_unresearched_set_asides", self.read("patches.txt"))

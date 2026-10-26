@@ -194,7 +194,8 @@ def collect_state(company: str) -> dict:
     state["pending_human"] = count("Sales Prospect", review_status="Pending", qualification_status="Needs Review")
     foreign = {name for name, _reason in foreign_pending(company)}
     state["pending_foreign"] = len(foreign)
-    state["pending_weak"] = len(set(weak_pending(company)) - foreign)
+    demo = set(demo_pending(company))
+    state["pending_weak"] = len((set(weak_pending(company)) | demo) - foreign)
     from reckon_sales_agent.agents.contacts import missing_email
     from reckon_sales_agent.agents.learning import lessons
     from reckon_sales_agent.agents.triage import untriaged
@@ -270,6 +271,14 @@ def weak_pending(company: str) -> list[str]:
         "company": company, "review_status": "Pending", "qualification_status": "Needs Review",
         "research_status": "Done", "fit_score": ["<", review_threshold(company)],
     }, pluck="name", limit=2000)
+
+
+def demo_pending(company: str) -> list[str]:
+    """Pending leads from the built-in demo source (made-up businesses on .example sites)."""
+    import frappe
+
+    return frappe.get_all("Sales Prospect", filters={"company": company, "review_status": "Pending",
+                                                     "source_type": "fixture"}, pluck="name", limit=2000)
 
 
 def _unscheduled(company: str, targets: list[str]) -> list[str]:
@@ -517,12 +526,17 @@ def _auto_triage(company: str, step: Step) -> str:
     foreign = foreign_pending(company)[:200]
     for name, reason in foreign:
         review(frappe.get_doc("Sales Prospect", name), "reject", f"Autopilot: outside your market ({reason}).")
+    done = {n for n, _r in foreign}
+    demo = [name for name in demo_pending(company)[:500] if name not in done]
+    for name in demo:
+        review(frappe.get_doc("Sales Prospect", name), "reject", "Autopilot: demo data from the built-in test source.")
+    done.update(demo)
     threshold = review_threshold(company)
-    weak = [name for name in weak_pending(company)[:500] if name not in {n for n, _r in foreign}]
+    weak = [name for name in weak_pending(company)[:500] if name not in done]
     for name in weak:
         review(frappe.get_doc("Sales Prospect", name), "reject",
                f"Autopilot: fit score below your review threshold ({threshold:g}). Approve it to bring it back.")
-    return f"{len(foreign)} outside your market, {len(weak)} weak"
+    return f"{len(foreign)} outside your market, {len(weak)} weak" + (f", {len(demo)} demo" if demo else "")
 
 
 def _keep_finding(company: str, step: Step) -> str:
