@@ -44,6 +44,31 @@ def funnel(rows: list[dict], key: str) -> list[dict]:
     return sorted(out, key=lambda g: (g["won_value"], g["won"], g["deals"], g["positive"], g["prospects"]), reverse=True)
 
 
+CONTACT_EVENTS = ("sent", "dry_run", "call_interested", "call_callback", "call_not_interested")
+REPLY_EVENTS = ("received", "call_interested", "call_callback", "call_not_interested")
+POSITIVE_EVENTS = ("positive_reply", "meeting_requested", "call_interested")
+
+
+def daily_buckets(stamps: list[str], first_day: str, days: int) -> list[int]:
+    """Counts per day for ``days`` days from ``first_day`` ('YYYY-MM-DD'); stamps outside are ignored."""
+    from datetime import date, timedelta
+
+    start = date.fromisoformat(first_day)
+    index = {str(start + timedelta(days=i)): i for i in range(days)}
+    counts = [0] * days
+    for stamp in stamps:
+        i = index.get(str(stamp)[:10])
+        if i is not None:
+            counts[i] += 1
+    return counts
+
+
+def change(current: float, previous: float) -> dict:
+    """Period-over-period change for a stat tile: {"value", "previous", "delta_pct" (None if no base)}."""
+    return {"value": current, "previous": previous,
+            "delta_pct": round(100.0 * (current - previous) / previous, 1) if previous else None}
+
+
 def call_summary(assigned: int, outcomes: dict) -> dict:
     """Phone-first pilots: calls assigned to salespeople, outcomes logged, reached and interested.
 

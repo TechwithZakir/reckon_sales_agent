@@ -465,6 +465,16 @@ def analyze_campaign(campaign: str) -> str:
 
 
 @frappe.whitelist()
+def analytics_dashboard(days: int = 30, campaign: str | None = None) -> dict:
+    """The Campaign Analytics dashboard: KPIs against the previous period, trends, funnel, agents, calls."""
+    from reckon_sales_agent.agents.analytics_agent import dashboard
+
+    if campaign:
+        get_tenant_doc("Sales Campaign", campaign, "read")
+    return dashboard(current_company(), max(7, min(int(days or 30), 365)), campaign or None)
+
+
+@frappe.whitelist()
 def analytics_overview(days: int = 180) -> dict:
     """Attribution funnels by segment, source and campaign, with optimisation advice."""
     from reckon_sales_agent.agents.analytics_agent import overview

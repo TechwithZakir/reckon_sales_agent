@@ -96,6 +96,125 @@ def overview(company: str, days: int = 180) -> dict:
     }
 
 
+def dashboard(company: str, days: int = 30, campaign: str | None = None) -> dict:
+    """Everything the Campaign Analytics dashboard shows for the last ``days`` days, with the period before
+    for comparison. ``campaign`` narrows outreach to one campaign and leads to its discovery campaign."""
+    from reckon_sales_agent.agents.analytics import (
+        CONTACT_EVENTS,
+        POSITIVE_EVENTS,
+        REPLY_EVENTS,
+        call_summary,
+        change,
+        daily_buckets,
+    )
+    from reckon_sales_agent.campaigns.calls import EVENT
+
+    today = nowdate()
+    start, prev_start = add_days(today, -(days - 1)), add_days(today, -(2 * days - 1))
+    lead_filter = {"company": company}
+    event_filter = {"company": company}
+    if campaign:
+        event_filter["campaign"] = campaign
+        discovery = frappe.db.get_value("Sales Campaign", campaign, "discovery_campaign")
+        lead_filter["discovery_campaign"] = discovery or "-"
+
+    def stamps(doctype, filters, since, field="creation"):
+        return frappe.get_all(doctype, filters={**filters, field: [">=", f"{since} 00:00:00"]}, pluck=field,
+                              limit=100000)
+
+    def split(values):
+        """(this period, the period before) from stamps covering both."""
+        current = [v for v in values if str(v)[:10] >= str(start)]
+        return current, [v for v in values if str(v)[:10] < str(start)]
+
+    leads = frappe.get_all("Sales Prospect", filters={**lead_filter, "creation": [">=", f"{prev_start} 00:00:00"]},
+                           fields=["creation", "qualification_status", "crm_lead", "review_status"], limit=100000)
+    events = frappe.get_all("Sales Communication Event",
+                            filters={**event_filter, "event_time": [">=", f"{prev_start} 00:00:00"]},
+                            fields=["event_type", "event_time"], limit=200000)
+    now_leads = [r for r in leads if str(r.creation)[:10] >= str(start)]
+    old_leads = [r for r in leads if str(r.creation)[:10] < str(start)]
+
+    def ev(types, rows=events):
+        return [e.event_time for e in rows if e.event_type in types]
+
+    contacted_now, contacted_old = split(ev(CONTACT_EVENTS))
+    replies_now, replies_old = split(ev(REPLY_EVENTS))
+    positive_now, positive_old = split(ev(POSITIVE_EVENTS))
+    deals = _period_deals(company, prev_start, lead_filter)
+    won = _won_statuses()
+    deals_now = [d for d in deals if str(d.creation)[:10] >= str(start)]
+    deals_old = [d for d in deals if str(d.creation)[:10] < str(start)]
+
+    def rate(a, b):
+        return round(100.0 * len(a) / len(b), 1) if b else 0.0
+
+    kpis = {
+        "leads": change(len(now_leads), len(old_leads)),
+        "qualified": change(sum(r.qualification_status == "Qualified" for r in now_leads),
+                            sum(r.qualification_status == "Qualified" for r in old_leads)),
+        "in_crm": change(sum(bool(r.crm_lead) for r in now_leads), sum(bool(r.crm_lead) for r in old_leads)),
+        "contacted": change(len(contacted_now), len(contacted_old)),
+        "reply_rate": change(rate(replies_now, contacted_now), rate(replies_old, contacted_old)),
+        "positive": change(len(positive_now), len(positive_old)),
+        "deals": change(len(deals_now), len(deals_old)),
+        "won_value": change(round(sum(d.value for d in deals_now if d.status in won), 2),
+                            round(sum(d.value for d in deals_old if d.status in won), 2)),
+    }
+    trend = {
+        "start": str(start), "days": days,
+        "leads": daily_buckets([r.creation for r in now_leads], str(start), days),
+        "contacted": daily_buckets(contacted_now, str(start), days),
+        "replies": daily_buckets(replies_now, str(start), days),
+        "positive": daily_buckets(positive_now, str(start), days),
+    }
+    activity = {}
+    for row in frappe.get_all("Sales Agent Activity", filters={"company": company,
+                                                               "creation": [">=", f"{start} 00:00:00"]},
+                              fields=["agent", "creation", "action"], limit=200000):
+        if row.action.startswith(("digest_", "autopilot_run")):
+            continue  # reports and heartbeats, not work
+        activity.setdefault(row.agent or "Governance", []).append(row.creation)
+    agents = ("Research", "Content", "Governance", "Engagement", "Analytics")
+    calls_now = [e for e in events if str(e.event_time)[:10] >= str(start)]
+    call_counts = {event: sum(1 for e in calls_now if e.event_type == event) for event in EVENT.values()}
+    triage = frappe.get_all("Sales Prospect", filters={**lead_filter, "ai_triaged_on": [">=", f"{start} 00:00:00"]},
+                            pluck="ai_triage_verdict", limit=100000)
+    rows = [r for r in attribution_rows(company, days)]
+    segments, sources = funnel(rows, "segment"), funnel(rows, "source")
+    campaigns = frappe.get_list("Sales Campaign", filters={"name": campaign} if campaign else {},
+                                fields=["name", "campaign_name", "status", "pilot_mode", "pilot_verdict",
+                                        "pilot_summary", "latest_insight", "approved_on"],
+                                order_by="modified desc", page_length=20)
+    from reckon_sales_agent.campaigns.analytics import campaign_metrics
+
+    return {
+        "days": days, "start": str(start), "campaign": campaign,
+        "kpis": kpis,
+        "trend": trend,
+        "activity": {"agents": agents, "series": {a: daily_buckets(activity.get(a, []), str(start), days)
+                                                  for a in agents}},
+        "funnel": funnel([{**r, "all": "all"} for r in rows], "all")[0] if rows else None,
+        "by_segment": segments[:10], "by_source": sources[:10],
+        "calls": call_summary(sum(1 for e in calls_now if e.event_type == "task_created"), call_counts),
+        "call_outcomes": call_counts,
+        "triage": {v: triage.count(v) for v in ("approve", "reject", "unsure")},
+        "campaigns": [{**c, "metrics": campaign_metrics(c.name)} for c in campaigns],
+        "campaign_options": frappe.get_list("Sales Campaign", fields=["name", "campaign_name"],
+                                            order_by="modified desc", page_length=50),
+        "recommendations": recommendations(segments=segments, sources=sources),
+    }
+
+
+def _period_deals(company: str, since: str, lead_filter: dict) -> list:
+    """CRM deals since ``since`` on leads the agents found (optionally one discovery campaign's)."""
+    leads = frappe.get_all("Sales Prospect", filters={**lead_filter, "crm_lead": ["is", "set"]}, pluck="crm_lead",
+                           limit=100000)
+    if not leads:
+        return []
+    return [frappe._dict(d) for rows in _deals_by_lead(leads, since=f"{since} 00:00:00").values() for d in rows]
+
+
 def pilot_report(campaign) -> dict:
     """Contacted versus hold-out conversion for a pilot campaign; stored on the campaign."""
     members = frappe.get_all("Sales Campaign Member", filters={"campaign": campaign.name},

@@ -17,6 +17,40 @@ def row(segment, source, **stages):
     return {"segment": segment, "source": source, "campaign": "C1", "won_value": stages.pop("value", 0), **stages}
 
 
+class DashboardTests(unittest.TestCase):
+    def test_daily_buckets(self):
+        from reckon_sales_agent.agents.analytics import daily_buckets
+
+        stamps = ["2026-10-25 09:00:00", "2026-10-27 10:00:00", "2026-10-27 23:59:59", "2026-10-20 08:00:00"]
+        self.assertEqual(daily_buckets(stamps, "2026-10-25", 3), [1, 0, 2])  # the day outside is ignored
+
+    def test_change_against_the_previous_period(self):
+        from reckon_sales_agent.agents.analytics import change
+
+        self.assertEqual(change(15, 10)["delta_pct"], 50.0)
+        self.assertEqual(change(5, 10)["delta_pct"], -50.0)
+        self.assertIsNone(change(7, 0)["delta_pct"])  # no base: "no earlier data", never infinity
+
+    def test_contact_counts_answered_calls(self):
+        from reckon_sales_agent.agents.analytics import (
+            CONTACT_EVENTS,
+            POSITIVE_EVENTS,
+            REPLY_EVENTS,
+        )
+
+        self.assertIn("call_interested", CONTACT_EVENTS)
+        self.assertNotIn("call_no_answer", CONTACT_EVENTS)
+        self.assertIn("call_interested", POSITIVE_EVENTS)
+        self.assertNotIn("call_wrong_number", REPLY_EVENTS)
+
+    def test_dashboard_api_checks_the_campaign(self):
+        api = (APP / "api.py").read_text(encoding="utf-8").split("def analytics_dashboard(")[1].split("\ndef ")[0]
+        self.assertIn('get_tenant_doc("Sales Campaign", campaign, "read")', api)
+        self.assertIn("max(7, min(int(days or 30), 365))", api)
+        dash = (APP / "agents" / "analytics_agent.py").read_text(encoding="utf-8").split("def dashboard(")[1]
+        self.assertNotIn("count(name)", dash.split("\ndef ")[0])  # Frappe 16: no SQL functions in fields
+
+
 class FunnelTests(unittest.TestCase):
     ROWS = [
         row("Pharma distributors", "brave_place_search", approved=True, in_crm=True, contacted=True, replied=True,
@@ -111,7 +145,9 @@ class WiringTests(unittest.TestCase):
             self.assertIn(f"@frappe.whitelist()\ndef {method}(", api)
         self.assertIn("pilot_report(campaign)", self.read("campaigns", "analytics.py"))
         page = self.read("reckon_sales_agent", "page", "sales_analytics", "sales_analytics.js")
-        self.assertIn("api.analytics_overview", page)
+        self.assertIn("api.analytics_dashboard", page)
+        self.assertIn("(() => {", page)  # nothing leaks into Desk's global scope
+        self.assertIn("Show as a table", page)  # every chart has a table view
 
     def test_fields(self):
         campaign = json.loads(self.read("reckon_sales_agent", "doctype", "sales_campaign", "sales_campaign.json"))

@@ -1,0 +1,121 @@
+/* Campaign Analytics dashboard. Colours: the dataviz reference palette (validated light and dark). */
+.sad {
+	color-scheme: light;
+	--surface: var(--card-bg, #fcfcfb);
+	--plane: var(--bg-color, #f9f9f7);
+	--ink: var(--text-color, #0b0b0b);
+	--ink-2: #52514e;
+	--muted: #898781;
+	--grid: #e1e0d9;
+	--axis: #c3c2b7;
+	--ring: rgba(11, 11, 11, 0.1);
+	--up: #006300;
+	--down: #d03b3b;
+	--s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4;
+	--q1: #86b6ef; --q2: #6da7ec; --q3: #5598e7; --q4: #3987e5; --q5: #2a78d6; --q6: #256abf; --q7: #1c5cab; --q8: #184f95;
+	--good: #0ca30c; --warning: #fab219; --serious: #ec835a; --critical: #d03b3b;
+	color: var(--ink);
+	max-width: 1240px;
+	margin: 0 auto;
+	padding: 8px 4px 48px;
+	font-variant-numeric: normal;
+}
+[data-theme="dark"] .sad {
+	color-scheme: dark;
+	--ink-2: #c3c2b7;
+	--grid: #2c2c2a;
+	--axis: #383835;
+	--ring: rgba(255, 255, 255, 0.1);
+	--up: #0ca30c;
+	--s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181;
+	--q1: #184f95; --q2: #1c5cab; --q3: #256abf; --q4: #2a78d6; --q5: #3987e5; --q6: #5598e7; --q7: #6da7ec; --q8: #86b6ef;
+}
+.sad * { box-sizing: border-box; }
+.sad .muted { color: var(--muted); font-size: 12px; }
+
+.sad-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.sad-bar h2 { margin: 0; font-size: 20px; font-weight: 650; letter-spacing: -0.01em; }
+.sad-bar p { margin: 2px 0 0; color: var(--ink-2); font-size: 13px; }
+.sad-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.sad-seg { display: inline-flex; border: 1px solid var(--ring); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.sad-seg button { border: 0; background: transparent; color: var(--ink-2); padding: 5px 11px; font-size: 12px; cursor: pointer; }
+.sad-seg button + button { border-left: 1px solid var(--ring); }
+.sad-seg button.on { background: var(--s1); color: #fff; font-weight: 600; }
+.sad-filters select { max-width: 260px; height: 30px; font-size: 12px; }
+
+.sad-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+.sad-kpi { background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; padding: 14px 16px; min-width: 0; }
+.sad-kpi .label { color: var(--ink-2); font-size: 12px; }
+.sad-kpi .value { font-size: 26px; font-weight: 650; letter-spacing: -0.02em; margin: 4px 0 2px; }
+.sad-kpi .delta { font-size: 12px; display: inline-flex; gap: 4px; align-items: center; }
+.sad-kpi .delta.up { color: var(--up); }
+.sad-kpi .delta.down { color: var(--down); }
+.sad-kpi .delta.flat { color: var(--muted); }
+
+.sad-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 12px; margin-bottom: 12px; }
+.sad-grid.even { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.sad-card { background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; padding: 16px; min-width: 0; position: relative; }
+.sad-card h3 { font-size: 14px; font-weight: 650; margin: 0; }
+.sad-card .sub { color: var(--ink-2); font-size: 12px; margin: 2px 0 10px; }
+.sad-legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--ink-2); margin-bottom: 6px; }
+.sad-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sad-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.sad svg { display: block; overflow: visible; }
+.sad svg text { fill: var(--muted); font-size: 11px; }
+.sad svg .lbl { fill: var(--ink-2); font-size: 11px; font-weight: 600; }
+.sad svg .gridline { stroke: var(--grid); stroke-width: 1; }
+.sad svg .baseline { stroke: var(--axis); stroke-width: 1; }
+.sad svg .cross { stroke: var(--axis); stroke-width: 1; stroke-dasharray: 3 3; }
+.sad details.tbl { margin-top: 8px; font-size: 12px; }
+.sad details.tbl summary { cursor: pointer; color: var(--ink-2); }
+.sad .tw { overflow-x: auto; max-width: 100%; }
+.sad table.t { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
+.sad table.t th { text-align: right; font-weight: 600; color: var(--ink-2); padding: 6px 8px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+.sad table.t td { text-align: right; padding: 7px 8px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+.sad table.t th:first-child, .sad table.t td:first-child { text-align: left; white-space: normal; }
+.sad table.t td .inbar { display: inline-block; height: 8px; border-radius: 0 4px 4px 0; background: var(--s1); vertical-align: middle; margin-right: 6px; }
+.sad .rate { color: var(--muted); }
+
+.sad-funnel .row { display: grid; grid-template-columns: 96px 1fr 70px; gap: 8px; align-items: center; margin: 7px 0; font-size: 12px; }
+.sad-funnel .track { height: 18px; position: relative; }
+.sad-funnel .fill { height: 18px; border-radius: 0 4px 4px 0; min-width: 2px; }
+.sad-funnel .n { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.sad-funnel .conv { grid-column: 2 / 4; color: var(--muted); font-size: 11px; margin-top: -4px; }
+
+.sad-hbars .row { display: grid; grid-template-columns: 120px 1fr 44px; gap: 8px; align-items: center; margin: 7px 0; font-size: 12px; }
+.sad-hbars .fill { height: 12px; border-radius: 0 4px 4px 0; background: var(--s1); min-width: 2px; }
+.sad-hbars .n { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.sad-mini { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
+.sad-mini div { background: var(--plane); border-radius: 8px; padding: 8px 10px; }
+.sad-mini b { display: block; font-size: 18px; }
+.sad-mini span { color: var(--ink-2); font-size: 11px; }
+
+.sad-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 2px 8px; border-radius: 999px;
+	border: 1px solid var(--ring); color: var(--ink-2); white-space: nowrap; }
+.sad-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.sad-pill.good .dot { background: var(--good); }
+.sad-pill.warning .dot { background: var(--warning); }
+.sad-pill.critical .dot { background: var(--critical); }
+.sad-camp td:first-child a { font-weight: 600; }
+.sad-camp .actions { display: flex; gap: 6px; justify-content: flex-end; }
+.sad-recs { margin: 0; padding-left: 18px; font-size: 13px; color: var(--ink-2); }
+.sad-recs li { margin: 4px 0; }
+.sad-empty { color: var(--muted); font-size: 13px; padding: 24px 0; text-align: center; }
+
+/* The tooltip lives on <body>, outside .sad, so it carries its own colours (preview: it was transparent). */
+.sad-tip { position: fixed; z-index: 1050; pointer-events: none; background: var(--card-bg, #fcfcfb); color: var(--text-color, #0b0b0b);
+	border: 1px solid rgba(11, 11, 11, 0.1); border-radius: 8px; padding: 8px 10px; font-size: 12px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+	display: none; min-width: 140px; }
+[data-theme="dark"] .sad-tip { background: #1a1a19; color: #f0efec; border-color: rgba(255, 255, 255, 0.1); }
+.sad-tip .h { font-weight: 650; margin-bottom: 4px; }
+.sad-tip .r { display: flex; justify-content: space-between; gap: 14px; align-items: center; }
+.sad-tip .r i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; margin-right: 6px; }
+
+@media (max-width: 1000px) {
+	.sad-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	.sad-grid, .sad-grid.even { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+	.sad-mini { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	.sad-kpi .value { font-size: 22px; }
+}
