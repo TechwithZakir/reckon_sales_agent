@@ -9,8 +9,16 @@ PROTECTED = ("status", "approved_by", "sent_on", "recipient", "idempotency_key",
 
 class SalesOutreachMessage(Document):
     def validate(self):
-        if is_system_actor() or self.flags.ignore_permissions:
+        if self.flags.ignore_permissions:
             return  # drafted and updated by the campaign engine
+        if is_system_actor():
+            # Administrators may correct a message, but an approved one goes back to Draft when it changes.
+            from reckon_sales_agent.agents.approvals import approval_current, message_payload
+
+            if (not self.is_new() and self.status == "Approved" and self.approved_by
+                    and not approval_current(self.approval_fingerprint, message_payload(self))):
+                self.status, self.approved_by, self.approval_fingerprint = "Draft", None, None
+            return
         if self.is_new():
             frappe.throw(_("Messages are drafted by the campaign."))
         if self.get_db_value("status") != "Draft":

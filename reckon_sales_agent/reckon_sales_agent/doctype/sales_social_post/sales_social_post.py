@@ -15,9 +15,9 @@ class SalesSocialPost(Document):
         protect_fields(self, PROTECTED, {"status": "Draft"})
         if not is_system_actor() and self.status in ("Published", "Partly Published"):
             frappe.throw(_("A published post cannot be edited; create a new post."))
-        if (self.status in ("Approved", "Scheduled") and not is_system_actor()
+        if (self.status in ("Approved", "Scheduled") and not self.flags.ignore_permissions
                 and not approval_current(self.approval_fingerprint, post_payload(self))):
-            # Approval covered this exact content, media, accounts and schedule.
+            # Approval covered this exact content, media, accounts and schedule, whoever edits it.
             self.status = "Pending Approval"
             self.approved_by = None
             self.approved_on = None

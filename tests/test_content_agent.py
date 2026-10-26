@@ -119,6 +119,15 @@ class WiringTests(unittest.TestCase):
         item = self.read("reckon_sales_agent", "doctype", "sales_knowledge_item", "sales_knowledge_item.py")
         self.assertIn('self.status = "Draft"', item)  # edited after approval: approve again
 
+    def test_whatsapp_steps_need_no_subject(self):
+        # Live test: an AI-written Email + WhatsApp sequence failed to save because every step needed a subject.
+        step = json.loads(self.read("reckon_sales_agent", "doctype", "sales_campaign_step", "sales_campaign_step.json"))
+        subject = next(f for f in step["fields"] if f["fieldname"] == "subject_template")
+        self.assertFalse(subject.get("reqd"))
+        self.assertEqual(subject["mandatory_depends_on"], "eval:doc.channel=='Email'")
+        self.assertIn("an email needs a subject", self.read("reckon_sales_agent", "doctype", "sales_campaign",
+                                                            "sales_campaign.py"))
+
     def test_registration(self):
         from reckon_sales_agent.constants import COMPANY_DOCTYPES
 

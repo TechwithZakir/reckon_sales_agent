@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-26 08:00:00.000000",
+ "modified": "2026-10-26 17:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -54,7 +54,8 @@
    "fieldtype": "Data",
    "label": "Subject Template",
    "in_list_view": 1,
-   "reqd": 1
+   "mandatory_depends_on": "eval:doc.channel=='Email'",
+   "description": "Email only; SMS, WhatsApp and tasks have no subject."
   },
   {
    "fieldname": "body_template",

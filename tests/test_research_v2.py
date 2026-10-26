@@ -88,6 +88,25 @@ class CorroborationTests(unittest.TestCase):
         self.assertEqual(len(records), 2)  # Biorex once, Islamia Drug House once
 
 
+class MarketFilterTests(unittest.TestCase):
+    def test_foreign_businesses_are_left_out_of_a_bangladesh_campaign(self):
+        from reckon_sales_agent.discovery.targeting import foreign_business, market_country
+
+        # Seen live in the FMCG test run: Indian and US companies for "FMCG distributor in Islampur, Dhaka".
+        self.assertEqual(foreign_business({"website": "https://bgdpl.in/"}), "website on .in")
+        self.assertEqual(foreign_business({"country": "India"}), "listed in India")
+        self.assertEqual(foreign_business({"address": "Andheri East, Mumbai 400069"}), "address in Mumbai")
+        self.assertEqual(foreign_business({"website": "https://shop.co.uk/"}), "website on .uk")
+        for local in ({"website": "https://transcombd.com/"}, {"website": "https://akij.com.bd"},
+                      {"website": "https://reckon.io"}, {"address": "Islampur, Dhaka 1100"},
+                      {"address": "Road 7, Dhaka (India Bhaban)"}, {}):
+            self.assertIsNone(foreign_business(local), local)
+        self.assertIsNone(foreign_business({"website": "https://x.in"}, "india"))  # another market: not judged
+        self.assertEqual(market_country({"locations": [{"country": "Bangladesh"}, {"country": ""}]}), "bangladesh")
+        self.assertEqual(market_country({"locations": [{"country": "India"}]}), "india")
+        self.assertEqual(market_country({}), "bangladesh")
+
+
 class WiringTests(unittest.TestCase):
     def read(self, *parts):
         return (APP.joinpath(*parts)).read_text(encoding="utf-8")

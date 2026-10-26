@@ -9,6 +9,8 @@ user applies; nothing it proposes is searched without being saved first.
 
 from __future__ import annotations
 
+import re
+
 from reckon_sales_agent.discovery.planner import PlannedQuery, split_lines, spread_plan
 
 AI_PLAN_SCHEMA = {
@@ -71,6 +73,40 @@ def plan_with_cursor(profile: dict, target_count: int, per_query_limit: int, max
 def excluded(text: str, profile: dict) -> bool:
     lowered = (text or "").lower()
     return any(word.lower() in lowered for word in split_lines(profile.get("exclude_keywords")))
+
+
+# Two-letter endings used worldwide as generic domains, not as a country signal.
+GENERIC_CCTLDS = {"io", "co", "ai", "me", "tv", "cc", "ly", "fm", "gg", "to", "sh", "ws", "la", "so", "vc"}
+OTHER_COUNTRIES = ("india", "pakistan", "nepal", "sri lanka", "bhutan", "myanmar", "china", "usa", "united states",
+                   "united kingdom", "england", "uae", "dubai", "saudi arabia", "qatar", "malaysia", "singapore",
+                   "indonesia", "thailand", "vietnam", "australia", "canada", "germany", "kolkata", "mumbai",
+                   "delhi", "bengaluru", "bangalore", "chennai", "hyderabad", "karachi", "lahore")
+
+
+def market_country(profile: dict | None) -> str:
+    """The country a targeting profile searches in (Bangladesh unless its locations say otherwise)."""
+    countries = {str(row.get("country") or "").strip().lower() for row in (profile or {}).get("locations") or []}
+    countries.discard("")
+    return countries.pop() if len(countries) == 1 else "bangladesh"
+
+
+def foreign_business(fields: dict, country: str = "bangladesh") -> str | None:
+    """Why a found business is outside the target country, or None. Only judged for Bangladesh campaigns."""
+    if country not in ("bangladesh", "bd"):
+        return None
+    stated = str(fields.get("country") or "").strip().lower()
+    if stated and stated not in ("bangladesh", "bd", "বাংলাদেশ"):
+        return f"listed in {fields.get('country')}"
+    host = re.sub(r"^https?://", "", str(fields.get("website") or "").lower()).split("/")[0].split(":")[0]
+    tld = host.rsplit(".", 1)[-1] if "." in host else ""
+    if len(tld) == 2 and tld != "bd" and tld not in GENERIC_CCTLDS:
+        return f"website on .{tld}"
+    address = str(fields.get("address") or "").lower()
+    if address and "bangladesh" not in address and "dhaka" not in address:
+        for name in OTHER_COUNTRIES:
+            if re.search(rf"\b{re.escape(name)}\b", address):
+                return f"address in {name.title()}"
+    return None
 
 
 def clean_suggestions(data: dict) -> dict:

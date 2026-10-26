@@ -126,6 +126,18 @@ class WiringTests(unittest.TestCase):
             encoding="utf-8")
         self.assertIn("campaign_payload(self)", controller)
 
+    def test_approval_is_voided_for_every_editor(self):
+        # Live test: an administrator edited an approved post and it stayed Approved. Admins are no exception.
+        for folder, marker in (("sales_campaign", "if changed and self.status in"),
+                               ("sales_social_post", 'if (self.status in ("Approved", "Scheduled")')):
+            controller = (APP / "reckon_sales_agent" / "doctype" / folder / f"{folder}.py").read_text(encoding="utf-8")
+            condition = controller.split(marker)[1].split(":\n")[0]
+            self.assertNotIn("is_system_actor", condition, folder)
+            self.assertIn("flags.ignore_permissions", condition, folder)  # only the engine's own writes are exempt
+        message = (APP / "reckon_sales_agent" / "doctype" / "sales_outreach_message" / "sales_outreach_message.py")
+        self.assertIn('self.status, self.approved_by, self.approval_fingerprint = "Draft", None, None',
+                      message.read_text(encoding="utf-8"))
+
     def test_doctype_fields(self):
         def fields(folder):
             doc = json.loads((APP / "reckon_sales_agent" / "doctype" / folder / f"{folder}.json").read_text(

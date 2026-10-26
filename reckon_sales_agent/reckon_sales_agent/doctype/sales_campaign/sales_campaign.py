@@ -3,7 +3,7 @@ from frappe import _
 from frappe.model.document import Document
 
 from reckon_sales_agent.agents.approvals import approval_current, campaign_payload
-from reckon_sales_agent.tenant import is_system_actor, protect_fields
+from reckon_sales_agent.tenant import protect_fields
 
 PROTECTED = ("status", "approved_by", "approved_on", "member_count", "sent_count", "reply_count",
              "unsubscribe_count", "bounce_count", "converted_count", "approval_fingerprint", "approved_audience_size",
@@ -23,12 +23,15 @@ class SalesCampaign(Document):
             row.idx = idx
             if (row.delay_days or 0) < 0:
                 frappe.throw(_("Delays cannot be negative."))
+            if (row.channel or "Email") == "Email" and not (row.subject_template or "").strip():
+                frappe.throw(_("Step {0}: an email needs a subject.").format(row.step_no))
         if self.end_date and self.start_date and self.end_date < self.start_date:
             frappe.throw(_("End date is before start date."))
         changed = (not approval_current(self.approval_fingerprint, campaign_payload(self)) if self.approval_fingerprint
                    else steps_changed)
-        if changed and self.status in ("Active", "Approved") and not is_system_actor():
-            # Approval covered exact content, channels, audience and schedule: any change needs a new one.
+        if changed and self.status in ("Active", "Approved") and not self.flags.ignore_permissions:
+            # Approval covered exact content, channels, audience and schedule: any change by anyone
+            # (administrators included) needs a new one. Only the engine's own writes are exempt.
             self.status = "Pending Approval"
             self.approved_by = None
             self.approved_on = None

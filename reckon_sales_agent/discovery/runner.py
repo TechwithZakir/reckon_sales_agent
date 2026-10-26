@@ -121,10 +121,11 @@ def _run(job, campaign) -> None:
         _finish(job, campaign, "Failed", exc.code, str(exc))
         return
 
-    from reckon_sales_agent.discovery.targeting import excluded
+    from reckon_sales_agent.discovery.targeting import excluded, foreign_business, market_country
 
     targeting = (frappe.get_doc("Sales Targeting Profile", campaign.targeting_profile).as_dict()
                  if campaign.get("targeting_profile") else {})
+    country = market_country(targeting)
     new_prospects: list[str] = []
     failed: list[ConnectorError] = []  # searches that still failed after retries
     for row in campaign.planned_queries:
@@ -154,6 +155,8 @@ def _run(job, campaign) -> None:
         for record in records:
             if targeting and excluded(" ".join(str(v) for v in record.fields.values() if v), targeting):
                 continue
+            if foreign_business(record.fields, country):
+                continue  # outside the market this campaign targets (e.g. an Indian company for Bangladesh)
             frappe.db.savepoint("sales_agent_record")
             try:
                 outcome, prospect = upsert_prospect(job.company, campaign, connector_doc, record, policy)
