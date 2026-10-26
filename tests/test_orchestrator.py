@@ -85,6 +85,18 @@ class PlanTests(unittest.TestCase):
         self.assertIn("2 lead(s)", next(s for s in plan(auto) if s.key == "review").detail)
         self.assertNotIn("keep_finding", [k for k, _ in keys({**auto, "profiles_without_discovery": 1})])
 
+    def test_qualified_leads_the_rules_decline_reach_a_person(self):
+        # Live test: a qualified lead (fit 69, bar 75) was retried hourly and never shown for review.
+        auto = {**READY, "autopilot": True, "auto_approve": True, "pending_qualified": 0, "pending_held": 1}
+        self.assertNotIn("auto_review", [k for k, _ in keys(auto)])
+        self.assertIn("1 lead(s)", next(s for s in plan(auto) if s.key == "review").detail)
+        both = {**auto, "pending_qualified": 2, "pending_human": 3}
+        self.assertIn(("auto_review", DO), keys(both))
+        self.assertIn("4 lead(s)", next(s for s in plan(both) if s.key == "review").detail)
+        source = (APP / "agents" / "orchestrator.py").read_text(encoding="utf-8")
+        self.assertIn("auto_approval_decision(p, rules, approved_today)",
+                      source.split("def _split_qualified(")[1].split("\ndef ")[0])
+
     def test_campaigns_are_drafted_with_enough_leads_and_never_launched_alone(self):
         segment = {"discovery": "DISC-1", "label": "Pharma", "count": 6}
         auto = {**READY, "autopilot": True, "segments_ready": [segment], "campaign_min_prospects": 5}

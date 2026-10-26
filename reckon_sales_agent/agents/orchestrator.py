@@ -84,8 +84,9 @@ def plan(state: dict) -> list[Step]:
     if state.get("pending_qualified") and auto and state.get("auto_approve"):
         add(Step("Research", "auto_review", DO, "Approve strong leads",
                  f"{state['pending_qualified']} qualified lead(s) checked against your autopilot rules."))
-    pending_human = state.get("pending_human", 0) + (0 if auto and state.get("auto_approve")
-                                                      else state.get("pending_qualified", 0))
+    # Qualified leads the autopilot rules decline (score under the bar, no contact...) go to a person, not limbo.
+    pending_human = state.get("pending_human", 0) + state.get("pending_held", 0) + (
+        0 if auto and state.get("auto_approve") else state.get("pending_qualified", 0))
     if auto:
         pending_human = max(0, pending_human - set_aside)
     if pending_human:
@@ -175,8 +176,7 @@ def collect_state(company: str) -> dict:
             state["unscheduled_searches"] = len(_unscheduled(company, targets))
     count = lambda doctype, **f: frappe.db.count(doctype, {"company": company, **f})  # noqa: E731
     state["running_jobs"] = count("Sales Discovery Job", status=["in", ["Queued", "Running"]])
-    state["pending_qualified"] = count("Sales Prospect", review_status="Pending", qualification_status="Qualified",
-                                       possible_duplicate_of=["is", "not set"])
+    state["pending_qualified"], state["pending_held"] = _split_qualified(company, settings)
     state["pending_human"] = count("Sales Prospect", review_status="Pending", qualification_status="Needs Review")
     foreign = {name for name, _reason in foreign_pending(company)}
     state["pending_foreign"] = len(foreign)
@@ -196,6 +196,31 @@ def collect_state(company: str) -> dict:
     state["pilot_verdicts"] = [{"name": p.name, "label": p.campaign_name, "verdict": p.pilot_verdict}
                                for p in pilots if p.pilot_verdict in ("scale", "stop")]
     return state
+
+
+def _split_qualified(company: str, settings) -> tuple[int, int]:
+    """Pending qualified leads: (the autopilot rules would approve, they would not).
+
+    Live test: a qualified lead under the auto-approve bar was retried every hour and never shown to a person.
+    With autopilot's approval off, every qualified lead is a person's decision.
+    """
+    import frappe
+    from frappe.utils import nowdate
+
+    from reckon_sales_agent.autopilot import auto_approval_decision
+
+    pending = frappe.get_all("Sales Prospect", filters={"company": company, "review_status": "Pending",
+                                                        "qualification_status": "Qualified"},
+                             fields=["review_status", "qualification_status", "do_not_contact", "contactability",
+                                     "possible_duplicate_of", "fit_score", "evidence_confidence", "deal_probability",
+                                     "email", "phone"], limit=2000)
+    if not settings.auto_approve_enabled:
+        return len(pending), 0
+    approved_today = frappe.db.count("Sales Agent Activity", {"company": company, "action": "prospect_auto_approved",
+                                                              "creation": [">=", f"{nowdate()} 00:00:00"]})
+    rules = settings.as_dict()
+    passing = sum(1 for p in pending if auto_approval_decision(p, rules, approved_today)[0])
+    return passing, len(pending) - passing
 
 
 def review_threshold(company: str) -> float:
