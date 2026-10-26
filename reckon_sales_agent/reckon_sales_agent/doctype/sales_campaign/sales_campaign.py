@@ -6,7 +6,8 @@ from reckon_sales_agent.agents.approvals import approval_current, campaign_paylo
 from reckon_sales_agent.tenant import is_system_actor, protect_fields
 
 PROTECTED = ("status", "approved_by", "approved_on", "member_count", "sent_count", "reply_count",
-             "unsubscribe_count", "bounce_count", "converted_count", "approval_fingerprint", "approved_audience_size")
+             "unsubscribe_count", "bounce_count", "converted_count", "approval_fingerprint", "approved_audience_size",
+             "content_status", "content_issues", "content_checked_on")
 
 
 class SalesCampaign(Document):
@@ -33,6 +34,10 @@ class SalesCampaign(Document):
             self.approval_fingerprint = None
             frappe.msgprint(_("The campaign changed after approval, so it needs approval again before it sends."),
                             indicator="orange", alert=True)
+        if self.steps:
+            from reckon_sales_agent.agents.content_agent import apply_rule_check
+
+            apply_rule_check(self)  # approvers always see claim, figure and offer issues
 
     def _steps_signature(self):
         return [(r.step_no, r.delay_days, r.subject_template, r.body_template, r.use_ai_personalisation)

@@ -161,6 +161,17 @@
   },
   {
    "type": "Link",
+   "label": "Knowledge Library",
+   "link_to": "Sales Knowledge Item",
+   "link_type": "DocType",
+   "icon": "megaphone",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
    "label": "Campaigns",
    "link_to": "Sales Campaign",
    "link_type": "DocType",

@@ -53,6 +53,7 @@ COMPANY_DOCTYPES = (
     "Sales Campaign Insight",
     "Sales Business Profile",
     "Sales Market Brief",
+    "Sales Knowledge Item",
 )
 CHILD_DOCTYPES = ("Sales Planned Query", "Sales Research Fact", "Sales Campaign Step", "Sales Target Location",
                   "Sales Market Segment", "Sales Provider Budget")

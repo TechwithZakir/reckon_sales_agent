@@ -193,13 +193,18 @@ def submit_campaign(campaign: str) -> None:
 
 
 @frappe.whitelist()
-def approve_campaign(campaign: str) -> int:
+def approve_campaign(campaign: str, acknowledge_issues: int = 0) -> int:
     from reckon_sales_agent.campaigns.engine import build_members
 
     _require_approver()
     doc = get_tenant_doc("Sales Campaign", campaign, "write")
     if doc.status not in ("Pending Approval", "Paused", "Approved"):
         frappe.throw(_("Submit the campaign for approval first."))
+    if doc.get("content_status") == "Needs review" and not int(acknowledge_issues or 0):
+        # Uncertain claims and unapproved commercial terms need a person who has seen them.
+        frappe.throw(_("The content check found issues:") + "<br>" + "<br>".join(
+            frappe.utils.escape_html(line) for line in (doc.content_issues or "").splitlines()[:15]),
+            title=_("Review the content first"), exc=ContentNeedsReview)
     assert_entitled(doc.company)
     from reckon_sales_agent.agents.approvals import campaign_payload, fingerprint
 
@@ -210,6 +215,36 @@ def approve_campaign(campaign: str) -> int:
     log_activity(doc.company, "campaign_approved", doc, f"{added} members added", agent="Governance",
                  policy_outcome="approved by a person")
     return added
+
+
+class ContentNeedsReview(frappe.ValidationError):
+    pass
+
+
+@frappe.whitelist()
+def write_campaign_with_ai(campaign: str, steps: int = 3, channels: str | None = None) -> int:
+    from reckon_sales_agent.agents.content_agent import write_sequence
+
+    doc = get_tenant_doc("Sales Campaign", campaign, "write")
+    assert_entitled(doc.company)
+    picked = [c.strip() for c in (channels or "Email,WhatsApp").split(",") if c.strip()]
+    return write_sequence(doc, int(steps or 3), picked)
+
+
+@frappe.whitelist()
+def check_campaign_content(campaign: str) -> dict:
+    from reckon_sales_agent.agents.content_agent import check_campaign
+
+    doc = get_tenant_doc("Sales Campaign", campaign, "write")
+    return check_campaign(doc)
+
+
+@frappe.whitelist()
+def approve_knowledge(items) -> int:
+    from reckon_sales_agent.agents.content_agent import approve_knowledge as approve
+
+    _require_approver()
+    return approve(_names(items))
 
 
 @frappe.whitelist()

@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-26 03:00:00.000000",
- "modified": "2026-10-26 03:00:00.000000",
+ "modified": "2026-10-26 07:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -35,6 +35,10 @@
   "competitors",
   "exclude_col",
   "exclusions",
+  "brand_section",
+  "brand_voice",
+  "brand_col",
+  "banned_phrases",
   "customers_section",
   "best_customers",
   "best_customers_synced_on",
@@ -151,6 +155,27 @@
    "fieldtype": "Small Text",
    "label": "Exclusions",
    "description": "Business types or words to rule out, one per line."
+  },
+  {
+   "fieldname": "brand_section",
+   "fieldtype": "Section Break",
+   "label": "Brand Voice"
+  },
+  {
+   "fieldname": "brand_voice",
+   "fieldtype": "Small Text",
+   "label": "Brand Voice",
+   "description": "How you sound: e.g. friendly, professional, concise; Bangladeshi business English."
+  },
+  {
+   "fieldname": "brand_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "banned_phrases",
+   "fieldtype": "Small Text",
+   "label": "Never Say",
+   "description": "Phrases agents must never use, one per line (on top of built-in rules: guaranteed, 100%, best in Bangladesh, lowest price...)."
   },
   {
    "fieldname": "customers_section",

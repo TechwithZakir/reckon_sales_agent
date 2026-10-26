@@ -163,6 +163,31 @@ fills empty fields, never replacing what a person entered, and keeps
 agent-owned fields up to date: fit score, deal probability, identity
 confidence and research summary.
 
+**Content agent: approved facts only.** The *Knowledge Library* (Sales
+Knowledge Item) holds the wording agents may use: product, service,
+pricing, offer, FAQ, proof, policy and brand items. An item is used only
+once it is approved and while it is still valid. Editing an approved item
+sends it back for approval, and only *Pricing* and *Offer* items can put a
+price, discount or offer into a message. The business profile adds a brand
+voice and a *Never Say* list. On a campaign, **Write with AI** has Claude
+write the sequence for the chosen segment, in English or Bangla, across
+Email, WhatsApp and SMS. The plan is fixed (for example Email, then WhatsApp
+3 days later, then Email), and the writing uses only approved knowledge.
+The new steps replace the old ones, so the campaign needs approval again.
+**Every save runs the content check**, which flags:
+
+- absolute or banned claims ("guaranteed", "100%", "best in Bangladesh",
+  "lowest price", the Bangla equivalents, and the Never Say list);
+- figures (taka, percent, clients, years…) that no approved item contains;
+- discounts or offers that no approved Pricing or Offer item makes;
+- unknown placeholders;
+- channel length limits.
+
+**Check Content** adds Claude's check for claims the approved knowledge does
+not support. A campaign with issues can be approved only by a person who
+confirms they have reviewed them: uncertain claims and commercial terms are
+human decisions.
+
 **Search plans spread out.** Each run divides its leads over many keyword ×
 location pairs, at least 5 leads per search, with consecutive searches
 differing in both keyword and place. Each completed run moves the plan on,

@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-26 05:00:00.000000",
+ "modified": "2026-10-26 07:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -21,6 +21,8 @@
   "status",
   "channel",
   "offer",
+  "language",
+  "targeting_profile",
   "head_col",
   "discovery_campaign",
   "minimum_fit_score",
@@ -29,6 +31,11 @@
   "end_date",
   "steps_section",
   "steps",
+  "content_section",
+  "content_status",
+  "content_checked_on",
+  "content_col",
+  "content_issues",
   "approval_section",
   "approved_by",
   "approved_on",
@@ -87,6 +94,20 @@
    "label": "Offer"
   },
   {
+   "fieldname": "language",
+   "fieldtype": "Select",
+   "label": "Message Language",
+   "options": "English\nBangla",
+   "default": "English"
+  },
+  {
+   "fieldname": "targeting_profile",
+   "fieldtype": "Link",
+   "label": "Write For Segment",
+   "options": "Sales Targeting Profile",
+   "description": "The Content agent writes for this segment's needs and buying signals."
+  },
+  {
    "fieldname": "head_col",
    "fieldtype": "Column Break"
   },
@@ -130,6 +151,35 @@
    "label": "Steps",
    "options": "Sales Campaign Step",
    "reqd": 1
+  },
+  {
+   "fieldname": "content_section",
+   "fieldtype": "Section Break",
+   "label": "Content Check"
+  },
+  {
+   "fieldname": "content_status",
+   "fieldtype": "Select",
+   "label": "Content Check",
+   "options": "Not checked\nPassed\nNeeds review",
+   "default": "Not checked",
+   "read_only": 1
+  },
+  {
+   "fieldname": "content_checked_on",
+   "fieldtype": "Datetime",
+   "label": "Checked On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "content_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "content_issues",
+   "fieldtype": "Small Text",
+   "label": "Issues to Review",
+   "read_only": 1
   },
   {
    "fieldname": "approval_section",
