@@ -67,10 +67,11 @@ def eligibility(prospect, campaign=None, settings=None) -> tuple[bool, str]:
 
 
 def build_members(campaign) -> int:
+    # Approval is the decision (a person, or the autopilot within its rules): an approved lead the score left in
+    # "Needs Review" joins too. Live test: approved borderline leads could never enter a campaign.
     filters = {
         "company": campaign.company,
         "review_status": "Approved",
-        "qualification_status": "Qualified",
         "fit_score": [">=", campaign.minimum_fit_score or 0],
     }
     if campaign.discovery_campaign:

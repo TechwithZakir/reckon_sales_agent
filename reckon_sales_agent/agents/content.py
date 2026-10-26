@@ -15,7 +15,8 @@ import re
 from reckon_sales_agent.campaigns.templates import PLACEHOLDER_RE, PLACEHOLDERS
 from reckon_sales_agent.providers.llm import UNTRUSTED_RULES
 
-CHANNELS = ("Email", "WhatsApp", "SMS")
+CHANNELS = ("Email", "WhatsApp", "SMS", "Call Task")
+SUBJECT_CHANNELS = ("Email", "Call Task")  # a call task's subject is the CRM task title
 DEFAULT_BANNED = (
     "guaranteed", "guarantee", "100%", "risk-free", "risk free", "no.1", "no. 1", "number one", "best in bangladesh",
     "lowest price", "cheapest", "free forever", "act now", "once in a lifetime", "click here", "winner",
@@ -28,7 +29,7 @@ NUMBER = re.compile(r"\d[\d,]*(?:\.\d+)?")
 FIGURE = re.compile(
     r"(?:৳|tk\.?|bdt|usd|\$)\s?\d[\d,]*(?:\.\d+)?|\d[\d,]*(?:\.\d+)?\s?(?:%|৳|tk\b|taka|bdt|টাকা|percent|clients?|customers?"
     r"|distributors?|years?|outlets?)", re.I)
-LIMITS = {"Email": 1500, "WhatsApp": 1000, "SMS": 459}  # characters of body text
+LIMITS = {"Email": 1500, "WhatsApp": 1000, "SMS": 459, "Call Task": 2500}  # characters of body text
 SUBJECT_LIMIT = 80
 
 SEQUENCE_SYSTEM = (
@@ -38,7 +39,12 @@ SEQUENCE_SYSTEM = (
     "{{offer}}; put {{personal_line}} on its own line near the start of the first message (it is an opening the "
     "agent writes from research on each business). Do not add unsubscribe or opt-out text; it is added "
     "automatically. Email: subject at most 60 characters, body at most 120 words. WhatsApp: at most 60 words, "
-    "conversational, no subject. SMS: at most 300 characters, no subject. Every message adds something new: a "
+    "conversational, no subject. SMS: at most 300 characters, no subject. Call Task: a script for the seller's "
+    "salesperson (never sent to the customer); subject names the goal, e.g. 'introduce our DMS to "
+    "{{business_name}}'; body "
+    "at most 180 words with: the opening line in English, then the same line in Bangla; {{personal_line}} as a "
+    "talking point; two or three questions about how they take orders, manage stock and collect dues; {{offer}} "
+    "as the next step; and a polite answer if they are not interested. Every message adds something new: a "
     "problem the seller solves for this segment, a proof point from the knowledge, or a low-effort next step such "
     "as a 15-minute call. Later messages are shorter. Write in the requested language; for Bangla, write natural "
     "Bangla as Bangladeshi business owners write it, keeping product names in English. " + UNTRUSTED_RULES
@@ -138,7 +144,8 @@ def clean_steps(data: dict, plan: list[dict]) -> list[dict]:
         draft = written.get(slot["step_no"]) or {}
         body = str(draft.get("body") or "").strip()
         body = PLACEHOLDER_RE.sub(lambda m: m.group(0) if m.group(1) in PLACEHOLDERS else "", body)
-        subject = " ".join(str(draft.get("subject") or "").split())[:SUBJECT_LIMIT] if slot["channel"] == "Email" else ""
+        subject = " ".join(str(draft.get("subject") or "").split())[:SUBJECT_LIMIT] \
+            if slot["channel"] in SUBJECT_CHANNELS else ""
         if body:
             rows.append({**slot, "subject_template": subject, "body_template": body[:3000],
                          "use_ai_personalisation": 1 if "{{personal_line}}" in body.replace(" ", "") else 0})

@@ -93,7 +93,7 @@
 			this.render_feed(s);
 			// Re-draw the inbox only when its content changed, so ticks and typing survive the poll.
 			const key = JSON.stringify(s.asks.map((a) => [a.key, a.ref, a.detail, (a.messages || []).length,
-				(a.prospects || []).map((p) => p.name + (p.ai_triage_verdict || ""))]));
+				(a.prospects || []).map((p) => p.name + (p.ai_triage_verdict || "")), a.ai_counts]));
 			if (key !== this.inboxKey) {
 				this.inboxKey = key;
 				this.render_inbox(s);
@@ -300,7 +300,11 @@
 		}
 
 		ask_review(body, a) {
-			body.html(`${a.prospects.map((p) => `<div class="ags-lead" data-name="${e(p.name)}">
+			const ai = a.ai_counts || { approve: 0, reject: 0 };
+			body.html(`${ai.approve + ai.reject ? `<div class="ags-bulk">${icon("spark", 14)}
+				<div class="grow">${__("The AI suggests approving {0} and setting aside {1}. Leads it is unsure about stay here.", [ai.approve, ai.reject])}</div>
+				<button class="btn btn-primary btn-xs ags-accept">${__("Accept the AI's suggestions")}</button></div>` : ""}
+				${a.prospects.map((p) => `<div class="ags-lead" data-name="${e(p.name)}">
 				<div class="grow"><a href="/desk/sales-prospect/${encodeURIComponent(p.name)}"><b>${e(p.business_name)}</b></a>
 					<div class="ags-muted">${e([p.city, p.website && p.website.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")].filter(Boolean).join(" · "))}</div>
 					${p.ai_triage_verdict ? `<div class="ags-ai ${e(p.ai_triage_verdict)}">${icon("spark", 11)} <b>${e(p.ai_business_type || "")}</b>
@@ -310,6 +314,13 @@
 				<button class="btn btn-default btn-xs" data-d="approve">${__("Approve")}</button>
 				<button class="btn btn-default btn-xs" data-d="reject">${__("Reject")}</button></div>`).join("")}
 				<a class="btn btn-default btn-xs" href="/desk/sales-review">${__("Open the full review")}</a>`);
+			body.find(".ags-accept").on("click", (ev) => frappe.confirm(
+				__("Approve {0} lead(s) and add them to the CRM, and set aside {1}? You can reverse any of them in Prospect Review.", [ai.approve, ai.reject]),
+				() => {
+					$(ev.currentTarget).prop("disabled", true);
+					this.act("accept_ai", {}).then((r) => frappe.show_alert({
+						message: __("{0} approved, {1} set aside", [r.approved, r.rejected]), indicator: "green" }));
+				}));
 			body.find(".ags-lead button").on("click", (ev) => {
 				const row = $(ev.currentTarget).closest(".ags-lead");
 				row.find("button").prop("disabled", true);

@@ -136,6 +136,8 @@ def _detail(company: str, step) -> dict:
                     "identity_confidence", "qualification_status", "ai_triage_verdict", "ai_triage_confidence",
                     "ai_triage_reason", "ai_business_type"],
             order_by="deal_probability desc, fit_score desc", page_length=12)
+        found = ai_suggestions(company)
+        item["ai_counts"] = {"approve": len(found["approve"]), "reject": len(found["reject"])}
     elif step.key == "followups":
         leads = frappe.get_all("Sales Prospect", filters={"company": company, "crm_lead": ["is", "set"]},
                                fields=["crm_lead", "business_name"])
@@ -218,7 +220,9 @@ def act(action: str, args=None):
     if action in DOERS:
         _require_manager()
         assert_entitled(company)
-        enqueue_step(company, action, {k: str(v) for k, v in args.items() if k in ("brief", "discovery", "campaign")})
+        ref = {k: str(v) for k, v in args.items() if k in ("brief", "discovery", "campaign")}
+        ref.update({k: int(v or 0) for k, v in args.items() if k in ("count", "with_email")})
+        enqueue_step(company, action, ref)
         return "queued"
     if action == "approve_segments":
         from reckon_sales_agent.research.market import approve
@@ -237,6 +241,8 @@ def act(action: str, args=None):
         return api.pause_campaign(args.get("campaign"))
     if action == "approve_messages":
         return api.approve_messages(json.dumps([str(m) for m in args.get("messages") or []]))
+    if action == "accept_ai":
+        return _accept_ai(company)
     if action == "review":
         if args.get("decision") not in ("approve", "reject"):
             frappe.throw(_("Unknown decision."))
@@ -245,6 +251,28 @@ def act(action: str, args=None):
         _nudge(company)
         return count
     frappe.throw(_("Unknown action."))
+
+
+def ai_suggestions(company: str) -> dict:
+    """Pending leads the AI leaned on either way (verdicts under the autopilot's confidence bar included)."""
+    rows = frappe.get_all("Sales Prospect", filters={"company": company, "review_status": "Pending",
+                                                     "ai_triage_verdict": ["in", ["approve", "reject"]]},
+                          fields=["name", "ai_triage_verdict"], limit=2000)
+    return {verdict: [r.name for r in rows if r.ai_triage_verdict == verdict] for verdict in ("approve", "reject")}
+
+
+def _accept_ai(company: str) -> dict:
+    """A person accepts every AI lean in one click; unsure leads stay. Same path as a manual review."""
+    from reckon_sales_agent import api
+
+    api._require_approver()
+    found = ai_suggestions(company)
+    note = _("Accepted the AI's suggestion in Agent Studio")
+    for decision, names in found.items():
+        for start in range(0, len(names), 200):  # review_prospects takes at most 200 at a time
+            api.review_prospects(json.dumps(names[start:start + 200]), decision, note)
+    _nudge(company)
+    return {"approved": len(found["approve"]), "rejected": len(found["reject"])}
 
 
 def _nudge(company: str) -> None:

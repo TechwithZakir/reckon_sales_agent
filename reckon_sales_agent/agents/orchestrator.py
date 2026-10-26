@@ -112,8 +112,10 @@ def plan(state: dict) -> list[Step]:
         if segment.get("count", 0) >= int(state.get("campaign_min_prospects") or 5):
             add(Step("Content", "draft_campaign", DO if auto and state.get("ai") else ASK,
                      f"Write a pilot campaign for {segment['label']}",
-                     f"{segment['count']} approved lead(s) are not in any campaign yet.",
-                     {"discovery": segment["discovery"]}))
+                     f"{segment['count']} approved lead(s) are not in any campaign yet "
+                     f"({segment.get('with_email', 0)} with email; the rest get a salesperson's call).",
+                     {"discovery": segment["discovery"], "count": segment["count"],
+                      "with_email": segment.get("with_email", 0)}))
 
     # Governance: launching and sending are a person's decision.
     for campaign in state.get("campaigns_pending") or []:
@@ -137,6 +139,13 @@ def plan(state: dict) -> list[Step]:
             add(Step("Analytics", "pause_campaign", ASK, f"Stop {campaign['label']}",
                      "The pilot does no better than its hold-out group.", {"campaign": campaign["name"]}))
     return steps
+
+
+def pilot_channels(with_email: int, total: int, whatsapp: bool = False) -> list[str]:
+    """The pilot's channel order. Most Bangladeshi distributors list only a phone: then a salesperson's call
+    (with an AI script) leads, and email follows for those who have one."""
+    channels = ["Email", "Call Task"] if total and with_email * 2 >= total else ["Call Task", "Email"]
+    return channels + (["WhatsApp"] if whatsapp else [])
 
 
 def lane_status(steps: list[Step], agent: str) -> str:
@@ -330,12 +339,14 @@ def _segments_ready(company: str) -> list[dict]:
                                fields=["name", "campaign_name"], limit=50):
         if disc.name in open_for:
             continue
-        prospects = frappe.get_all("Sales Prospect", filters={"company": company, "discovery_campaign": disc.name,
-                                                              "review_status": "Approved", "do_not_contact": 0,
-                                                              "email": ["is", "set"]}, pluck="name")
-        free = [p for p in prospects if p not in in_campaign]
+        # Reachable: a business email, or a phone and a CRM lead for a salesperson's call (phone-first pilot).
+        rows = frappe.get_all("Sales Prospect", filters={"company": company, "discovery_campaign": disc.name,
+                                                         "review_status": "Approved", "do_not_contact": 0},
+                              fields=["name", "email", "phone", "crm_lead"])
+        free = [r for r in rows if r.name not in in_campaign and (r.email or (r.phone and r.crm_lead))]
         if free:
-            ready.append({"discovery": disc.name, "label": disc.campaign_name, "count": len(free)})
+            ready.append({"discovery": disc.name, "label": disc.campaign_name, "count": len(free),
+                          "with_email": sum(1 for r in free if r.email)})
     return ready
 
 
@@ -628,8 +639,8 @@ def _draft_campaign(company: str, step: Step) -> str:
         "steps": [{"step_no": 1, "channel": "Email", "delay_days": 0, "subject_template": "Draft",
                    "body_template": "Draft"}],
     }).insert(ignore_permissions=True)
-    channels = ["Email", "WhatsApp"] if settings.whatsapp_enabled else ["Email"]
-    write_sequence(campaign, 3, channels)
+    write_sequence(campaign, 3, pilot_channels(step.ref.get("with_email", 0), step.ref.get("count", 0),
+                                               bool(settings.whatsapp_enabled)))
     campaign.reload()
     campaign.db_set("status", "Pending Approval")
     log_activity(company, "campaign_submitted", campaign, "Drafted by autopilot; a person approves the launch",
