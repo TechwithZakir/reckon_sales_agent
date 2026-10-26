@@ -44,6 +44,8 @@ class SourceRecord:
     fields: dict[str, Any]
     retrieved_at: str
     warnings: list[str] = field(default_factory=list)
+    # Other sources that found the same business in the same search (Smart Sources).
+    corroborated_by: list[str] = field(default_factory=list)
 
 
 class BusinessSourceConnector(Protocol):

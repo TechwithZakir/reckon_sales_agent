@@ -143,6 +143,26 @@ again (and by at least 10) after approval also needs a fresh approval.
 Every audit-trail entry (*Sales Agent Activity*) names the agent that acted
 and the policy outcome.
 
+**Research agent: verification and identity.** Smart Sources records every
+source that found the same business (*Found By Sources*). Several Google
+Maps providers count as one origin, since they read the same listing.
+**Identity confidence** starts at 40 for one source and adds 20 for each
+further independent source (up to 80), plus 10 each when the business's own
+website was read, when its listed phone appears on that site, and when a web
+search returns that site. A lead without a website, or found by only one
+source, gets a verification web search through the routed provider (Brave by
+default). The search finds the missing website or confirms the existing one;
+leads already corroborated skip it to save cost. Research looks for buying
+signals on the site: common ones such as hiring, a new branch, a depot, a
+dealership or a tender, in English and Bangla, plus the segment's own short
+signals from the market brief. Every outcome keeps a research record, even
+*Skipped* (no website, or research off), and still goes on to scoring.
+Syncing to the CRM links an existing CRM Lead for the same business (email,
+phone, website or organisation) instead of creating a duplicate. It only
+fills empty fields, never replacing what a person entered, and keeps
+agent-owned fields up to date: fit score, deal probability, identity
+confidence and research summary.
+
 **Search plans spread out.** Each run divides its leads over many keyword ×
 location pairs, at least 5 leads per search, with consecutive searches
 differing in both keyword and place. Each completed run moves the plan on,

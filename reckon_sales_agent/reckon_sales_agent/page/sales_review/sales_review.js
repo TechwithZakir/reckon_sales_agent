@@ -65,7 +65,9 @@ class ProspectReview {
 				<td><input type="checkbox" class="review-select" data-name="${e(p.name)}"></td>
 				<td><a href="/app/sales-prospect/${encodeURIComponent(p.name)}">${e(p.business_name)}</a>
 					${p.possible_duplicate_of ? `<div class="small text-warning">${__("Possible duplicate of")} ${e(p.possible_duplicate_of)}</div>` : ""}
-					<div class="small text-muted">${e(p.industry || "")} · ${e(p.city || "")}</div></td>
+					<div class="small text-muted">${e(p.industry || "")} · ${e(p.city || "")}</div>
+					${p.identity_confidence ? `<div class="small ${p.identity_confidence >= 60 ? "text-success" : "text-muted"}" title="${e(p.identity_notes || "")}">
+						${__("Identity {0}% · {1} source(s)", [score(p.identity_confidence), (p.sources_seen || "").split("\n").filter(Boolean).length || 1])}</div>` : ""}</td>
 				<td>${/^https?:\/\//i.test(p.website || "") ? `<a href="${e(p.website)}" target="_blank" rel="noopener noreferrer">${e(p.website)}</a>` : e(p.website || "–")}</td>
 				<td>${e(__(p.qualification_status || "Not scored"))}</td>
 				<td><b>${p.deal_probability ? score(p.deal_probability) + "%" : "–"}</b></td>

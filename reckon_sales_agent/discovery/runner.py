@@ -30,6 +30,7 @@ from reckon_sales_agent.discovery.normalize import (
     normalize_phone,
 )
 from reckon_sales_agent.discovery.planner import split_lines
+from reckon_sales_agent.research.identity import identity_confidence, merge_sources
 from reckon_sales_agent.usage import get_settings, log_activity, remaining, reserve
 
 MAX_ATTEMPTS = 3
@@ -232,6 +233,7 @@ def upsert_prospect(company: str, campaign, connector_doc, record, policy: dict)
         for field, info in provenance.items():
             merged.setdefault(field, info)
         prospect.provenance_json = json.dumps(merged, sort_keys=True)
+        prospect.sources_seen = merge_sources(prospect.get("sources_seen"), record.source_key, *record.corroborated_by)
         prospect.last_seen = now
         if changed:
             _set_normalized(prospect)
@@ -254,7 +256,11 @@ def upsert_prospect(company: str, campaign, connector_doc, record, policy: dict)
         "provenance_json": json.dumps(provenance, sort_keys=True),
         "review_status": "Pending",
         "possible_duplicate_of": find_possible_duplicate(company, kept),
+        "sources_seen": merge_sources(None, record.source_key or connector_doc.connector_type, *record.corroborated_by),
     })
+    confidence, reasons = identity_confidence(prospect.sources_seen.splitlines())
+    prospect.identity_confidence = confidence
+    prospect.identity_notes = " ".join(reasons)
     _set_normalized(prospect)
     from reckon_sales_agent.campaigns.suppression import is_suppressed
 

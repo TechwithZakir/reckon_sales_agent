@@ -37,17 +37,19 @@ def research_prospect(prospect_name: str) -> str | None:
     company = prospect.company
     platform = platform_settings()
     if not platform.research_enabled:
-        prospect.db_set("research_status", "Skipped")
-        return None
-    if not prospect.website:
-        found = _find_website(prospect, platform)
-        if found:
-            prospect.db_set("website", found)
-            prospect.reload()
+        name = _save_report(prospect, "Skipped", [], [], {}, "Website research is switched off by the platform vendor.")
+        update_identity(prospect.name)
+        _qualify(prospect.name)  # score from the listing data
+        return name
+    _verify(prospect, platform)
+    prospect.reload()
     if not prospect.website or is_reserved_domain(prospect.website):
-        prospect.db_set("research_status", "Skipped")
+        # Keep a record even when nothing could be researched, so reviewers see why.
+        reason = "No website found for this business." if not prospect.website else "Demo website (not real)."
+        name = _save_report(prospect, "Skipped", [], [], {}, reason)
+        update_identity(prospect.name)
         _qualify(prospect.name)
-        return None
+        return name
 
     user_agent = platform.user_agent or "ReckonSalesAgent/1.0"
     limits = dict(user_agent=user_agent, timeout=platform.fetch_timeout or 10,
@@ -58,6 +60,7 @@ def research_prospect(prospect_name: str) -> str | None:
     try:
         if not _robots_allow(home, user_agent, limits):
             name = _save_report(prospect, "Blocked", pages, [], {}, "The website's robots.txt disallows our crawler.")
+            update_identity(prospect.name)
             _qualify(prospect.name)  # still score from the listing data
             return name
         queue, seen = [home], set()
@@ -84,6 +87,7 @@ def research_prospect(prospect_name: str) -> str | None:
 
     if not pages:
         name = _save_report(prospect, "Failed", [], [], {}, "; ".join(errors)[:500] or "No page could be fetched.")
+        update_identity(prospect.name)
         _qualify(prospect.name)  # an unreachable site must not leave a real lead unscored
         return name
 
@@ -106,8 +110,71 @@ def research_prospect(prospect_name: str) -> str | None:
     status = "Done" if not errors else "Partial"
     name = _save_report(prospect, status, pages, facts, ai_data, "; ".join(errors)[:500], method, model)
     _reestablish_from_website(prospect, pages)
+    update_identity(prospect.name)
     _qualify(prospect.name)
     return name
+
+
+def _verify(prospect, platform) -> None:
+    """Search the web for the business: find its website, or confirm the one we have.
+
+    Skipped when two or more independent sources already found the business
+    (it is corroborated) and it has a website, to keep search costs down.
+    """
+    from reckon_sales_agent.connectors.base import ConnectorError
+    from reckon_sales_agent.discovery.normalize import normalize_domain
+    from reckon_sales_agent.providers.router import active, web_search
+    from reckon_sales_agent.research.identity import origins
+    from reckon_sales_agent.research.website_finder import pick_website
+
+    corroborated = len(origins((prospect.get("sources_seen") or "").splitlines())) >= 2
+    if prospect.website and corroborated:
+        return
+    if not active("web_search"):
+        if not prospect.website:
+            found = _find_website(prospect, platform)  # older Maps-provider website finder
+            if found:
+                prospect.db_set("website", found)
+        return
+    if remaining(prospect.company, USAGE_RESEARCH) <= 0:
+        return
+    reserve(prospect.company, USAGE_RESEARCH, 1, prospect)
+    frappe.db.commit()  # no transaction across the network call
+    try:
+        rows, provider = web_search(" ".join(filter(None, (prospect.business_name, prospect.city))), count=8)
+    except ConnectorError:
+        return
+    if not prospect.website:
+        found = pick_website(rows, prospect.business_name)
+        if found:
+            prospect.db_set({"website": found, "domain": normalize_domain(found), "search_confirmed": 1})
+            log_activity(prospect.company, "website_found", prospect, f"{found} via {provider}", "agent")
+        return
+    domain = normalize_domain(prospect.website)
+    if domain and any(normalize_domain(row["url"]) == domain for row in rows):
+        prospect.db_set("search_confirmed", 1)
+
+
+def update_identity(prospect_name: str) -> None:
+    """Recompute identity confidence from sources, the website and the web search."""
+    from reckon_sales_agent.discovery.normalize import normalize_phone
+    from reckon_sales_agent.research.identity import identity_confidence
+
+    prospect = frappe.get_doc("Sales Prospect", prospect_name)
+    website_confirmed = phone_confirmed = False
+    if prospect.latest_research:
+        report = frappe.get_doc("Sales Research Report", prospect.latest_research)
+        website_confirmed = report.status in ("Done", "Partial")
+        phone = normalize_phone(prospect.phone)
+        phone_confirmed = bool(phone) and any(
+            row.statement.startswith("Public phone:") and normalize_phone(row.statement.split(":", 1)[1]) == phone
+            for row in report.facts)
+    sources = (prospect.get("sources_seen") or prospect.source_type or "").splitlines()
+    confidence, reasons = identity_confidence(sources, website_confirmed=website_confirmed,
+                                              phone_confirmed=phone_confirmed,
+                                              search_confirmed=bool(prospect.get("search_confirmed")))
+    prospect.db_set({"identity_confidence": confidence, "identity_notes": " ".join(reasons)[:1000]},
+                    update_modified=False)
 
 
 def _find_website(prospect, platform) -> str | None:
@@ -158,14 +225,19 @@ def _robots_allow(home: str, user_agent: str, limits: dict) -> bool:
 
 
 def _profile_for(prospect) -> dict | None:
-    name = None
+    """Qualification profile, with the segment's buying signals added to the need keywords."""
+    from reckon_sales_agent.research.identity import signal_keywords
+
+    name = targeting = None
     if prospect.discovery_campaign:
-        name = frappe.db.get_value("Sales Discovery Campaign", prospect.discovery_campaign, "qualification_profile")
+        name, targeting = frappe.db.get_value("Sales Discovery Campaign", prospect.discovery_campaign,
+                                              ["qualification_profile", "targeting_profile"]) or (None, None)
     name = name or frappe.db.get_value("Sales Qualification Profile", {"company": prospect.company},
                                        "name", order_by="creation asc")
-    if not name:
-        return None
-    return frappe.get_doc("Sales Qualification Profile", name).as_dict()
+    profile = frappe.get_doc("Sales Qualification Profile", name).as_dict() if name else {}
+    interests = frappe.db.get_value("Sales Targeting Profile", targeting, "interests") if targeting else None
+    profile["need_keywords"] = "\n".join(filter(None, [profile.get("need_keywords"), *signal_keywords(interests)]))
+    return profile
 
 
 def _system_prompt(company: str) -> str:
@@ -209,7 +281,7 @@ def _save_report(prospect, status, pages, facts, ai_data, error, method="rules",
     }).insert(ignore_permissions=True)
     prospect.db_set({
         "latest_research": report.name,
-        "research_status": "Done" if status in ("Done", "Partial") else "Failed",
+        "research_status": "Done" if status in ("Done", "Partial") else "Skipped" if status == "Skipped" else "Failed",
     })
     log_activity(prospect.company, f"research_{status.lower()}", prospect, f"{len(facts)} facts", "agent")
     frappe.db.commit()

@@ -51,13 +51,16 @@ class DemoDomainTests(unittest.TestCase):
 
 class ResearchOutcomeTests(unittest.TestCase):
     def test_every_research_outcome_still_scores_the_lead(self):
-        # Failed, Blocked and Done reports all go on to scoring; a dead website must not hide a real lead.
+        # Every outcome keeps a research record, updates identity confidence and goes on to scoring:
+        # research off, skipped (no website), blocked, failed and done. A dead website must not hide a real lead.
         source = (APP / "research" / "runner.py").read_text(encoding="utf-8")
         lines = source.split("def research_prospect(")[1].split("\ndef ")[0].splitlines()
         reports = [i for i, line in enumerate(lines) if "_save_report(" in line]
-        self.assertEqual(len(reports), 3)  # Blocked, Failed, Done/Partial
+        self.assertEqual(len(reports), 5)
         for i in reports:
-            self.assertTrue(any("_qualify(prospect.name)" in line for line in lines[i + 1:i + 4]), lines[i])
+            following = lines[i + 1:i + 5]
+            self.assertTrue(any("_qualify(prospect.name)" in line for line in following), lines[i])
+            self.assertTrue(any("update_identity(prospect.name)" in line for line in following), lines[i])
 
 
 class RerunTests(unittest.TestCase):

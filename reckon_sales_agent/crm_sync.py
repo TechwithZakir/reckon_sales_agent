@@ -76,7 +76,9 @@ def sync_to_crm(prospect) -> str | None:
             org.website = data["website"]
             org.save()
 
-    lead_name = prospect.crm_lead
+    lead_name = prospect.crm_lead or find_existing_lead(data, prospect.company)
+    if lead_name and not prospect.crm_lead:
+        fill_empty_lead_fields(lead_name, data)  # same business already in the CRM: link, never duplicate
     if not lead_name:
         lead = frappe.get_doc({
             "doctype": "CRM Lead",
@@ -99,8 +101,55 @@ def sync_to_crm(prospect) -> str | None:
             "reference_docname": lead_name,
         }).insert()
     prospect.db_set({"crm_organization": organization, "crm_lead": lead_name})
+    update_crm_scores(prospect)
     log_activity(prospect.company, "crm_synced", prospect, f"lead {lead_name}")
     return lead_name
+
+
+def find_existing_lead(data: dict, company: str) -> str | None:
+    """A CRM Lead of this Company for the same business: same email, phone, website or organisation."""
+    from reckon_sales_agent.discovery.normalize import normalize_domain, normalize_phone
+
+    base = {"rsa_company": company}
+    for field, value in (("email", data.get("email")), ("organization", data.get("business_name"))):
+        if value:
+            name = frappe.db.get_value("CRM Lead", {**base, field: value}, "name")
+            if name:
+                return name
+    phone, domain = normalize_phone(data.get("phone")), normalize_domain(data.get("website"))
+    if phone or domain:
+        for row in frappe.get_all("CRM Lead", filters=base, fields=["name", "mobile_no", "phone", "website"],
+                                  order_by="modified desc", limit=2000):
+            if phone and phone in {normalize_phone(row.mobile_no), normalize_phone(row.phone)}:
+                return row.name
+            if domain and normalize_domain(row.website) == domain:
+                return row.name
+    return None
+
+
+def fill_empty_lead_fields(lead_name: str, data: dict) -> None:
+    """Add what the CRM Lead lacks; a value a person entered is never replaced."""
+    current = frappe.db.get_value("CRM Lead", lead_name, ["website", "email", "mobile_no"], as_dict=True) or {}
+    updates = {field: data[key] for field, key in (("website", "website"), ("email", "email"), ("mobile_no", "phone"))
+               if data.get(key) and not current.get(field)}
+    if updates:
+        frappe.db.set_value("CRM Lead", lead_name, updates)
+
+
+def update_crm_scores(prospect) -> None:
+    """Refresh the agent-owned fields on the prospect's CRM Lead (scores, identity, research summary)."""
+    if not prospect.crm_lead or not frappe.db.has_column("CRM Lead", "rsa_fit_score"):
+        return
+    summary = ""
+    if prospect.latest_research:
+        summary = frappe.db.get_value("Sales Research Report", prospect.latest_research, "summary") or ""
+    frappe.db.set_value("CRM Lead", prospect.crm_lead, {
+        "rsa_fit_score": prospect.fit_score or 0,
+        "rsa_deal_probability": prospect.deal_probability or 0,
+        "rsa_identity_confidence": prospect.get("identity_confidence") or 0,
+        "rsa_prospect": prospect.name,
+        "rsa_research_summary": summary[:1000],
+    }, update_modified=False)
 
 
 def _default_lead_status() -> str:

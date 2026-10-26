@@ -85,18 +85,23 @@ class MultiSourceConnector:
         if failures and len(failures) == len(self.sources):
             last = failures[-1]
             raise ConnectorError(f"Every lead source failed. Last: {last}", permanent=last.permanent, code=last.code)
-        seen: set[str] = set()
-        returned = 0
+        kept: list[SourceRecord] = []
+        owner: dict[str, SourceRecord] = {}  # dedup key -> the record that kept it
         for index in range(max((len(r) for r in results), default=0)):
             for records in results:  # round-robin, so every source contributes
                 if index >= len(records):
                     continue
                 record = records[index]
                 keys = _keys(record)
-                if keys & seen:
+                match = next((owner[k] for k in keys if k in owner), None)
+                if match:
+                    # The same business from another source: evidence it is real, not a new lead.
+                    if record.source_key != match.source_key and record.source_key not in match.corroborated_by:
+                        match.corroborated_by.append(record.source_key)
+                    for key in keys:
+                        owner.setdefault(key, match)
                     continue
-                seen |= keys
-                returned += 1
-                yield record
-                if returned >= query.max_results:
-                    return
+                for key in keys:
+                    owner[key] = record
+                kept.append(record)
+        yield from kept[:query.max_results]

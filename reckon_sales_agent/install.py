@@ -51,6 +51,7 @@ def after_install() -> None:
 def after_migrate() -> None:
     setup_roles()
     ensure_crm_company_fields()
+    ensure_crm_agent_fields()
     ensure_shared_lead_source()
     ensure_workspace_sidebar()
     from reckon_sales_agent.access import backfill_users
@@ -117,6 +118,32 @@ def ensure_crm_company_fields() -> None:
         frappe.clear_cache(doctype=doctype)
     if is_scoping_active():
         backfill_crm_companies()
+
+
+# Agent-owned fields on CRM Lead: the agent may update these; it never edits fields people fill in.
+CRM_AGENT_FIELDS = (
+    {"fieldname": "rsa_agent_section", "fieldtype": "Section Break", "label": "Sales Agent", "collapsible": 1},
+    {"fieldname": "rsa_fit_score", "fieldtype": "Float", "label": "Agent Fit Score", "read_only": 1},
+    {"fieldname": "rsa_deal_probability", "fieldtype": "Percent", "label": "Agent Deal Probability", "read_only": 1},
+    {"fieldname": "rsa_identity_confidence", "fieldtype": "Percent", "label": "Agent Identity Confidence",
+     "read_only": 1},
+    {"fieldname": "rsa_agent_col", "fieldtype": "Column Break"},
+    {"fieldname": "rsa_prospect", "fieldtype": "Link", "label": "Sales Agent Prospect", "options": "Sales Prospect",
+     "read_only": 1},
+    {"fieldname": "rsa_research_summary", "fieldtype": "Small Text", "label": "Agent Research Summary", "read_only": 1},
+)
+
+
+def ensure_crm_agent_fields() -> None:
+    if not frappe.db.exists("DocType", "CRM Lead"):
+        return
+    previous = None
+    for field in CRM_AGENT_FIELDS:
+        if not frappe.db.exists("Custom Field", {"dt": "CRM Lead", "fieldname": field["fieldname"]}):
+            frappe.get_doc({"doctype": "Custom Field", "dt": "CRM Lead", "no_copy": 1,
+                            "insert_after": previous or COMPANY_FIELD, **field}).insert(ignore_permissions=True)
+        previous = field["fieldname"]
+    frappe.clear_cache(doctype="CRM Lead")
 
 
 def _has_column(doctype: str, column: str) -> bool:

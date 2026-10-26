@@ -96,6 +96,10 @@ def qualify_prospect(prospect_name: str) -> str:
                  f"{qualification.override_result or result['result']} (score {combined}, "
                  f"probability {probability}%, {result['scoring_version']})", "system")
     _sync_deal_probability(prospect.crm_lead, probability)
+    from reckon_sales_agent.crm_sync import update_crm_scores
+
+    prospect.reload()
+    update_crm_scores(prospect)
 
     from reckon_sales_agent.autopilot import maybe_auto_approve
 

@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-25 20:30:00.000000",
+ "modified": "2026-10-26 06:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -49,6 +49,12 @@
   "normalized_phone",
   "provenance_json",
   "possible_duplicate_of",
+  "identity_section",
+  "identity_confidence",
+  "search_confirmed",
+  "identity_col",
+  "sources_seen",
+  "identity_notes",
   "merged_into",
   "scoring_section",
   "research_status",
@@ -284,6 +290,41 @@
    "fieldtype": "Link",
    "label": "Possible Duplicate Of",
    "options": "Sales Prospect",
+   "read_only": 1
+  },
+  {
+   "fieldname": "identity_section",
+   "fieldtype": "Section Break",
+   "label": "Identity"
+  },
+  {
+   "fieldname": "identity_confidence",
+   "fieldtype": "Percent",
+   "label": "Identity Confidence",
+   "read_only": 1,
+   "in_list_view": 1,
+   "description": "How sure the agent is that this is one real business."
+  },
+  {
+   "fieldname": "search_confirmed",
+   "fieldtype": "Check",
+   "label": "Website Confirmed by Web Search",
+   "read_only": 1
+  },
+  {
+   "fieldname": "identity_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sources_seen",
+   "fieldtype": "Small Text",
+   "label": "Found By Sources",
+   "read_only": 1
+  },
+  {
+   "fieldname": "identity_notes",
+   "fieldtype": "Small Text",
+   "label": "Identity Notes",
    "read_only": 1
   },
   {
