@@ -77,7 +77,10 @@ def status() -> dict:
         "team": {
             "sender_name": settings.sender_name or "", "physical_address": settings.physical_address or "",
             "task_assignee": settings.get("task_assignee") or "", "digest_recipients": settings.get("digest_recipients") or "",
-            "suggested_sender": me.get("full_name") or "", "suggested_address": _company_address(company),
+            # Live: "Administrator" was suggested as the email signature; a real person's name reads better.
+            "suggested_sender": (f"{me.get('full_name')} from {company}"
+                                 if me.get("full_name") and user != "Administrator" else f"{company} sales team"),
+            "suggested_address": _company_address(company),
             "users": _company_users(company),
         },
         "sources": {"providers": providers, "connector_ready": state["connector_ready"]},

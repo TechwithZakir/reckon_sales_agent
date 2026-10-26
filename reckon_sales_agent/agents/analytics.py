@@ -49,6 +49,13 @@ REPLY_EVENTS = ("received", "call_interested", "call_callback", "call_not_intere
 POSITIVE_EVENTS = ("positive_reply", "meeting_requested", "call_interested")
 
 
+def reply_rate(events: list[tuple[str, str]], contact_types, reply_types) -> float:
+    """Percent of leads (campaign members) contacted in a period who replied in it; never above 100."""
+    contacted = {member for kind, member in events if kind in contact_types and member}
+    replied = {member for kind, member in events if kind in reply_types and member} & contacted
+    return round(100.0 * len(replied) / len(contacted), 1) if contacted else 0.0
+
+
 def daily_buckets(stamps: list[str], first_day: str, days: int) -> list[int]:
     """Counts per day for ``days`` days from ``first_day`` ('YYYY-MM-DD'); stamps outside are ignored."""
     from datetime import date, timedelta

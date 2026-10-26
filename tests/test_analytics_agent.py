@@ -24,6 +24,19 @@ class DashboardTests(unittest.TestCase):
         stamps = ["2026-10-25 09:00:00", "2026-10-27 10:00:00", "2026-10-27 23:59:59", "2026-10-20 08:00:00"]
         self.assertEqual(daily_buckets(stamps, "2026-10-25", 3), [1, 0, 2])  # the day outside is ignored
 
+    def test_reply_rate_is_a_share_of_contacted_leads(self):
+        from reckon_sales_agent.agents.analytics import CONTACT_EVENTS, REPLY_EVENTS, reply_rate
+
+        # Live: two replies to one contacted lead showed "200%".
+        events = [("dry_run", "M1"), ("received", "M1"), ("received", "M1"), ("received", "M9")]
+        self.assertEqual(reply_rate(events, CONTACT_EVENTS, REPLY_EVENTS), 100.0)  # M9 was not contacted here
+        self.assertEqual(reply_rate([("sent", "M1"), ("sent", "M2")], CONTACT_EVENTS, REPLY_EVENTS), 0.0)
+        self.assertEqual(reply_rate([], CONTACT_EVENTS, REPLY_EVENTS), 0.0)
+
+    def test_old_activity_rows_are_attributed_by_action(self):
+        dash = (APP / "agents" / "analytics_agent.py").read_text(encoding="utf-8").split("def dashboard(")[1]
+        self.assertIn("row.agent or agent_for(row.action)", dash)
+
     def test_change_against_the_previous_period(self):
         from reckon_sales_agent.agents.analytics import change
 

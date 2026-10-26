@@ -106,7 +106,9 @@ def dashboard(company: str, days: int = 30, campaign: str | None = None) -> dict
         call_summary,
         change,
         daily_buckets,
+        reply_rate,
     )
+    from reckon_sales_agent.agents.policy import agent_for
     from reckon_sales_agent.campaigns.calls import EVENT
 
     today = nowdate()
@@ -131,7 +133,7 @@ def dashboard(company: str, days: int = 30, campaign: str | None = None) -> dict
                            fields=["creation", "qualification_status", "crm_lead", "review_status"], limit=100000)
     events = frappe.get_all("Sales Communication Event",
                             filters={**event_filter, "event_time": [">=", f"{prev_start} 00:00:00"]},
-                            fields=["event_type", "event_time"], limit=200000)
+                            fields=["event_type", "event_time", "member"], limit=200000)
     now_leads = [r for r in leads if str(r.creation)[:10] >= str(start)]
     old_leads = [r for r in leads if str(r.creation)[:10] < str(start)]
 
@@ -146,8 +148,12 @@ def dashboard(company: str, days: int = 30, campaign: str | None = None) -> dict
     deals_now = [d for d in deals if str(d.creation)[:10] >= str(start)]
     deals_old = [d for d in deals if str(d.creation)[:10] < str(start)]
 
-    def rate(a, b):
-        return round(100.0 * len(a) / len(b), 1) if b else 0.0
+    def members_rate(rows_from_period):
+        # Share of contacted leads that replied (live: counting events gave 200%, a reply to an earlier message).
+        return reply_rate([(e.event_type, e.member) for e in rows_from_period], CONTACT_EVENTS, REPLY_EVENTS)
+
+    now_events = [e for e in events if str(e.event_time)[:10] >= str(start)]
+    old_events = [e for e in events if str(e.event_time)[:10] < str(start)]
 
     kpis = {
         "leads": change(len(now_leads), len(old_leads)),
@@ -155,7 +161,7 @@ def dashboard(company: str, days: int = 30, campaign: str | None = None) -> dict
                             sum(r.qualification_status == "Qualified" for r in old_leads)),
         "in_crm": change(sum(bool(r.crm_lead) for r in now_leads), sum(bool(r.crm_lead) for r in old_leads)),
         "contacted": change(len(contacted_now), len(contacted_old)),
-        "reply_rate": change(rate(replies_now, contacted_now), rate(replies_old, contacted_old)),
+        "reply_rate": change(members_rate(now_events), members_rate(old_events)),
         "positive": change(len(positive_now), len(positive_old)),
         "deals": change(len(deals_now), len(deals_old)),
         "won_value": change(round(sum(d.value for d in deals_now if d.status in won), 2),
@@ -174,9 +180,11 @@ def dashboard(company: str, days: int = 30, campaign: str | None = None) -> dict
                               fields=["agent", "creation", "action"], limit=200000):
         if row.action.startswith(("digest_", "autopilot_run")):
             continue  # reports and heartbeats, not work
-        activity.setdefault(row.agent or "Governance", []).append(row.creation)
+        # Rows logged before the agent field existed: the action says whose work it was (live: 660 such rows
+        # all showed as Governance).
+        activity.setdefault(row.agent or agent_for(row.action), []).append(row.creation)
     agents = ("Research", "Content", "Governance", "Engagement", "Analytics")
-    calls_now = [e for e in events if str(e.event_time)[:10] >= str(start)]
+    calls_now = now_events
     call_counts = {event: sum(1 for e in calls_now if e.event_type == event) for event in EVENT.values()}
     triage = frappe.get_all("Sales Prospect", filters={**lead_filter, "ai_triaged_on": [">=", f"{start} 00:00:00"]},
                             pluck="ai_triage_verdict", limit=100000)
