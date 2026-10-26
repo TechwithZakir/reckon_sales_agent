@@ -137,6 +137,7 @@ scheduler_events = {
         "reckon_sales_agent.campaigns.engine.run_campaign_tick",
         "reckon_sales_agent.jobs.recover_stuck_jobs",
         "reckon_sales_agent.jobs.run_scheduled_discovery",
+        "reckon_sales_agent.agents.social_agent.publish_due_posts",
     ],
     "daily": [
         "reckon_sales_agent.jobs.purge_expired_source_data",

@@ -253,6 +253,32 @@ human decisions.
   Claude adds its analysis of the aggregated numbers when AI is on. Pilot
   campaigns are measured weekly, or on demand with *Measure now*.
 
+**Social publishing (official APIs only).** Companies connect their own
+**Social Accounts**: a Facebook Page, an Instagram professional account, or
+a LinkedIn organization page. Each is stored with an encrypted token, and
+*Check Connection* tests it.
+
+A **Social Post** has a topic, main text, hashtags, an image (it must be a
+public file), alt text, a link, a publish time, and one target row per
+account, each with its own caption. *Write with AI* lets the Content agent
+write a caption for each platform, in English or Bangla, from approved
+knowledge only, plus hashtags and alt text. Every save runs the content
+check and the platform rules: caption and hashtag limits, and Instagram's
+image requirement.
+
+A person approves the exact text, image, accounts and time; any change
+needs approval again. Publishing uses only the official APIs:
+
+- **Facebook:** Graph API `/{page-id}/feed` or `/photos`.
+- **Instagram:** a media container, then `media_publish`.
+- **LinkedIn:** Posts API, with the Images API for pictures.
+
+Each target keeps its post id and URL. Scheduled posts go out hourly. A post
+an API cannot take (for example Instagram without an image) becomes a task
+for the post's owner; nothing is automated through a browser. The vendor
+enables *Social Publishing* and keeps the *Meta Graph API Version* and the
+*LinkedIn API Version* current.
+
 **Search plans spread out.** Each run divides its leads over many keyword ×
 location pairs, at least 5 leads per search, with consecutive searches
 differing in both keyword and place. Each completed run moves the plan on,

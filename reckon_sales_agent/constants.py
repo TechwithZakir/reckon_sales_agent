@@ -54,9 +54,11 @@ COMPANY_DOCTYPES = (
     "Sales Business Profile",
     "Sales Market Brief",
     "Sales Knowledge Item",
+    "Sales Social Account",
+    "Sales Social Post",
 )
 CHILD_DOCTYPES = ("Sales Planned Query", "Sales Research Fact", "Sales Campaign Step", "Sales Target Location",
-                  "Sales Market Segment", "Sales Provider Budget")
+                  "Sales Market Segment", "Sales Provider Budget", "Sales Social Post Target")
 # Vendor-only records (no company): provider request counts for budgets.
 VENDOR_DOCTYPES = ("Sales Provider Usage",)
 CHANNELS = ("Email", "SMS", "WhatsApp", "Call Task", "LinkedIn Task")

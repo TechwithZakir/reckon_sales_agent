@@ -1,0 +1,261 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Social Post",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-10-26 10:00:00.000000",
+ "modified": "2026-10-26 10:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 0,
+ "issingle": 0,
+ "editable_grid": 0,
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "field_order": [
+  "company",
+  "title",
+  "status",
+  "scheduled_at",
+  "head_col",
+  "language",
+  "campaign",
+  "targeting_profile",
+  "content_section",
+  "content",
+  "hashtags",
+  "content_col",
+  "image",
+  "alt_text",
+  "link_url",
+  "targets_section",
+  "targets",
+  "check_section",
+  "content_status",
+  "content_issues",
+  "check_col",
+  "approved_by",
+  "approved_on",
+  "approval_fingerprint",
+  "published_on"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "search_index": 1,
+   "remember_last_selected_value": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Topic",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "What the post is about; the Content agent writes from this and your approved knowledge."
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "default": "Draft",
+   "options": "Draft\nPending Approval\nApproved\nScheduled\nPublished\nPartly Published\nFailed\nCancelled"
+  },
+  {
+   "fieldname": "scheduled_at",
+   "fieldtype": "Datetime",
+   "label": "Publish At",
+   "in_list_view": 1,
+   "description": "Empty: publish when approved and you press Publish."
+  },
+  {
+   "fieldname": "head_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "language",
+   "fieldtype": "Select",
+   "label": "Language",
+   "options": "English\nBangla",
+   "default": "English"
+  },
+  {
+   "fieldname": "campaign",
+   "fieldtype": "Link",
+   "label": "Campaign",
+   "options": "Sales Campaign"
+  },
+  {
+   "fieldname": "targeting_profile",
+   "fieldtype": "Link",
+   "label": "Audience Segment",
+   "options": "Sales Targeting Profile"
+  },
+  {
+   "fieldname": "content_section",
+   "fieldtype": "Section Break",
+   "label": "Content"
+  },
+  {
+   "fieldname": "content",
+   "fieldtype": "Text",
+   "label": "Main Text"
+  },
+  {
+   "fieldname": "hashtags",
+   "fieldtype": "Small Text",
+   "label": "Hashtags",
+   "description": "Added to each platform's text if not already there."
+  },
+  {
+   "fieldname": "content_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "image",
+   "fieldtype": "Attach Image",
+   "label": "Image",
+   "description": "Must be a public file: Facebook and Instagram fetch it by URL."
+  },
+  {
+   "fieldname": "alt_text",
+   "fieldtype": "Small Text",
+   "label": "Image Alt Text"
+  },
+  {
+   "fieldname": "link_url",
+   "fieldtype": "Data",
+   "label": "Link",
+   "options": "URL"
+  },
+  {
+   "fieldname": "targets_section",
+   "fieldtype": "Section Break",
+   "label": "Where to Publish"
+  },
+  {
+   "fieldname": "targets",
+   "fieldtype": "Table",
+   "label": "Accounts",
+   "options": "Sales Social Post Target"
+  },
+  {
+   "fieldname": "check_section",
+   "fieldtype": "Section Break",
+   "label": "Content Check and Approval"
+  },
+  {
+   "fieldname": "content_status",
+   "fieldtype": "Select",
+   "label": "Content Check",
+   "options": "Not checked\nPassed\nNeeds review",
+   "default": "Not checked",
+   "read_only": 1
+  },
+  {
+   "fieldname": "content_issues",
+   "fieldtype": "Small Text",
+   "label": "Issues to Review",
+   "read_only": 1
+  },
+  {
+   "fieldname": "check_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "approved_by",
+   "fieldtype": "Link",
+   "label": "Approved By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "approved_on",
+   "fieldtype": "Datetime",
+   "label": "Approved On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "approval_fingerprint",
+   "fieldtype": "Data",
+   "label": "Approval Fingerprint",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "published_on",
+   "fieldtype": "Datetime",
+   "label": "Published On",
+   "read_only": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Vendor Superuser",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Admin",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "Reckon Sales Agent User",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  }
+ ],
+ "autoname": "hash",
+ "naming_rule": "Random",
+ "title_field": "title",
+ "show_title_field_in_link": 1
+}

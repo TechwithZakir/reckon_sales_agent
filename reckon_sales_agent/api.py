@@ -276,6 +276,49 @@ def approve_knowledge(items) -> int:
     return approve(_names(items))
 
 
+# Social publishing ---------------------------------------------------------------
+
+
+@frappe.whitelist()
+def write_social_post(post: str) -> int:
+    from reckon_sales_agent.agents.social_agent import write_post
+
+    doc = get_tenant_doc("Sales Social Post", post, "write")
+    assert_entitled(doc.company)
+    return write_post(doc)
+
+
+@frappe.whitelist()
+def submit_social_post(post: str) -> None:
+    from reckon_sales_agent.agents.social_agent import submit
+
+    submit(get_tenant_doc("Sales Social Post", post, "write"))
+
+
+@frappe.whitelist()
+def approve_social_post(post: str, acknowledge_issues: int = 0) -> str:
+    from reckon_sales_agent.agents.social_agent import approve
+
+    _require_approver()
+    return approve(get_tenant_doc("Sales Social Post", post, "write"), bool(int(acknowledge_issues or 0)))
+
+
+@frappe.whitelist()
+def publish_social_post(post: str) -> str:
+    from reckon_sales_agent.agents.social_agent import publish
+
+    doc = get_tenant_doc("Sales Social Post", post, "write")
+    assert_entitled(doc.company)
+    return publish(doc)
+
+
+@frappe.whitelist()
+def check_social_account(account: str) -> str:
+    from reckon_sales_agent.agents.social_agent import check_account
+
+    return check_account(get_tenant_doc("Sales Social Account", account, "write"))
+
+
 @frappe.whitelist()
 def pause_campaign(campaign: str) -> None:
     doc = get_tenant_doc("Sales Campaign", campaign, "write")

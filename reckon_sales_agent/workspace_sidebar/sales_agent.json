@@ -183,6 +183,28 @@
   },
   {
    "type": "Link",
+   "label": "Social Posts",
+   "link_to": "Sales Social Post",
+   "link_type": "DocType",
+   "icon": "megaphone",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Social Accounts",
+   "link_to": "Sales Social Account",
+   "link_type": "DocType",
+   "icon": "megaphone",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
    "label": "Messages",
    "link_to": "Sales Outreach Message",
    "link_type": "DocType",

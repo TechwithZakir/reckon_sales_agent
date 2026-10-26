@@ -1,0 +1,94 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Social Post Target",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-10-26 10:00:00.000000",
+ "modified": "2026-10-26 10:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 1,
+ "issingle": 0,
+ "editable_grid": 1,
+ "track_changes": 0,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "field_order": [
+  "social_account",
+  "platform",
+  "caption",
+  "status",
+  "post_url",
+  "external_post_id",
+  "published_on",
+  "error"
+ ],
+ "fields": [
+  {
+   "fieldname": "social_account",
+   "fieldtype": "Link",
+   "label": "Account",
+   "options": "Sales Social Account",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "platform",
+   "fieldtype": "Data",
+   "label": "Platform",
+   "read_only": 1,
+   "in_list_view": 1,
+   "fetch_from": "social_account.platform",
+   "columns": 1
+  },
+  {
+   "fieldname": "caption",
+   "fieldtype": "Text",
+   "label": "Caption for This Platform",
+   "in_list_view": 1,
+   "columns": 4,
+   "description": "Empty: the post's main text is used."
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Pending\nPublished\nFailed\nManual",
+   "default": "Pending",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "post_url",
+   "fieldtype": "Data",
+   "label": "Post URL",
+   "options": "URL",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "external_post_id",
+   "fieldtype": "Data",
+   "label": "Post ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "published_on",
+   "fieldtype": "Datetime",
+   "label": "Published On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "error",
+   "fieldtype": "Small Text",
+   "label": "Error",
+   "read_only": 1
+  }
+ ],
+ "permissions": []
+}
