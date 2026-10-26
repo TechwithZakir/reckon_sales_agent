@@ -76,11 +76,12 @@ def plan(state: dict) -> list[Step]:
                      f"{state['running_jobs']} search job(s) running."))
 
     # Review: clear misfits are set aside and strong leads approved by policy; the rest go to a person.
-    set_aside = state.get("pending_foreign", 0) + state.get("pending_weak", 0)
+    set_aside = state.get("pending_foreign", 0) + state.get("pending_weak", 0) + state.get("pending_demo", 0)
     if set_aside and auto:
-        add(Step("Research", "auto_triage", DO, "Set aside weak and out-of-market leads",
-                 f"{state.get('pending_foreign', 0)} in another country, {state.get('pending_weak', 0)} scored "
-                 "below your review threshold."))
+        parts = [f"{state[key]} {label}" for key, label in (
+            ("pending_foreign", "in another country"), ("pending_weak", "scored below your review threshold"),
+            ("pending_demo", "from the demo source")) if state.get(key)]
+        add(Step("Research", "auto_triage", DO, "Set aside weak and out-of-market leads", ", ".join(parts) + "."))
     if state.get("pending_untriaged") and state.get("ai"):
         if auto and state.get("ai_triage"):
             add(Step("Research", "ai_triage", DO, "Judge borderline leads with AI",
@@ -194,8 +195,9 @@ def collect_state(company: str) -> dict:
     state["pending_human"] = count("Sales Prospect", review_status="Pending", qualification_status="Needs Review")
     foreign = {name for name, _reason in foreign_pending(company)}
     state["pending_foreign"] = len(foreign)
-    demo = set(demo_pending(company))
-    state["pending_weak"] = len((set(weak_pending(company)) | demo) - foreign)
+    demo = set(demo_pending(company)) - foreign
+    state["pending_demo"] = len(demo)
+    state["pending_weak"] = len(set(weak_pending(company)) - foreign - demo)
     from reckon_sales_agent.agents.contacts import missing_email
     from reckon_sales_agent.agents.learning import lessons
     from reckon_sales_agent.agents.triage import untriaged

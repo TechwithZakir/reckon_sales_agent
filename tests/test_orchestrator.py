@@ -97,6 +97,11 @@ class PlanTests(unittest.TestCase):
         self.assertIn("auto_approval_decision(p, rules, approved_today)",
                       source.split("def _split_qualified(")[1].split("\ndef ")[0])
 
+    def test_set_aside_step_names_each_reason(self):
+        step = next(s for s in plan({**READY, "autopilot": True, "pending_demo": 44, "pending_weak": 2})
+                    if s.key == "auto_triage")
+        self.assertEqual(step.detail, "2 scored below your review threshold, 44 from the demo source.")
+
     def test_campaigns_are_drafted_with_enough_leads_and_never_launched_alone(self):
         segment = {"discovery": "DISC-1", "label": "Pharma", "count": 6}
         auto = {**READY, "autopilot": True, "segments_ready": [segment], "campaign_min_prospects": 5}
