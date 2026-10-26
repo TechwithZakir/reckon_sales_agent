@@ -37,7 +37,8 @@ TRIAGE_SYSTEM = (
     "rather than a business, a bank, a manufacturer's head office when the segment is distributors), unsure when "
     "the evidence is too thin. confidence: 0 to 1. reason: one sentence citing the evidence. exclude_term: only "
     "when rejecting, one or two words copied from the business name or listing that would mark similar misfits "
-    "(e.g. 'computer', 'bank', 'market'); never a word describing the wanted buyers; otherwise empty."
+    "(e.g. 'computer', 'bank', 'hypermarket'); never a word describing the wanted buyers, a generic company word "
+    "(group, limited, products, company, enterprise) or a brand name; otherwise empty."
 )
 
 
@@ -52,9 +53,24 @@ def triage_outcome(verdict: str, confidence: float, *, min_confidence: float = D
     return "person"
 
 
+# Words in many company names that say nothing about the trade. Live test: the model offered "group" and
+# "products limited" as misfit markers, which would have excluded every "X Group" distributor.
+GENERIC_TERMS = frozenset({
+    "group", "limited", "ltd", "pvt", "private", "plc", "company", "co", "corporation", "corp", "inc", "enterprise",
+    "enterprises", "international", "industries", "industry", "products", "product", "trading", "traders", "house",
+    "bangladesh", "bd", "dhaka", "chattogram", "the", "and", "&", "office", "branch", "center", "centre", "brothers",
+    "sons", "associates", "agency", "agencies", "global", "world", "new", "best", "store", "shop",
+})
+
+
+def is_generic(term: str) -> bool:
+    return all(word in GENERIC_TERMS for word in term.lower().replace("&", " & ").split())
+
+
 def clean_verdict(data: dict) -> dict:
     verdict = data.get("verdict") if data.get("verdict") in VERDICTS else "unsure"
     term = " ".join(str(data.get("exclude_term") or "").split())[:40].lower()
+    term = "" if is_generic(term) else term
     return {
         "verdict": verdict,
         "confidence": round(min(max(float(data.get("confidence") or 0), 0.0), 1.0), 2),

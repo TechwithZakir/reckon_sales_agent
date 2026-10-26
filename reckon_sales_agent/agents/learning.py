@@ -26,29 +26,38 @@ def _lines(value) -> list[str]:
 
 
 def learn(decisions: list[dict], profile: dict) -> dict:
-    """``decisions``: {"keyword", "term", "name", "approved"} per decided lead. Returns {"exclude", "retire"}."""
+    """``decisions``: {"keyword", "term", "name", "approved"} per lead; approved is None while it is undecided.
+
+    Returns {"exclude", "retire"}.
+    """
     keywords = _lines(profile.get("keywords"))
     wanted = " ".join(_lines(profile.get("keywords")) + _lines(profile.get("b2b_segments"))
                       + _lines(profile.get("industries"))).lower()
     excluded = {x.lower() for x in _lines(profile.get("exclude_keywords"))}
     approved_names = " ".join((d.get("name") or "").lower() for d in decisions if d.get("approved"))
 
+    from reckon_sales_agent.agents.triage import is_generic
+
     rejected_terms: dict[str, int] = {}
     for d in decisions:
         term = (d.get("term") or "").strip().lower()
-        if term and not d.get("approved"):
+        if term and d.get("approved") is False and not is_generic(term):  # markers stored before the filter
             rejected_terms[term] = rejected_terms.get(term, 0) + 1
     exclude = sorted(term for term, count in rejected_terms.items()
                      if count >= MIN_REJECTIONS_TO_EXCLUDE and term not in excluded and term not in wanted
                      and term not in approved_names)
 
-    per_keyword: dict[str, list[bool]] = {}
+    # Live test: "medicine wholesaler" was about to retire on five low-score rejections while five of its leads,
+    # one scoring 60, were still undecided. A keyword is judged only once all its leads are decided.
+    per_keyword: dict[str, list] = {}
     for d in decisions:
         if d.get("keyword"):
-            per_keyword.setdefault(d["keyword"].strip().lower(), []).append(bool(d.get("approved")))
+            per_keyword.setdefault(d["keyword"].strip().lower(), []).append(d.get("approved"))
     retire = []
     for keyword in keywords:
         outcomes = per_keyword.get(keyword.lower(), [])
+        if None in outcomes:
+            continue
         if len(outcomes) >= MIN_DECISIONS_TO_RETIRE and not any(outcomes):
             retire.append(keyword)
     retire = retire[:max(0, len(keywords) - KEEP_KEYWORDS)]
@@ -68,13 +77,14 @@ def lessons(company: str) -> list[dict]:
         campaigns = frappe.get_all("Sales Discovery Campaign", filters={"targeting_profile": target}, pluck="name")
         rows = frappe.get_all("Sales Prospect", filters={
             "company": company, "discovery_campaign": ["in", campaigns],
-            "review_status": ["in", ["Approved", "Rejected"]]},
+            "review_status": ["in", ["Approved", "Rejected", "Pending"]]},
             fields=["industry", "ai_exclude_term", "business_name", "review_status"], limit=5000)
         if not rows:
             continue
         profile = frappe.get_doc("Sales Targeting Profile", target)
         found = learn([{"keyword": r.industry, "term": r.ai_exclude_term, "name": r.business_name,
-                        "approved": r.review_status == "Approved"} for r in rows], profile.as_dict())
+                        "approved": None if r.review_status == "Pending" else r.review_status == "Approved"}
+                       for r in rows], profile.as_dict())
         if found["exclude"] or found["retire"]:
             out.append({"profile": target, "label": profile.profile_name, **found})
     return out

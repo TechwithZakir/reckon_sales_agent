@@ -46,6 +46,16 @@ class TriageTests(unittest.TestCase):
         self.assertEqual(approve["exclude_term"], "")  # only rejections teach exclusions
         self.assertEqual(clean_verdict({"verdict": "reject", "exclude_term": "a b c"})["exclude_term"], "")
 
+    def test_generic_company_words_are_never_markers(self):
+        # Live test: the model offered "group" and "products limited" (Mashud Group, Peoria Food Products Limited).
+        for term in ("group", "products limited", "Enterprise", "trading house"):
+            self.assertEqual(clean_verdict({"verdict": "reject", "confidence": 0.9, "exclude_term": term})
+                             ["exclude_term"], "", term)
+        self.assertEqual(clean_verdict({"verdict": "reject", "exclude_term": "hypermarket"})["exclude_term"],
+                         "hypermarket")
+        rows = [{"keyword": "", "term": "group", "name": "g", "approved": False}] * 5
+        self.assertEqual(learn(rows, FMCG)["exclude"], [])
+
     def test_schema_and_prompt(self):
         self.assertFalse(TRIAGE_SCHEMA["additionalProperties"])
         self.assertEqual(set(TRIAGE_SCHEMA["required"]), set(TRIAGE_SCHEMA["properties"]))
@@ -69,6 +79,14 @@ class LearningTests(unittest.TestCase):
         found = learn(self.decisions(), FMCG)
         self.assertEqual(found["exclude"], ["computer", "market"])  # "bank" seen once only
         self.assertEqual(found["retire"], ["পাইকারি বাজার"])  # five leads, none approved
+
+    def test_a_keyword_is_judged_only_when_all_its_leads_are_decided(self):
+        rows = [{"keyword": "food distributor", "term": "", "name": "r", "approved": False}] * 5
+        self.assertEqual(learn(rows, FMCG)["retire"], ["food distributor"])
+        pending = rows + [{"keyword": "food distributor", "term": "", "name": "p", "approved": None}]
+        self.assertEqual(learn(pending, FMCG)["retire"], [])
+        terms = [{"keyword": "", "term": "computer", "name": "c", "approved": None}] * 4
+        self.assertEqual(learn(terms, FMCG)["exclude"], [])  # undecided leads teach nothing
 
     def test_guards(self):
         rows = [{"keyword": "x", "term": "distributor", "name": "n", "approved": False}] * 4
