@@ -332,7 +332,8 @@
 		}
 
 		ask_followups(body, a) {
-			const due = (d) => (d ? " · " + __("due {0}", [frappe.datetime.str_to_user(d)]) : "");
+			// CRM tasks carry a datetime; the date is enough (live test: "due 27-10-2026 00:00:00").
+			const due = (d) => (d ? " · " + __("due {0}", [frappe.datetime.str_to_user(String(d).slice(0, 10))]) : "");
 			const calls = (a.todos || []).map((t) => `<div class="ags-lead" data-todo="${e(t.name)}"><details class="grow">
 				<summary><b>${e(t.business || t.prospect)}</b>
 					${t.phone ? ` · <a href="tel:${e(t.phone)}" title="${__("Call")}">${e(t.phone)}</a>` : ""}
