@@ -1,0 +1,87 @@
+/* Get Started: guided setup. Uses Reckon Aura variables when present, Frappe's otherwise (light and dark). */
+.sus {
+	--sus-accent: var(--aura-accent, var(--primary, #2a78d6));
+	--sus-soft: color-mix(in srgb, var(--sus-accent) 12%, transparent);
+	--sus-card: var(--aura-surface, var(--card-bg, #fff));
+	--sus-line: var(--aura-line, var(--border-color, #e3e5ea));
+	--sus-text: var(--aura-text, var(--text-color, #1f2328));
+	--sus-muted: var(--aura-muted, var(--text-muted, #6b7280));
+	--sus-ok: #0ca30c;
+	--sus-warn: #d97706;
+	color: var(--sus-text);
+	max-width: 920px;
+	margin: 0 auto;
+	padding: 8px 4px 48px;
+}
+.sus .grow { flex: 1; min-width: 0; }
+.sus-muted { color: var(--sus-muted); font-size: 12px; }
+.sus-hero { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 16px; }
+.sus-hero h2 { margin: 0 0 4px; font-size: 22px; font-weight: 650; letter-spacing: -0.01em; }
+.sus-hero p { margin: 0; color: var(--sus-muted); }
+.sus-progress .ring { --p: 0; width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center;
+	background: conic-gradient(var(--sus-accent) calc(var(--p) * 1%), var(--sus-line) 0); }
+.sus-progress .ring span { width: 46px; height: 46px; border-radius: 50%; background: var(--sus-card); display: grid;
+	place-items: center; font-size: 12px; font-weight: 650; }
+.sus-done { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 12px 16px; border-radius: 12px;
+	margin-bottom: 14px; background: color-mix(in srgb, var(--sus-ok) 10%, transparent); color: var(--sus-text); }
+.sus-done svg { color: var(--sus-ok); }
+
+.sus-steps { display: flex; flex-direction: column; gap: 10px; }
+.sus-step { background: var(--sus-card); border: 1px solid var(--sus-line); border-radius: 14px; overflow: hidden; }
+.sus-step.open { border-color: var(--sus-accent); box-shadow: 0 0 0 3px var(--sus-soft); }
+.sus-head { width: 100%; display: flex; gap: 12px; align-items: center; padding: 14px 16px; background: transparent; border: 0;
+	text-align: left; color: inherit; cursor: pointer; }
+.sus-head .num { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 13px;
+	font-weight: 650; border: 1px solid var(--sus-line); }
+.sus-step.open .sus-head .num { background: var(--sus-accent); border-color: var(--sus-accent); color: #fff; }
+.sus-step.done .sus-head .num { background: color-mix(in srgb, var(--sus-ok) 14%, transparent); border-color: transparent; color: var(--sus-ok); }
+.sus-head .t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.sus-head .intro { color: var(--sus-muted); font-size: 12px; }
+.sus-head .state { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--sus-soft); color: var(--sus-muted); white-space: nowrap; }
+.sus-step.done .sus-head .state { color: var(--sus-ok); background: color-mix(in srgb, var(--sus-ok) 12%, transparent); }
+.sus-body { display: none; padding: 0 16px 16px 56px; }
+.sus-step.open .sus-body { display: block; }
+
+.sus-ai { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding: 12px; border-radius: 10px; background: var(--sus-soft); margin-bottom: 12px; }
+.sus-ai > svg { color: var(--sus-accent); flex: none; }
+.sus-row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.sus-row input { max-width: 300px; }
+.sus-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.sus-field { display: flex; flex-direction: column; gap: 4px; font-weight: normal; margin: 0; }
+.sus-field > span { font-size: 12px; color: var(--sus-muted); }
+.sus-field .btn-link { align-self: flex-start; padding: 0; font-size: 12px; }
+.sus-actions { display: flex; gap: 10px; justify-content: flex-end; align-items: center; margin-top: 14px; flex-wrap: wrap; }
+.sus-check { display: flex; gap: 8px; align-items: flex-start; font-weight: normal; font-size: 13px; margin: 8px 0 0; }
+.sus-check input { margin-top: 3px; }
+.sus-warn { border-left: 3px solid var(--sus-warn); padding: 6px 10px; margin: 8px 0; font-size: 12px;
+	background: color-mix(in srgb, var(--sus-warn) 8%, transparent); border-radius: 6px; }
+.sus-ok { display: flex; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 8px; font-size: 13px; margin-top: 8px;
+	background: color-mix(in srgb, var(--sus-ok) 10%, transparent); }
+.sus-ok svg { color: var(--sus-ok); }
+.sus-wait { display: flex; gap: 10px; align-items: center; font-size: 13px; color: var(--sus-muted); padding: 10px 0; }
+.sus-wait .spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--sus-accent); border-right-color: transparent;
+	animation: sus-spin 0.9s linear infinite; }
+@keyframes sus-spin { to { transform: rotate(360deg); } }
+
+.sus-seg, .sus-fact { display: flex; gap: 10px; align-items: flex-start; padding: 10px; border: 1px solid var(--sus-line);
+	border-radius: 10px; margin: 8px 0; font-weight: normal; }
+.sus-seg input, .sus-fact input { margin-top: 3px; }
+.sus-fact.ok { background: color-mix(in srgb, var(--sus-ok) 6%, transparent); }
+.sus-badge { font-size: 11px; padding: 1px 7px; border-radius: 6px; background: var(--sus-soft); color: var(--sus-accent); }
+.sus-badge.ok { color: var(--sus-ok); background: color-mix(in srgb, var(--sus-ok) 12%, transparent); }
+.sus-chips { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+.sus-chips span { font-size: 11px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--sus-line); }
+.sus-src { font-size: 11px; word-break: break-all; }
+.sus-list { display: flex; flex-direction: column; gap: 8px; }
+.sus-line { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 13px; }
+.sus-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--sus-line); flex: none; }
+.sus-dot.ok { background: var(--sus-ok); }
+.sus-day { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.sus-day li { display: grid; grid-template-columns: 70px 1fr; gap: 10px; font-size: 13px; }
+.sus-day b { color: var(--sus-accent); }
+
+@media (max-width: 700px) {
+	.sus-grid { grid-template-columns: 1fr; }
+	.sus-body { padding-left: 16px; }
+	.sus-hero { align-items: flex-start; }
+}

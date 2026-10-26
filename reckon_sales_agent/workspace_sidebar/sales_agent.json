@@ -9,6 +9,17 @@
  "items": [
   {
    "type": "Link",
+   "label": "Get started",
+   "link_to": "sales-setup",
+   "link_type": "Page",
+   "icon": "list-checks",
+   "child": 0,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
    "label": "Agent Studio",
    "link_to": "sales-agent",
    "link_type": "Page",

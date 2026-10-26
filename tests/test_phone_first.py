@@ -69,7 +69,9 @@ class WiringTests(unittest.TestCase):
     def test_call_scripts_name_the_caller_and_always_have_a_talking_point(self):
         draft = self.read("campaigns", "engine.py").split("def draft_message(")[1].split("\ndef ")[0]
         task = draft.split("if channel in TASK_CHANNELS:")[1].split("_ok, _reason")[0]
-        self.assertIn('values["sender_name"] = "[your name]"', task)
+        # The named salesperson's first name (set in setup), else a placeholder they fill in themselves.
+        self.assertIn('settings.get("task_assignee")', task)
+        self.assertIn('or "[your name]"', task)
         self.assertIn('prospect.get("ai_triage_reason")', task)
 
     def test_call_tasks_carry_the_number_and_go_to_the_named_salesperson(self):

@@ -191,7 +191,8 @@ def draft_message(campaign, member, step, key: str) -> str:
         # A script a salesperson reads aloud: they say their own name, and with no website research the AI
         # triage's reading of the listing is the talking point (internal, never sent). Live test: the scripts
         # said "this is Reckon Technologies Ltd. from Reckon Technologies" with an empty talking point.
-        values["sender_name"] = "[your name]"
+        caller = settings.get("task_assignee")
+        values["sender_name"] = (frappe.db.get_value("User", caller, "first_name") if caller else None) or "[your name]"
         if not values["personal_line"]:
             values["personal_line"] = prospect.get("ai_triage_reason") or "No research yet: ask how they work today."
     _ok, _reason, recipient = reachability(channel, prospect, settings)

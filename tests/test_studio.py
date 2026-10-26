@@ -85,7 +85,8 @@ class StudioWiringTests(unittest.TestCase):
 
         self.assertIn("lead-finder", ALLOWED_PAGES)
         sidebar = json.loads((APP / "workspace_sidebar" / "sales_agent.json").read_text(encoding="utf-8"))
-        self.assertEqual(sidebar["items"][1]["link_to"], "lead-finder")
+        links = [item.get("link_to") for item in sidebar["items"]]
+        self.assertEqual(links[:3], ["sales-setup", "sales-agent", "lead-finder"])  # Get started comes first
 
     def test_api_methods_are_whitelisted_and_never_return_keys(self):
         source = (APP / "api_studio.py").read_text(encoding="utf-8")

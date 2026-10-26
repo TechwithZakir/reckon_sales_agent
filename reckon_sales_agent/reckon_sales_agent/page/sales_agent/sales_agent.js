@@ -63,6 +63,11 @@
 
 		start() {
 			this.stop();
+			// Until setup is complete, a shortcut to the guided setup sits in the header.
+			frappe.xcall("reckon_sales_agent.api_setup.status").then((s) => {
+				this.setup = s.progress;
+				if (this.data) this.render_hero(this.data);
+			}).catch(() => {});
 			this.refresh();
 		}
 
@@ -116,9 +121,11 @@
 					${s.kill_switch ? pill("bad", __("Kill switch on")) : pill(s.outbound_enabled ? "ok" : "warn",
 						s.outbound_enabled ? __("Sending live") : __("Dry run: nothing is sent"))}
 					${ap.last_run ? pill("", __("Last run {0}", [frappe.datetime.prettyDate(ap.last_run)])) : ""}
+					${this.setup != null && this.setup < 100 ? `<button class="btn btn-default btn-sm ags-setup">${__("Finish setup ({0}%)", [this.setup])}</button>` : ""}
 					<button class="btn btn-default btn-sm ags-digest">${__("Send me today's digest")}</button>
 					${s.can_manage ? `<button class="btn btn-primary btn-sm ags-run">${icon("spark", 14)} ${__("Run agents now")}</button>` : ""}
 				</div>`);
+			this.$root.find(".ags-setup").on("click", () => frappe.set_route("sales-setup"));
 			this.$root.find(".ags-digest").on("click", (ev) => {
 				$(ev.currentTarget).prop("disabled", true);
 				this.call("act", { action: "send_digest", args: "{}" }).then((r) => frappe.show_alert({
