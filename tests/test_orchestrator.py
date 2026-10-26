@@ -64,6 +64,17 @@ class PlanTests(unittest.TestCase):
         manual = next(s for s in plan({**READY, "pending_qualified": 4, "pending_human": 2}) if s.key == "review")
         self.assertIn("6 lead(s)", manual.detail)
 
+    def test_leads_outside_the_market_are_set_aside_only_under_autopilot(self):
+        # Live test: 73 leads waited for review, among them Indian companies found before the market filter.
+        state = {**READY, "pending_human": 10, "pending_foreign": 3}
+        self.assertNotIn("auto_triage", [k for k, _ in keys(state)])
+        self.assertIn("10 lead(s)", next(s for s in plan(state) if s.key == "review").detail)
+        auto = {**state, "autopilot": True}
+        self.assertIn(("auto_triage", DO), keys(auto))
+        self.assertIn("7 lead(s)", next(s for s in plan(auto) if s.key == "review").detail)
+        order = [k for k, _ in keys({**auto, "auto_approve": True, "pending_qualified": 2})]
+        self.assertLess(order.index("auto_triage"), order.index("auto_review"))  # never approve one first
+
     def test_campaigns_are_drafted_with_enough_leads_and_never_launched_alone(self):
         segment = {"discovery": "DISC-1", "label": "Pharma", "count": 6}
         auto = {**READY, "autopilot": True, "segments_ready": [segment], "campaign_min_prospects": 5}
@@ -79,7 +90,7 @@ class PlanTests(unittest.TestCase):
 
     def test_nothing_that_reaches_a_customer_can_run_automatically(self):
         self.assertEqual(set(DOERS), {"research_market", "approve_segments", "start_discovery", "auto_review",
-                                      "draft_campaign", "pilot_check"})
+                                      "auto_triage", "draft_campaign", "pilot_check"})
         for key in DOERS:
             self.assertNotIn("send", key)
             self.assertNotIn("launch", key)
@@ -173,6 +184,7 @@ class WiringTests(unittest.TestCase):
         for method in ('"state"', '"onboard"', '"set_autopilot"', '"run_now"', '"act"'):
             self.assertIn(method, script)
         self.assertIn("ags-ack", script)  # content issues must be acknowledged before launch
+        self.assertNotIn("comment_when", script)  # returns HTML; the page escapes text (seen live)
         self.assertTrue((APP / "reckon_sales_agent" / "page" / "sales_agent" / "sales_agent.css").exists())
 
     def test_fields(self):

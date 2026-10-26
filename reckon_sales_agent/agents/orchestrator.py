@@ -71,12 +71,17 @@ def plan(state: dict) -> list[Step]:
             add(Step("Research", "discovery", WAIT, "Finding and researching leads",
                      f"{state['running_jobs']} search job(s) running."))
 
-    # Review: strong leads are approved by policy, the rest by a person.
+    # Review: clear misfits are set aside and strong leads approved by policy; the rest go to a person.
+    if state.get("pending_foreign") and auto:
+        add(Step("Research", "auto_triage", DO, "Set aside leads outside your market",
+                 f"{state['pending_foreign']} lead(s) are listed in another country."))
     if state.get("pending_qualified") and auto and state.get("auto_approve"):
         add(Step("Research", "auto_review", DO, "Approve strong leads",
                  f"{state['pending_qualified']} qualified lead(s) checked against your autopilot rules."))
     pending_human = state.get("pending_human", 0) + (0 if auto and state.get("auto_approve")
                                                       else state.get("pending_qualified", 0))
+    if auto:
+        pending_human = max(0, pending_human - state.get("pending_foreign", 0))
     if pending_human:
         add(Step("Research", "review", ASK, "Review leads", f"{pending_human} lead(s) need your decision."))
 
@@ -166,6 +171,7 @@ def collect_state(company: str) -> dict:
     state["pending_qualified"] = count("Sales Prospect", review_status="Pending", qualification_status="Qualified",
                                        possible_duplicate_of=["is", "not set"])
     state["pending_human"] = count("Sales Prospect", review_status="Pending", qualification_status="Needs Review")
+    state["pending_foreign"] = len(foreign_pending(company))
     state["segments_ready"] = _segments_ready(company)
     state["campaigns_pending"] = [
         {"name": c.name, "label": c.campaign_name,
@@ -181,6 +187,29 @@ def collect_state(company: str) -> dict:
     state["pilot_verdicts"] = [{"name": p.name, "label": p.campaign_name, "verdict": p.pilot_verdict}
                                for p in pilots if p.pilot_verdict in ("scale", "stop")]
     return state
+
+
+def foreign_pending(company: str) -> list[tuple[str, str]]:
+    """Pending leads outside their campaign's market: (prospect, reason). Found before the market filter existed."""
+    import frappe
+
+    from reckon_sales_agent.discovery.targeting import foreign_business, market_country
+
+    markets: dict = {}
+    found = []
+    for row in frappe.get_all("Sales Prospect", filters={"company": company, "review_status": "Pending"},
+                              fields=["name", "website", "address", "country", "discovery_campaign"], limit=2000):
+        if row.discovery_campaign not in markets:
+            target = frappe.db.get_value("Sales Discovery Campaign", row.discovery_campaign, "targeting_profile") \
+                if row.discovery_campaign else None
+            markets[row.discovery_campaign] = market_country(
+                {"locations": frappe.get_all("Sales Target Location", filters={"parent": target},
+                                             fields=["country"])} if target else {})
+        reason = foreign_business({"website": row.website, "address": row.address, "country": row.country},
+                                  markets[row.discovery_campaign])
+        if reason:
+            found.append((row.name, reason))
+    return found
 
 
 def _segments_ready(company: str) -> list[dict]:
@@ -244,7 +273,7 @@ def run(company: str, trigger: str = "schedule") -> dict:
         summary += f" Waiting for you: {len(asks)}."
     frappe.db.set_value("Sales Agent Settings", company, {"autopilot_last_run": now_datetime(),
                                                           "autopilot_summary": summary[:1000]})
-    if done or failed:
+    if done or failed or trigger != "schedule":  # a person who pressed "Run agents now" sees the outcome
         log_activity(company, "autopilot_run", None, f"[{trigger}] {summary}", actor_type="agent",
                      agent="Governance", policy_outcome="automatic within the autonomy matrix")
     frappe.db.commit()
@@ -386,6 +415,18 @@ def _auto_review(company: str, step: Step) -> str:
     return f"{approved} of {len(names)} approved"
 
 
+def _auto_triage(company: str, step: Step) -> str:
+    import frappe
+
+    from reckon_sales_agent.crm_sync import review
+
+    rejected = 0
+    for name, reason in foreign_pending(company)[:200]:
+        review(frappe.get_doc("Sales Prospect", name), "reject", f"Autopilot: outside your market ({reason}).")
+        rejected += 1
+    return f"{rejected} set aside"
+
+
 def campaign_offer(company: str) -> str:
     from reckon_sales_agent.research.market import business_profile
 
@@ -436,6 +477,7 @@ DOERS = {
     "approve_segments": _approve_segments,
     "start_discovery": _start_discovery,
     "auto_review": _auto_review,
+    "auto_triage": _auto_triage,
     "draft_campaign": _draft_campaign,
     "pilot_check": _pilot_check,
 }

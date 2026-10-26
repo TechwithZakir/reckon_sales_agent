@@ -108,7 +108,7 @@
 					${pill(s.ai ? "ok" : "warn", s.ai ? __("AI on") : __("AI off"))}
 					${s.kill_switch ? pill("bad", __("Kill switch on")) : pill(s.outbound_enabled ? "ok" : "warn",
 						s.outbound_enabled ? __("Sending live") : __("Dry run: nothing is sent"))}
-					${ap.last_run ? pill("", __("Last run {0}", [frappe.datetime.comment_when(ap.last_run, true)])) : ""}
+					${ap.last_run ? pill("", __("Last run {0}", [frappe.datetime.prettyDate(ap.last_run)])) : ""}
 					${s.can_manage ? `<button class="btn btn-primary btn-sm ags-run">${icon("spark", 14)} ${__("Run agents now")}</button>` : ""}
 				</div>`);
 			this.$root.find(".ags-run").on("click", (ev) => {
@@ -188,7 +188,7 @@
 						<div class="grow"><b>${e(__(l.agent))}</b><div class="ags-muted">${e(l.title)}</div></div>
 						<span class="ags-status ${e(l.status)}">${e(STATUS[l.status])}</span></div>
 					<div class="ags-lane-now">${l.now.length ? l.now.map((n) => `<div>${l.status === "working" ? '<span class="ags-spin"></span>' : ""}${e(__(n))}</div>`).join("")
-						: `<div class="ags-muted">${l.last ? e(label(l.last.action)) + " · " + e(frappe.datetime.comment_when(l.last.creation, true)) : __("Nothing yet")}</div>`}</div>
+						: `<div class="ags-muted">${l.last ? e(label(l.last.action)) + " · " + e(frappe.datetime.prettyDate(l.last.creation)) : __("Nothing yet")}</div>`}</div>
 					<div class="ags-metrics">${l.metrics.map(([k, v]) => `<span><b>${e(v)}</b> ${e(k)}</span>`).join("")}</div>
 				</div>`).join(""));
 		}
@@ -205,7 +205,7 @@
 				<span class="ags-dot ${e(a.agent || "Governance")}" title="${e(__(a.agent || "Governance"))}">${icon(a.agent || "Governance", 13)}</span>
 				<div class="grow"><div><b>${e(label(a.action))}</b>${a.reference_name ? ` · <a href="/desk/${frappe.router.slug(a.reference_doctype || "")}/${encodeURIComponent(a.reference_name)}">${e(a.reference_name)}</a>` : ""}</div>
 					${a.summary ? `<div class="ags-muted ags-clip">${e(a.summary)}</div>` : ""}</div>
-				<span class="ags-muted ags-when">${e(frappe.datetime.comment_when(a.creation, true))}</span></div>`).join("")
+				<span class="ags-muted ags-when">${e(frappe.datetime.prettyDate(a.creation))}</span></div>`).join("")
 				|| `<div class="ags-empty">${__("The agents' work will appear here as it happens.")}</div>`);
 		}
 
