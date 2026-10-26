@@ -30,12 +30,19 @@ WORK_LINES = (
 )
 
 
+def _singular(label: str) -> str:
+    """'calls logged' -> 'call logged' (live preview read "1 calls logged")."""
+    words = {"replies": "reply", "leads": "lead", "websites": "website", "emails": "email", "calls": "call",
+             "campaigns": "campaign", "lessons": "lesson"}
+    return " ".join(words.get(word, word) for word in label.split())
+
+
 def work_lines(action_counts: dict[str, int], new_leads: int = 0) -> list[str]:
     lines = []
     for label, actions in WORK_LINES:
         count = new_leads if label == "new leads found" else sum(int(action_counts.get(a) or 0) for a in actions)
         if count:
-            lines.append(f"{count} {label}")
+            lines.append(f"{count} {_singular(label) if count == 1 else label}")
     return lines
 
 

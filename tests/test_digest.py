@@ -19,6 +19,9 @@ class BuilderTests(unittest.TestCase):
         self.assertEqual(lines, ["25 new leads found", "4 websites researched", "20 leads judged by AI",
                                  "3 calls logged", "1 interested on a call"])
         self.assertEqual(work_lines({}), [])
+        # Live preview read "1 calls logged".
+        self.assertEqual(work_lines({"call_no_answer": 1, "reply_question": 1, "targeting_learned": 1}, new_leads=1),
+                         ["1 new lead found", "1 reply handled", "1 call logged", "1 search lesson learned"])
 
     def test_manager_digest(self):
         subject, html = manager_digest(
