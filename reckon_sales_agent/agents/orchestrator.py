@@ -258,12 +258,17 @@ def review_threshold(company: str) -> float:
 
 
 def weak_pending(company: str) -> list[str]:
-    """Pending leads whose final score is below the review threshold (research finished, so it will not rise)."""
+    """Pending leads whose website was read and still scored below the review threshold.
+
+    Live test: leads with no website or an unreachable one scored 13-16 for lack of evidence, not for being
+    misfits (Biorex Healthcare, Islamia Drug House), and were set aside. Only a low score backed by the
+    business's own pages counts; the rest go to AI triage, which judges the listing and may say "unsure".
+    """
     import frappe
 
     return frappe.get_all("Sales Prospect", filters={
         "company": company, "review_status": "Pending", "qualification_status": "Needs Review",
-        "research_status": ["in", ["Done", "Skipped", "Failed"]], "fit_score": ["<", review_threshold(company)],
+        "research_status": "Done", "fit_score": ["<", review_threshold(company)],
     }, pluck="name", limit=2000)
 
 

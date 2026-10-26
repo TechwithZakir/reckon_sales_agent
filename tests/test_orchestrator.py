@@ -228,7 +228,11 @@ class WiringTests(unittest.TestCase):
     def test_set_aside_rules(self):
         source = self.read("agents", "orchestrator.py")
         weak = source.split("def weak_pending(")[1].split("\ndef ")[0]
-        self.assertIn('"research_status": ["in", ["Done", "Skipped", "Failed"]]', weak)  # final scores only
+        # Only a low score backed by the business's own pages; no website or an unreachable one is no evidence.
+        self.assertIn('"research_status": "Done"', weak)
+        patch = APP / "patches" / "reopen_unresearched_set_asides.py"
+        self.assertIn('"research_status": ["!=", "Done"]', patch.read_text(encoding="utf-8"))
+        self.assertIn("reckon_sales_agent.patches.reopen_unresearched_set_asides", self.read("patches.txt"))
         self.assertIn('"qualification_status": "Needs Review"', weak)
         unscheduled = source.split("def _unscheduled(")[1].split("\ndef ")[0]
         self.assertIn('["is", "not set"]', unscheduled)  # "in ['', None]" never matches NULL
