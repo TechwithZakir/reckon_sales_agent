@@ -145,10 +145,11 @@
 				html += `<details class="ags-card ags-tune"><summary>${__("Autopilot settings")}</summary><div class="ags-row">
 					<label>${__("Leads per week")} <input type="number" class="form-control ags-weekly" min="5" max="1000" value="${e(ap.weekly_leads)}"></label>
 					<label>${__("Approved leads before a campaign")} <input type="number" class="form-control ags-min" min="1" max="200" value="${e(ap.min_prospects)}"></label>
+					<label>${__("Auto-approve leads at fit score")} <input type="number" class="form-control ags-fit" min="0" max="100" value="${e(ap.auto_approve_min_fit)}"></label>
 					<label class="ags-check"><input type="checkbox" class="ags-segs" ${ap.auto_segments ? "checked" : ""}> ${__("Choose segments automatically")}</label>
 					<button class="btn btn-default btn-sm ags-save">${__("Save")}</button>
 					<button class="btn btn-default btn-sm ags-off">${__("Turn autopilot off")}</button></div>
-					<div class="ags-muted">${__("Leads are approved automatically at fit score {0} or more; change it in Sales Agent Settings.", [e(ap.auto_approve_min_fit)])}</div></details>`;
+					<div class="ags-muted">${__("Qualified leads at or above this score are approved and added to the CRM without you. Leads that score below your review threshold are set aside; approve one in Prospect Review to bring it back.")}</div></details>`;
 			}
 			el.html(html);
 			el.find(".ags-go").on("click", (ev) => {
@@ -169,7 +170,7 @@
 			el.find(".ags-off").on("click", () => this.set_autopilot({ enabled: 0 }));
 			el.find(".ags-save").on("click", () => this.set_autopilot({
 				enabled: 1, weekly_leads: Number(el.find(".ags-weekly").val()), min_prospects: Number(el.find(".ags-min").val()),
-				auto_segments: el.find(".ags-segs").is(":checked") ? 1 : 0,
+				auto_segments: el.find(".ags-segs").is(":checked") ? 1 : 0, min_fit: Number(el.find(".ags-fit").val()),
 			}));
 		}
 

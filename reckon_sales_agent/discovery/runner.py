@@ -192,11 +192,12 @@ def _run(job, campaign) -> None:
                 _("{0} search(es) failed: {1}").format(len(failed), failed[-1]))
     else:
         _finish(job, campaign, "Completed")
-    if campaign.get("schedule"):
-        from reckon_sales_agent.jobs import next_run_date
+    from reckon_sales_agent.jobs import next_run_date
 
-        campaign.db_set({"last_run_on": now_datetime(), "next_run_on": next_run_date(campaign.schedule)})
-        frappe.db.commit()
+    # Recorded for every run, so the autopilot knows when a segment was last searched.
+    campaign.db_set({"last_run_on": now_datetime(),
+                     **({"next_run_on": next_run_date(campaign.schedule)} if campaign.get("schedule") else {})})
+    frappe.db.commit()
     if campaign.auto_research and new_prospects:
         from reckon_sales_agent.jobs import enqueue_research
 

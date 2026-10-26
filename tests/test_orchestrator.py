@@ -75,6 +75,16 @@ class PlanTests(unittest.TestCase):
         order = [k for k, _ in keys({**auto, "auto_approve": True, "pending_qualified": 2})]
         self.assertLess(order.index("auto_triage"), order.index("auto_review"))  # never approve one first
 
+    def test_the_pipeline_keeps_moving_without_a_person(self):
+        # Live test: autopilot on, but the segment searches never repeated and 48 weak leads sat in review.
+        state = {**READY, "unscheduled_searches": 2, "pending_human": 50, "pending_weak": 48}
+        self.assertNotIn("keep_finding", [k for k, _ in keys(state)])  # autopilot off: nothing changes alone
+        auto = {**state, "autopilot": True}
+        self.assertIn(("keep_finding", DO), keys(auto))
+        self.assertIn(("auto_triage", DO), keys(auto))
+        self.assertIn("2 lead(s)", next(s for s in plan(auto) if s.key == "review").detail)
+        self.assertNotIn("keep_finding", [k for k, _ in keys({**auto, "profiles_without_discovery": 1})])
+
     def test_campaigns_are_drafted_with_enough_leads_and_never_launched_alone(self):
         segment = {"discovery": "DISC-1", "label": "Pharma", "count": 6}
         auto = {**READY, "autopilot": True, "segments_ready": [segment], "campaign_min_prospects": 5}
@@ -90,7 +100,7 @@ class PlanTests(unittest.TestCase):
 
     def test_nothing_that_reaches_a_customer_can_run_automatically(self):
         self.assertEqual(set(DOERS), {"research_market", "approve_segments", "start_discovery", "auto_review",
-                                      "auto_triage", "draft_campaign", "pilot_check"})
+                                      "auto_triage", "keep_finding", "draft_campaign", "pilot_check"})
         for key in DOERS:
             self.assertNotIn("send", key)
             self.assertNotIn("launch", key)
@@ -201,6 +211,18 @@ class WiringTests(unittest.TestCase):
         profile = fields("sales_business_profile")
         self.assertIn("website", profile)
         self.assertIn("Reading website", profile["onboarding_status"]["options"])
+
+    def test_set_aside_rules(self):
+        source = self.read("agents", "orchestrator.py")
+        weak = source.split("def weak_pending(")[1].split("\ndef ")[0]
+        self.assertIn('"research_status": ["in", ["Done", "Skipped", "Failed"]]', weak)  # final scores only
+        self.assertIn('"qualification_status": "Needs Review"', weak)
+        unscheduled = source.split("def _unscheduled(")[1].split("\ndef ")[0]
+        self.assertIn('["is", "not set"]', unscheduled)  # "in ['', None]" never matches NULL
+        runner = self.read("discovery", "runner.py")
+        self.assertIn('campaign.db_set({"last_run_on": now_datetime(),', runner)
+        api = self.read("api_agent_studio.py").split("def set_autopilot(")[1].split("\ndef ")[0]
+        self.assertIn('"qualify_threshold"', api)
 
     def test_a_task_always_has_someone(self):
         channels = self.read("providers", "channels.py")

@@ -171,6 +171,12 @@ def set_autopilot(data) -> dict:
         settings.autopilot_weekly_leads = max(5, min(int(data["weekly_leads"] or 50), 1000))
     if "min_prospects" in data:
         settings.autopilot_campaign_min_prospects = max(1, min(int(data["min_prospects"] or 5), 200))
+    if "min_fit" in data:
+        settings.auto_approve_min_fit = max(0, min(float(data["min_fit"] or 0), 100))
+    elif enable and not settings.get("autopilot_enabled") and float(settings.auto_approve_min_fit or 0) == 75:
+        # Live test: the old default (75) sat above the qualify threshold, so autopilot never approved anyone.
+        settings.auto_approve_min_fit = float(frappe.db.get_value(
+            "Sales Qualification Profile", {"company": company}, "qualify_threshold", order_by="creation asc") or 60)
     if "auto_segments" in data:
         settings.autopilot_auto_segments = 1 if data["auto_segments"] else 0
     settings.autopilot_enabled = 1 if enable else 0

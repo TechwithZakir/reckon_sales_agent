@@ -67,21 +67,27 @@ def plan(state: dict) -> list[Step]:
         elif state.get("profiles_without_discovery"):
             add(Step("Research", "start_discovery", DO if auto else ASK, "Find leads for the new segments",
                      f"{state['profiles_without_discovery']} segment(s) have no lead search yet."))
+        elif auto and state.get("unscheduled_searches"):
+            # Live test: the brief's lead searches ran once and never again, so the pipeline dried up.
+            add(Step("Research", "keep_finding", DO, "Keep finding leads every week",
+                     f"{state['unscheduled_searches']} segment search(es) were not repeating."))
         if state.get("running_jobs"):
             add(Step("Research", "discovery", WAIT, "Finding and researching leads",
                      f"{state['running_jobs']} search job(s) running."))
 
     # Review: clear misfits are set aside and strong leads approved by policy; the rest go to a person.
-    if state.get("pending_foreign") and auto:
-        add(Step("Research", "auto_triage", DO, "Set aside leads outside your market",
-                 f"{state['pending_foreign']} lead(s) are listed in another country."))
+    set_aside = state.get("pending_foreign", 0) + state.get("pending_weak", 0)
+    if set_aside and auto:
+        add(Step("Research", "auto_triage", DO, "Set aside weak and out-of-market leads",
+                 f"{state.get('pending_foreign', 0)} in another country, {state.get('pending_weak', 0)} scored "
+                 "below your review threshold."))
     if state.get("pending_qualified") and auto and state.get("auto_approve"):
         add(Step("Research", "auto_review", DO, "Approve strong leads",
                  f"{state['pending_qualified']} qualified lead(s) checked against your autopilot rules."))
     pending_human = state.get("pending_human", 0) + (0 if auto and state.get("auto_approve")
                                                       else state.get("pending_qualified", 0))
     if auto:
-        pending_human = max(0, pending_human - state.get("pending_foreign", 0))
+        pending_human = max(0, pending_human - set_aside)
     if pending_human:
         add(Step("Research", "review", ASK, "Review leads", f"{pending_human} lead(s) need your decision."))
 
@@ -166,12 +172,15 @@ def collect_state(company: str) -> dict:
                                                                                "targeting_profile": ["in", targets]},
                                           pluck="targeting_profile")) if targets else set()
             state["profiles_without_discovery"] = len([t for t in targets if t and t not in searched])
+            state["unscheduled_searches"] = len(_unscheduled(company, targets))
     count = lambda doctype, **f: frappe.db.count(doctype, {"company": company, **f})  # noqa: E731
     state["running_jobs"] = count("Sales Discovery Job", status=["in", ["Queued", "Running"]])
     state["pending_qualified"] = count("Sales Prospect", review_status="Pending", qualification_status="Qualified",
                                        possible_duplicate_of=["is", "not set"])
     state["pending_human"] = count("Sales Prospect", review_status="Pending", qualification_status="Needs Review")
-    state["pending_foreign"] = len(foreign_pending(company))
+    foreign = {name for name, _reason in foreign_pending(company)}
+    state["pending_foreign"] = len(foreign)
+    state["pending_weak"] = len(set(weak_pending(company)) - foreign)
     state["segments_ready"] = _segments_ready(company)
     state["campaigns_pending"] = [
         {"name": c.name, "label": c.campaign_name,
@@ -187,6 +196,35 @@ def collect_state(company: str) -> dict:
     state["pilot_verdicts"] = [{"name": p.name, "label": p.campaign_name, "verdict": p.pilot_verdict}
                                for p in pilots if p.pilot_verdict in ("scale", "stop")]
     return state
+
+
+def review_threshold(company: str) -> float:
+    import frappe
+
+    value = frappe.db.get_value("Sales Qualification Profile", {"company": company}, "review_threshold",
+                                order_by="creation asc")
+    return float(value or 40)
+
+
+def weak_pending(company: str) -> list[str]:
+    """Pending leads whose final score is below the review threshold (research finished, so it will not rise)."""
+    import frappe
+
+    return frappe.get_all("Sales Prospect", filters={
+        "company": company, "review_status": "Pending", "qualification_status": "Needs Review",
+        "research_status": ["in", ["Done", "Skipped", "Failed"]], "fit_score": ["<", review_threshold(company)],
+    }, pluck="name", limit=2000)
+
+
+def _unscheduled(company: str, targets: list[str]) -> list[str]:
+    """The approved segments' lead searches that do not repeat."""
+    import frappe
+
+    if not targets:
+        return []
+    return frappe.get_all("Sales Discovery Campaign", filters={
+        "company": company, "targeting_profile": ["in", targets], "status": ["!=", "Cancelled"],
+        "schedule": ["is", "not set"]}, pluck="name")
 
 
 def foreign_pending(company: str) -> list[tuple[str, str]]:
@@ -420,11 +458,48 @@ def _auto_triage(company: str, step: Step) -> str:
 
     from reckon_sales_agent.crm_sync import review
 
-    rejected = 0
-    for name, reason in foreign_pending(company)[:200]:
+    foreign = foreign_pending(company)[:200]
+    for name, reason in foreign:
         review(frappe.get_doc("Sales Prospect", name), "reject", f"Autopilot: outside your market ({reason}).")
-        rejected += 1
-    return f"{rejected} set aside"
+    threshold = review_threshold(company)
+    weak = [name for name in weak_pending(company)[:500] if name not in {n for n, _r in foreign}]
+    for name in weak:
+        review(frappe.get_doc("Sales Prospect", name), "reject",
+               f"Autopilot: fit score below your review threshold ({threshold:g}). Approve it to bring it back.")
+    return f"{len(foreign)} outside your market, {len(weak)} weak"
+
+
+def _keep_finding(company: str, step: Step) -> str:
+    """Make the approved segments' searches repeat weekly; one that never ran this week starts now."""
+    import frappe
+    from frappe.utils import add_days, nowdate
+
+    from reckon_sales_agent.discovery.runner import build_plan
+    from reckon_sales_agent.jobs import enqueue_discovery
+    from reckon_sales_agent.research.market import business_profile
+
+    profile = business_profile(company, create=False)
+    targets = frappe.get_all("Sales Market Segment", filters={"parent": profile.latest_brief, "include": 1},
+                             pluck="targeting_profile")
+    names = _unscheduled(company, targets)
+    started = 0
+    for name in names:
+        campaign = frappe.get_doc("Sales Discovery Campaign", name)
+        last = str(campaign.last_run_on)[:10] if campaign.last_run_on else ""
+        due_now = not last or last < str(add_days(nowdate(), -7))
+        campaign.db_set({"schedule": "Weekly", "run_at_time": "09:00",
+                         "next_run_on": add_days(nowdate() if due_now else last, 7)})
+        if due_now and not frappe.db.exists("Sales Discovery Job", {"discovery_campaign": name,
+                                                                    "status": ["in", ["Queued", "Running"]]}):
+            build_plan(campaign)  # the next keywords and places after the last run (plan cursor)
+            campaign.flags.ignore_permissions = True
+            campaign.save()
+            try:
+                enqueue_discovery(campaign)
+                started += 1
+            except frappe.ValidationError:
+                frappe.clear_messages()  # over the concurrent-job limit: it runs next week or on "Run agents now"
+    return f"{len(names)} search(es) now weekly, {started} started now"
 
 
 def campaign_offer(company: str) -> str:
@@ -478,6 +553,7 @@ DOERS = {
     "start_discovery": _start_discovery,
     "auto_review": _auto_review,
     "auto_triage": _auto_triage,
+    "keep_finding": _keep_finding,
     "draft_campaign": _draft_campaign,
     "pilot_check": _pilot_check,
 }
