@@ -81,6 +81,20 @@ def plan(state: dict) -> list[Step]:
         add(Step("Research", "auto_triage", DO, "Set aside weak and out-of-market leads",
                  f"{state.get('pending_foreign', 0)} in another country, {state.get('pending_weak', 0)} scored "
                  "below your review threshold."))
+    if state.get("pending_untriaged") and state.get("ai"):
+        if auto and state.get("ai_triage"):
+            add(Step("Research", "ai_triage", DO, "Judge borderline leads with AI",
+                     f"{state['pending_untriaged']} lead(s) not yet judged; clear-cut ones are decided, "
+                     "unsure ones come to you with the agent's reasoning."))
+        elif not auto:
+            add(Step("Research", "ai_triage", ASK, "Let the agent pre-sort your leads",
+                     f"The AI judges {state['pending_untriaged']} borderline lead(s) and explains each verdict."))
+    if state.get("lessons"):
+        add(Step("Research", "learn_targeting", DO if auto else ASK, "Sharpen the lead searches",
+                 "; ".join(state["lessons"])[:500]))
+    if state.get("missing_email"):
+        add(Step("Research", "find_contacts", DO if auto else ASK, "Find emails for approved leads",
+                 f"{state['missing_email']} approved lead(s) have a website but no email."))
     if state.get("pending_qualified") and auto and state.get("auto_approve"):
         add(Step("Research", "auto_review", DO, "Approve strong leads",
                  f"{state['pending_qualified']} qualified lead(s) checked against your autopilot rules."))
@@ -181,6 +195,18 @@ def collect_state(company: str) -> dict:
     foreign = {name for name, _reason in foreign_pending(company)}
     state["pending_foreign"] = len(foreign)
     state["pending_weak"] = len(set(weak_pending(company)) - foreign)
+    from reckon_sales_agent.agents.contacts import missing_email
+    from reckon_sales_agent.agents.learning import lessons
+    from reckon_sales_agent.agents.triage import untriaged
+
+    state["ai_triage"] = bool(settings.get("autopilot_ai_triage"))
+    state["pending_untriaged"] = len(untriaged(company)) if state["ai"] else 0
+    state["lessons"] = [
+        f"{lesson['label']}: " + ", ".join(filter(None, [
+            "skip " + "/".join(lesson["exclude"]) if lesson["exclude"] else "",
+            "stop searching " + "/".join(lesson["retire"]) if lesson["retire"] else ""]))
+        for lesson in lessons(company)]
+    state["missing_email"] = len(missing_email(company))
     state["segments_ready"] = _segments_ready(company)
     state["campaigns_pending"] = [
         {"name": c.name, "label": c.campaign_name,
@@ -527,6 +553,32 @@ def _keep_finding(company: str, step: Step) -> str:
     return f"{len(names)} search(es) now weekly, {started} started now"
 
 
+def _ai_triage(company: str, step: Step) -> str:
+    from reckon_sales_agent.agents.triage import triage_batch
+    from reckon_sales_agent.usage import get_settings
+
+    settings = get_settings(company)
+    apply = bool(settings.get("autopilot_enabled") and settings.get("autopilot_ai_triage"))
+    counts = triage_batch(company, apply)
+    if not apply:
+        return f"{counts['judged']} judged; verdicts are shown for your review"
+    return f"{counts['judged']} judged: {counts['approve']} approved, {counts['reject']} set aside, " \
+           f"{counts['person']} for you"
+
+
+def _learn_targeting(company: str, step: Step) -> str:
+    from reckon_sales_agent.agents.learning import apply_lessons
+
+    return apply_lessons(company)
+
+
+def _find_contacts(company: str, step: Step) -> str:
+    from reckon_sales_agent.agents.contacts import find_batch
+
+    counts = find_batch(company)
+    return f"{counts['found']} of {counts['checked']} found"
+
+
 def campaign_offer(company: str) -> str:
     from reckon_sales_agent.research.market import business_profile
 
@@ -579,6 +631,9 @@ DOERS = {
     "auto_review": _auto_review,
     "auto_triage": _auto_triage,
     "keep_finding": _keep_finding,
+    "ai_triage": _ai_triage,
+    "learn_targeting": _learn_targeting,
+    "find_contacts": _find_contacts,
     "draft_campaign": _draft_campaign,
     "pilot_check": _pilot_check,
 }

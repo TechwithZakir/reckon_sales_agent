@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-26 18:00:00.000000",
+ "modified": "2026-10-26 23:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -47,6 +47,8 @@
   "autopilot_auto_segments",
   "autopilot_weekly_leads",
   "autopilot_campaign_min_prospects",
+  "autopilot_ai_triage",
+  "ai_triage_min_confidence",
   "agent_autopilot_col",
   "autopilot_consent_by",
   "autopilot_last_run",
@@ -253,6 +255,19 @@
    "fieldtype": "Int",
    "label": "Approved leads before a campaign",
    "default": "5"
+  },
+  {
+   "fieldname": "autopilot_ai_triage",
+   "fieldtype": "Check",
+   "label": "Let AI decide clear-cut leads",
+   "default": "1",
+   "description": "Confident AI verdicts approve or set aside borderline leads; unsure ones come to you."
+  },
+  {
+   "fieldname": "ai_triage_min_confidence",
+   "fieldtype": "Percent",
+   "label": "AI confidence needed to act",
+   "default": "80"
   },
   {
    "fieldname": "agent_autopilot_col",

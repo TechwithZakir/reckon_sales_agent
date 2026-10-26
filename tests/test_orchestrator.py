@@ -112,7 +112,8 @@ class PlanTests(unittest.TestCase):
 
     def test_nothing_that_reaches_a_customer_can_run_automatically(self):
         self.assertEqual(set(DOERS), {"research_market", "approve_segments", "start_discovery", "auto_review",
-                                      "auto_triage", "keep_finding", "draft_campaign", "pilot_check"})
+                                      "auto_triage", "keep_finding", "ai_triage", "learn_targeting", "find_contacts",
+                                      "draft_campaign", "pilot_check"})
         for key in DOERS:
             self.assertNotIn("send", key)
             self.assertNotIn("launch", key)

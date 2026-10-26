@@ -88,6 +88,7 @@ def state() -> dict:
             "weekly_leads": settings.get("autopilot_weekly_leads") or 50,
             "min_prospects": settings.get("autopilot_campaign_min_prospects") or 5,
             "auto_approve_min_fit": settings.auto_approve_min_fit,
+            "ai_triage": bool(settings.get("autopilot_ai_triage")),
             "last_run": settings.get("autopilot_last_run"),
             "summary": settings.get("autopilot_summary"),
         },
@@ -132,7 +133,8 @@ def _detail(company: str, step) -> dict:
             "Sales Prospect", filters={"company": company, "review_status": "Pending",
                                        "qualification_status": ["in", ["Qualified", "Needs Review"]]},
             fields=["name", "business_name", "city", "website", "fit_score", "deal_probability",
-                    "identity_confidence", "qualification_status"],
+                    "identity_confidence", "qualification_status", "ai_triage_verdict", "ai_triage_confidence",
+                    "ai_triage_reason", "ai_business_type"],
             order_by="deal_probability desc, fit_score desc", page_length=12)
     elif step.key == "followups":
         leads = frappe.get_all("Sales Prospect", filters={"company": company, "crm_lead": ["is", "set"]},
@@ -177,6 +179,8 @@ def set_autopilot(data) -> dict:
         # Live test: the old default (75) sat above the qualify threshold, so autopilot never approved anyone.
         settings.auto_approve_min_fit = float(frappe.db.get_value(
             "Sales Qualification Profile", {"company": company}, "qualify_threshold", order_by="creation asc") or 60)
+    if "ai_triage" in data:
+        settings.autopilot_ai_triage = 1 if data["ai_triage"] else 0
     if "auto_segments" in data:
         settings.autopilot_auto_segments = 1 if data["auto_segments"] else 0
     settings.autopilot_enabled = 1 if enable else 0

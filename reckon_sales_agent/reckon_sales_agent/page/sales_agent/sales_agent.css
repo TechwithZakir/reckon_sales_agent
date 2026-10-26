@@ -112,7 +112,10 @@
 .ags-warn ul { margin: 4px 0 0; padding-left: 18px; }
 .ags-ok { border-left: 3px solid var(--ags-ok); padding: 6px 10px; background: color-mix(in srgb, var(--ags-ok) 8%, transparent); border-radius: 6px; }
 .ags-lead { display: flex; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--ags-line); }
-.ags-score { font-size: 12px; color: var(--ags-muted); white-space: nowrap; }
+.ags-ai { font-size: 12px; margin-top: 3px; padding: 3px 8px; border-radius: 6px; background: var(--ags-soft); }
+.ags-ai.approve { background: color-mix(in srgb, var(--ags-ok) 10%, transparent); }
+.ags-ai.reject { background: color-mix(in srgb, var(--ags-bad) 10%, transparent); }
+.ags-score {font-size: 12px; color: var(--ags-muted); white-space: nowrap; }
 
 @media (max-width: 1100px) { .ags-lanes { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 860px) {

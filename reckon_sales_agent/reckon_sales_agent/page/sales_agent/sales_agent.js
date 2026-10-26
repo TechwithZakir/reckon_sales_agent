@@ -40,6 +40,8 @@
 		reply_question: __("Classified a reply: question"), reply_interested: __("Classified a reply: interested"),
 		reply_escalated: __("Handed a question to a person"), reply_answer_drafted: __("Drafted an answer"),
 		reply_answered: __("Answered a question"), reply_complaint: __("Complaint: needs a person"), pilot_measured: __("Measured a pilot"),
+		prospect_triaged: __("Judged a lead"), targeting_learned: __("Learned from your decisions"),
+		contact_found: __("Found a business email"), contact_not_found: __("No email on the website"),
 	};
 	const label = (a) => ACTIONS[a] || (a || "").replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
 	const plain = (html) => $("<div>").html(html || "").text();
@@ -90,7 +92,8 @@
 			this.render_funnel(s);
 			this.render_feed(s);
 			// Re-draw the inbox only when its content changed, so ticks and typing survive the poll.
-			const key = JSON.stringify(s.asks.map((a) => [a.key, a.ref, a.detail, (a.messages || []).length, (a.prospects || []).length]));
+			const key = JSON.stringify(s.asks.map((a) => [a.key, a.ref, a.detail, (a.messages || []).length,
+				(a.prospects || []).map((p) => p.name + (p.ai_triage_verdict || ""))]));
 			if (key !== this.inboxKey) {
 				this.inboxKey = key;
 				this.render_inbox(s);
@@ -147,6 +150,7 @@
 					<label>${__("Approved leads before a campaign")} <input type="number" class="form-control ags-min" min="1" max="200" value="${e(ap.min_prospects)}"></label>
 					<label>${__("Auto-approve leads at fit score")} <input type="number" class="form-control ags-fit" min="0" max="100" value="${e(ap.auto_approve_min_fit)}"></label>
 					<label class="ags-check"><input type="checkbox" class="ags-segs" ${ap.auto_segments ? "checked" : ""}> ${__("Choose segments automatically")}</label>
+					<label class="ags-check"><input type="checkbox" class="ags-triage" ${ap.ai_triage ? "checked" : ""}> ${__("Let AI decide clear-cut leads")}</label>
 					<button class="btn btn-default btn-sm ags-save">${__("Save")}</button>
 					<button class="btn btn-default btn-sm ags-off">${__("Turn autopilot off")}</button></div>
 					<div class="ags-muted">${__("Qualified leads at or above this score are approved and added to the CRM without you. Leads that score below your review threshold are set aside; approve one in Prospect Review to bring it back.")}</div></details>`;
@@ -171,6 +175,7 @@
 			el.find(".ags-save").on("click", () => this.set_autopilot({
 				enabled: 1, weekly_leads: Number(el.find(".ags-weekly").val()), min_prospects: Number(el.find(".ags-min").val()),
 				auto_segments: el.find(".ags-segs").is(":checked") ? 1 : 0, min_fit: Number(el.find(".ags-fit").val()),
+				ai_triage: el.find(".ags-triage").is(":checked") ? 1 : 0,
 			}));
 		}
 
@@ -225,7 +230,8 @@
 				const body = $c.find(".ags-ask-body");
 				const fn = this[`ask_${a.key}`];
 				if (fn) fn.call(this, body, a);
-				else if (["research_market", "start_discovery", "draft_campaign", "auto_review"].includes(a.key)) this.ask_do(body, a);
+				else if (["research_market", "start_discovery", "draft_campaign", "auto_review", "ai_triage", "learn_targeting",
+					"find_contacts"].includes(a.key)) this.ask_do(body, a);
 			});
 		}
 
@@ -296,7 +302,10 @@
 		ask_review(body, a) {
 			body.html(`${a.prospects.map((p) => `<div class="ags-lead" data-name="${e(p.name)}">
 				<div class="grow"><a href="/desk/sales-prospect/${encodeURIComponent(p.name)}"><b>${e(p.business_name)}</b></a>
-					<div class="ags-muted">${e([p.city, p.website && p.website.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")].filter(Boolean).join(" · "))}</div></div>
+					<div class="ags-muted">${e([p.city, p.website && p.website.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")].filter(Boolean).join(" · "))}</div>
+					${p.ai_triage_verdict ? `<div class="ags-ai ${e(p.ai_triage_verdict)}">${icon("spark", 11)} <b>${e(p.ai_business_type || "")}</b>
+						${e({ approve: __("looks like a fit"), reject: __("looks like a misfit"), unsure: __("unsure") }[p.ai_triage_verdict])}
+						(${Math.round((p.ai_triage_confidence || 0) * 100)}%): ${e(p.ai_triage_reason || "")}</div>` : ""}</div>
 				<span class="ags-score" title="${__("Fit / deal probability / identity")}">${Math.round(p.fit_score || 0)} · ${Math.round(p.deal_probability || 0)}% · ${Math.round(p.identity_confidence || 0)}</span>
 				<button class="btn btn-default btn-xs" data-d="approve">${__("Approve")}</button>
 				<button class="btn btn-default btn-xs" data-d="reject">${__("Reject")}</button></div>`).join("")}
