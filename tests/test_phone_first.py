@@ -35,6 +35,12 @@ class ChannelTests(unittest.TestCase):
         self.assertTrue(any("guarantee" in i for i in check_step(
             {**long_script, "body_template": "We guarantee growth."}, "", "", [])))
 
+    def test_steps_never_refer_to_steps_a_lead_may_skip(self):
+        # Live test: a follow-up call script said "I emailed a few days ago" to leads that have no email.
+        from reckon_sales_agent.agents.content import SEQUENCE_SYSTEM
+
+        self.assertIn("never refer to an earlier message, email or call", SEQUENCE_SYSTEM)
+
     def test_campaign_is_drafted_for_phone_only_leads_too(self):
         segment = {"discovery": "DISC-1", "label": "FMCG", "count": 6, "with_email": 1}
         step = next(s for s in plan({**READY, "autopilot": True, "segments_ready": [segment]})

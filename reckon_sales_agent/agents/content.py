@@ -44,7 +44,9 @@ SEQUENCE_SYSTEM = (
     "{{business_name}}'; body "
     "at most 180 words with: the opening line in English, then the same line in Bangla; {{personal_line}} as a "
     "talking point; two or three questions about how they take orders, manage stock and collect dues; {{offer}} "
-    "as the next step; and a polite answer if they are not interested. Every message adds something new: a "
+    "as the next step; and a polite answer if they are not interested. Each lead only gets the steps its channels "
+    "allow (a lead without email gets no email), so never refer to an earlier message, email or call ('I emailed "
+    "you', 'as I mentioned'); each step must make sense on its own. Every message adds something new: a "
     "problem the seller solves for this segment, a proof point from the knowledge, or a low-effort next step such "
     "as a 15-minute call. Later messages are shorter. Write in the requested language; for Bangla, write natural "
     "Bangla as Bangladeshi business owners write it, keeping product names in English. " + UNTRUSTED_RULES
