@@ -125,8 +125,8 @@ def plan(state: dict) -> list[Step]:
         add(Step("Engagement", "approve_drafts", ASK, "Approve messages",
                  f"{state['drafts_waiting']} message(s) are drafted and waiting for approval."))
     if state.get("open_followups"):
-        add(Step("Engagement", "followups", ASK, "Answer your leads",
-                 f"{state['open_followups']} reply follow-up(s) are waiting for a person."))
+        add(Step("Engagement", "followups", ASK, "Calls and follow-ups",
+                 f"{state['open_followups']} task(s) for a salesperson: calls with scripts and replies to answer."))
 
     # Analytics: measure pilots and recommend; scaling or stopping is a person's decision.
     for name in state.get("pilots_to_check") or []:

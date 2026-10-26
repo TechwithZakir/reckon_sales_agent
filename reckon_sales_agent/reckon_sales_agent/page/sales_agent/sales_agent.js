@@ -42,6 +42,7 @@
 		reply_answered: __("Answered a question"), reply_complaint: __("Complaint: needs a person"), pilot_measured: __("Measured a pilot"),
 		prospect_triaged: __("Judged a lead"), targeting_learned: __("Learned from your decisions"),
 		contact_found: __("Found a business email"), contact_not_found: __("No email on the website"),
+		call_task_done: __("Call done"),
 	};
 	const label = (a) => ACTIONS[a] || (a || "").replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
 	const plain = (html) => $("<div>").html(html || "").text();
@@ -150,6 +151,7 @@
 					<label>${__("Approved leads before a campaign")} <input type="number" class="form-control ags-min" min="1" max="200" value="${e(ap.min_prospects)}"></label>
 					<label>${__("Auto-approve leads at fit score")} <input type="number" class="form-control ags-fit" min="0" max="100" value="${e(ap.auto_approve_min_fit)}"></label>
 					<label class="ags-check"><input type="checkbox" class="ags-segs" ${ap.auto_segments ? "checked" : ""}> ${__("Choose segments automatically")}</label>
+					<label>${__("Give calls and follow-ups to (user)")} <input class="form-control ags-assignee" value="${e(ap.task_assignee)}" placeholder="${__("salesperson@yourcompany.com")}"></label>
 					<label class="ags-check"><input type="checkbox" class="ags-triage" ${ap.ai_triage ? "checked" : ""}> ${__("Let AI decide clear-cut leads")}</label>
 					<button class="btn btn-default btn-sm ags-save">${__("Save")}</button>
 					<button class="btn btn-default btn-sm ags-off">${__("Turn autopilot off")}</button></div>
@@ -175,7 +177,7 @@
 			el.find(".ags-save").on("click", () => this.set_autopilot({
 				enabled: 1, weekly_leads: Number(el.find(".ags-weekly").val()), min_prospects: Number(el.find(".ags-min").val()),
 				auto_segments: el.find(".ags-segs").is(":checked") ? 1 : 0, min_fit: Number(el.find(".ags-fit").val()),
-				ai_triage: el.find(".ags-triage").is(":checked") ? 1 : 0,
+				ai_triage: el.find(".ags-triage").is(":checked") ? 1 : 0, task_assignee: el.find(".ags-assignee").val().trim(),
 			}));
 		}
 
@@ -330,10 +332,22 @@
 		}
 
 		ask_followups(body, a) {
-			body.html((a.tasks || []).map((t) => `<div class="ags-lead"><div class="grow"><b>${e(t.title)}</b>
-				<div class="ags-muted">${e(t.business || "")}${t.due_date ? " · " + __("due {0}", [frappe.datetime.str_to_user(t.due_date)]) : ""}</div></div>
-				<a class="btn btn-default btn-xs" href="/crm/leads/${encodeURIComponent(t.reference_docname)}">${__("Open in CRM")}</a></div>`).join("")
-				|| `<div class="ags-muted">${__("Open your ToDo list to see them.")}</div>`);
+			const due = (d) => (d ? " · " + __("due {0}", [frappe.datetime.str_to_user(d)]) : "");
+			const calls = (a.todos || []).map((t) => `<div class="ags-lead" data-todo="${e(t.name)}"><details class="grow">
+				<summary><b>${e(t.business || t.prospect)}</b>
+					${t.phone ? ` · <a href="tel:${e(t.phone)}" title="${__("Call")}">${e(t.phone)}</a>` : ""}
+					<span class="ags-muted">${e(due(t.due_date))} · ${e(t.assignee || "")}</span></summary>
+				<pre>${e(t.script)}</pre></details>
+				<button class="btn btn-default btn-xs ags-done">${__("Mark done")}</button></div>`).join("");
+			const tasks = (a.tasks || []).map((t) => `<div class="ags-lead"><div class="grow"><b>${e(t.title)}</b>
+				<div class="ags-muted">${e(t.business || "")}${e(due(t.due_date))}</div></div>
+				<a class="btn btn-default btn-xs" href="/crm/leads/${encodeURIComponent(t.reference_docname)}">${__("Open in CRM")}</a></div>`).join("");
+			body.html(calls + tasks || `<div class="ags-muted">${__("Open your ToDo list to see them.")}</div>`);
+			body.find(".ags-done").on("click", (ev) => {
+				const row = $(ev.currentTarget).closest(".ags-lead");
+				$(ev.currentTarget).prop("disabled", true);
+				this.act("task_done", { todo: row.data("todo") }, __("Marked done"));
+			});
 		}
 
 		ask_pause_campaign(body, a) {

@@ -141,11 +141,13 @@ def create_task(prospect_name: str, title: str, description: str, settings, prio
     A follow-up is never dropped: an approved prospect is synced to the CRM first, and one the CRM
     cannot take yet (its name is still held under the source's terms) gets a ToDo instead.
     """
+    # Live test: the first call tasks lacked the number to call; every task now starts with how to reach the lead.
+    description = "\n".join(filter(None, [_contact_line(prospect_name), description]))
     lead = frappe.db.get_value("Sales Prospect", prospect_name, "crm_lead") or _sync_approved(prospect_name)
     if not lead:
         return _todo(prospect_name, title, description, settings, priority)
-    # Live test: a lead without an owner left the task unassigned; whoever found the prospect takes it.
-    owner = frappe.db.get_value("CRM Lead", lead, "lead_owner") or _finder(prospect_name)
+    # Live test: a lead without an owner left the task unassigned; the Company's task owner or the finder takes it.
+    owner = frappe.db.get_value("CRM Lead", lead, "lead_owner") or _assignee(prospect_name, settings)
     task = frappe.get_doc({
         "doctype": "CRM Task",
         "title": title[:140],
@@ -177,6 +179,22 @@ def _finder(prospect_name: str) -> str:
     return owner if owner and owner != "Guest" else "Administrator"
 
 
+def _assignee(prospect_name: str, settings) -> str:
+    """The salesperson the Company named for tasks, else whoever found the prospect."""
+    named = settings.get("task_assignee")
+    if named and frappe.db.get_value("User", named, "enabled"):
+        return named
+    return _finder(prospect_name)
+
+
+def _contact_line(prospect_name: str) -> str:
+    row = frappe.db.get_value("Sales Prospect", prospect_name, ["business_name", "phone", "email", "city", "address"],
+                              as_dict=True) or {}
+    parts = [f"Phone: {row.get('phone')}" if row.get("phone") else "", f"Email: {row.get('email')}" if row.get("email")
+             else "", row.get("address") or row.get("city") or ""]
+    return f"{row.get('business_name') or ''} · " + " · ".join(p for p in parts if p) if any(parts) else ""
+
+
 def _todo(prospect_name: str, title: str, description: str, settings, priority: str) -> SendResult:
     """A ToDo on the prospect for whoever found it, when there is no CRM lead to hang a task on."""
     company = frappe.db.get_value("Sales Prospect", prospect_name, "company")
@@ -186,7 +204,7 @@ def _todo(prospect_name: str, title: str, description: str, settings, priority: 
         "status": "Open",
         "priority": priority if priority in ("Low", "Medium", "High") else "Medium",
         "date": add_days(nowdate(), int(settings.task_due_days or 1)),
-        "allocated_to": _finder(prospect_name),
+        "allocated_to": _assignee(prospect_name, settings),
         "reference_type": "Sales Prospect",
         "reference_name": prospect_name,
         "rsa_company": company,

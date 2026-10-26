@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-26 23:00:00.000000",
+ "modified": "2026-10-26 23:40:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -60,6 +60,7 @@
   "ai_scoring_col",
   "create_crm_tasks",
   "task_due_days",
+  "task_assignee",
   "channels_section",
   "sms_enabled",
   "whatsapp_enabled",
@@ -331,6 +332,13 @@
    "fieldtype": "Int",
    "label": "Task Due in (Days)",
    "default": "1"
+  },
+  {
+   "fieldname": "task_assignee",
+   "fieldtype": "Link",
+   "options": "User",
+   "label": "Give call and follow-up tasks to",
+   "description": "The salesperson who gets call tasks and reply follow-ups when a lead has no owner."
   },
   {
    "fieldname": "channels_section",

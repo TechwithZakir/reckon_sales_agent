@@ -89,6 +89,7 @@ def state() -> dict:
             "min_prospects": settings.get("autopilot_campaign_min_prospects") or 5,
             "auto_approve_min_fit": settings.auto_approve_min_fit,
             "ai_triage": bool(settings.get("autopilot_ai_triage")),
+            "task_assignee": settings.get("task_assignee") or "",
             "last_run": settings.get("autopilot_last_run"),
             "summary": settings.get("autopilot_summary"),
         },
@@ -146,6 +147,21 @@ def _detail(company: str, step) -> dict:
             "CRM Task", filters={"reference_doctype": "CRM Lead", "reference_docname": ["in", list(names) or [""]],
                                  "status": ["in", ["Backlog", "Todo", "In Progress"]]},
             fields=["name", "title", "priority", "due_date", "reference_docname"], limit=10)]
+        # Calls for leads not yet in the CRM are ToDos on the prospect (live test: they were not listed).
+        todos = frappe.get_all("ToDo", filters={"reference_type": "Sales Prospect", "status": "Open",
+                                                "rsa_company": company},
+                               fields=["name", "description", "date", "reference_name", "allocated_to"],
+                               order_by="date asc", limit=15)
+        prospects = {row.name: row for row in frappe.get_all(
+            "Sales Prospect", filters={"name": ["in", [t.reference_name for t in todos] or [""]]},
+            fields=["name", "business_name", "phone"])}
+        item["todos"] = [{
+            "name": t.name, "due_date": t.date, "assignee": t.allocated_to, "prospect": t.reference_name,
+            "business": (prospects.get(t.reference_name) or {}).get("business_name"),
+            "phone": (prospects.get(t.reference_name) or {}).get("phone"),
+            "title": frappe.utils.strip_html(t.description or "").split("\n")[0][:140],
+            "script": frappe.utils.strip_html((t.description or "").replace("<br>", "\n"))[:3000],
+        } for t in todos]
     return item
 
 
@@ -181,6 +197,11 @@ def set_autopilot(data) -> dict:
         # Live test: the old default (75) sat above the qualify threshold, so autopilot never approved anyone.
         settings.auto_approve_min_fit = float(frappe.db.get_value(
             "Sales Qualification Profile", {"company": company}, "qualify_threshold", order_by="creation asc") or 60)
+    if "task_assignee" in data:
+        user = (data["task_assignee"] or "").strip()
+        if user and not frappe.db.get_value("User", user, "enabled"):
+            frappe.throw(_("No active user {0}.").format(frappe.utils.escape_html(user)))
+        settings.task_assignee = user or None
     if "ai_triage" in data:
         settings.autopilot_ai_triage = 1 if data["ai_triage"] else 0
     if "auto_segments" in data:
@@ -241,6 +262,15 @@ def act(action: str, args=None):
         return api.pause_campaign(args.get("campaign"))
     if action == "approve_messages":
         return api.approve_messages(json.dumps([str(m) for m in args.get("messages") or []]))
+    if action == "task_done":
+        todo = frappe.get_doc("ToDo", str(args.get("todo")))
+        if todo.reference_type != "Sales Prospect" or todo.get("rsa_company") != company:
+            frappe.throw(_("Not one of your Company's tasks."), frappe.PermissionError)
+        todo.check_permission("write")
+        todo.db_set("status", "Closed")
+        log_activity(company, "call_task_done", get_tenant_doc("Sales Prospect", todo.reference_name, "read"),
+                     _("Marked done in Agent Studio"), agent="Engagement")
+        return "closed"
     if action == "accept_ai":
         return _accept_ai(company)
     if action == "review":

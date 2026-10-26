@@ -72,6 +72,24 @@ class WiringTests(unittest.TestCase):
         self.assertIn('values["sender_name"] = "[your name]"', task)
         self.assertIn('prospect.get("ai_triage_reason")', task)
 
+    def test_call_tasks_carry_the_number_and_go_to_the_named_salesperson(self):
+        # Live test: the first five call ToDos had no phone number, all went to Administrator and the inbox
+        # did not list them.
+        channels = self.read("providers", "channels.py")
+        task = channels.split("def create_task(")[1].split("\ndef ")[0]
+        self.assertLess(task.index("_contact_line(prospect_name)"), task.index("return _todo("))
+        self.assertIn("_assignee(prospect_name, settings)", task)
+        self.assertIn("_assignee(prospect_name, settings)", channels.split("def _todo(")[1])
+        self.assertIn('settings.get("task_assignee")', channels.split("def _assignee(")[1].split("\ndef ")[0])
+        api = self.read("api_agent_studio.py")
+        self.assertIn('item["todos"]', api)
+        done = api.split('if action == "task_done":')[1].split("if action ==")[0]
+        self.assertIn('todo.get("rsa_company") != company', done)  # only the Company's own tasks
+        self.assertIn('todo.check_permission("write")', done)
+        script = self.read("reckon_sales_agent", "page", "sales_agent", "sales_agent.js")
+        self.assertIn('href="tel:', script)
+        self.assertIn('this.act("task_done"', script)
+
     def test_approved_leads_join_campaigns_whatever_their_score_label(self):
         members = self.read("campaigns", "engine.py").split("def build_members(")[1].split("\ndef ")[0]
         self.assertNotIn('"qualification_status": "Qualified"', members)
