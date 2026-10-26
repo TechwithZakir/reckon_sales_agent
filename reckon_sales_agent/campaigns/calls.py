@@ -45,11 +45,18 @@ def plan_outcome(outcome: str, no_answers_so_far: int = 0) -> dict:
 
 
 def call_message(task_name: str) -> str | None:
-    """The outreach message whose call task this is."""
+    """The Call Task step message whose task this is, or None.
+
+    Live test: reply follow-up tasks are also recorded as "task_created" on an email message, and one was
+    accepted as a call ("no answer" closed it and created a retry). Only a Call Task step's tasks are calls.
+    """
     import frappe
 
-    return frappe.db.get_value("Sales Communication Event", {"provider_message_id": task_name,
-                                                             "event_type": "task_created"}, "message")
+    for message in frappe.get_all("Sales Communication Event", filters={
+            "provider_message_id": str(task_name), "event_type": "task_created"}, pluck="message"):
+        if frappe.db.get_value("Sales Outreach Message", message, "channel") == "Call Task":
+            return message
+    return None
 
 
 def record_call_outcome(task_doctype: str, task_name: str, outcome: str, note: str = "",

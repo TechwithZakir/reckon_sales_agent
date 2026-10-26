@@ -65,6 +65,15 @@ class WiringTests(unittest.TestCase):
         self.assertIn("_close_task(task_doctype, task_name)", calls)
         self.assertIn("_confirm_and_sync(prospect)", calls)  # interest on a call confirms the business
 
+    def test_only_call_task_steps_are_calls(self):
+        # Live test: "no answer" on a reply follow-up task was accepted: it closed the task and made a retry.
+        lookup = self.read("campaigns", "calls.py").split("def call_message(")[1].split("\ndef ")[0]
+        self.assertIn('== "Call Task"', lookup)
+        self.assertIn("str(task_name)", lookup)
+        detail = self.read("api_agent_studio.py").split("call_messages = set(")[1].split("item[\"todos\"]")[0]
+        self.assertIn('"channel": "Call Task"', detail)
+        self.assertIn('str(task["name"]) in calls', detail)
+
     def test_the_call_confirms_identity_for_the_crm(self):
         confirm = self.read("campaigns", "calls.py").split("def _confirm_and_sync(")[1]
         self.assertIn('"source": "phone_call"', confirm)

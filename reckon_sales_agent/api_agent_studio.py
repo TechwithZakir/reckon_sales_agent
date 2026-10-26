@@ -156,15 +156,19 @@ def _detail(company: str, step) -> dict:
         prospects = {row.name: row for row in frappe.get_all(
             "Sales Prospect", filters={"name": ["in", [t.reference_name for t in todos] or [""]]},
             fields=["name", "business_name", "phone"])}
-        calls = set(frappe.get_all("Sales Communication Event", filters={
+        # Only a Call Task step's tasks are calls (reply follow-ups are tasks too); CRM task names are numbers.
+        events = frappe.get_all("Sales Communication Event", filters={
             "event_type": "task_created", "company": company,
-            "provider_message_id": ["in", [t.name for t in todos] + [t["name"] for t in item["tasks"]] or [""]]},
-            pluck="provider_message_id"))
+            "provider_message_id": ["in", [str(t.name) for t in todos] + [str(t["name"]) for t in item["tasks"]]
+                                    or [""]]}, fields=["provider_message_id", "message"])
+        call_messages = set(frappe.get_all("Sales Outreach Message", filters={
+            "name": ["in", [e.message for e in events] or [""]], "channel": "Call Task"}, pluck="name"))
+        calls = {str(e.provider_message_id) for e in events if e.message in call_messages}
         for task in item["tasks"]:
-            task["is_call"] = task["name"] in calls
+            task["is_call"] = str(task["name"]) in calls
         item["todos"] = [{
             "name": t.name, "due_date": t.date, "assignee": t.allocated_to, "prospect": t.reference_name,
-            "is_call": t.name in calls,
+            "is_call": str(t.name) in calls,
             "business": (prospects.get(t.reference_name) or {}).get("business_name"),
             "phone": (prospects.get(t.reference_name) or {}).get("phone"),
             "title": frappe.utils.strip_html(t.description or "").split("\n")[0][:140],
