@@ -66,6 +66,12 @@ class WiringTests(unittest.TestCase):
         ready = self.read("agents", "orchestrator.py").split("def _segments_ready(")[1].split("\ndef ")[0]
         self.assertIn("(r.email or r.phone)", ready)
 
+    def test_call_scripts_name_the_caller_and_always_have_a_talking_point(self):
+        draft = self.read("campaigns", "engine.py").split("def draft_message(")[1].split("\ndef ")[0]
+        task = draft.split("if channel in TASK_CHANNELS:")[1].split("_ok, _reason")[0]
+        self.assertIn('values["sender_name"] = "[your name]"', task)
+        self.assertIn('prospect.get("ai_triage_reason")', task)
+
     def test_approved_leads_join_campaigns_whatever_their_score_label(self):
         members = self.read("campaigns", "engine.py").split("def build_members(")[1].split("\ndef ")[0]
         self.assertNotIn('"qualification_status": "Qualified"', members)

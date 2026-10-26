@@ -187,6 +187,13 @@ def draft_message(campaign, member, step, key: str) -> str:
             values["personal_line"] = line
             ai_generated = 1
     channel = step.channel or "Email"
+    if channel in TASK_CHANNELS:
+        # A script a salesperson reads aloud: they say their own name, and with no website research the AI
+        # triage's reading of the listing is the talking point (internal, never sent). Live test: the scripts
+        # said "this is Reckon Technologies Ltd. from Reckon Technologies" with an empty talking point.
+        values["sender_name"] = "[your name]"
+        if not values["personal_line"]:
+            values["personal_line"] = prospect.get("ai_triage_reason") or "No research yet: ask how they work today."
     _ok, _reason, recipient = reachability(channel, prospect, settings)
     subject = render(step.subject_template, values, escape=False)[:140]
     unsubscribe_url = get_url(f"/api/method/reckon_sales_agent.api.unsubscribe?token={member.unsubscribe_token}")
