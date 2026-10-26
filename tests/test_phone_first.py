@@ -48,11 +48,17 @@ class WiringTests(unittest.TestCase):
     def read(self, *parts):
         return APP.joinpath(*parts).read_text(encoding="utf-8")
 
-    def test_a_call_needs_a_phone_and_a_crm_lead(self):
+    def test_a_call_needs_a_phone_not_a_crm_lead(self):
+        # Live test: 9 of 12 approved leads had a phone but could not enter the CRM (source retention).
         reach = self.read("providers", "channels.py").split("def reachability(")[1].split("\ndef ")[0]
-        self.assertIn('channel == "Call Task" and not normalize_phone(prospect.phone)', reach)
+        call = reach.split('if channel == "Call Task":')[1].split("if channel in TASK_CHANNELS")[0]
+        self.assertIn("if not normalize_phone(prospect.phone):", call)
+        self.assertIn("prospect.crm_lead or prospect.name", call)
+        self.assertNotIn("Not in the CRM yet", call)
+        task = self.read("providers", "channels.py").split("def create_task(")[1].split("\ndef ")[0]
+        self.assertIn("return _todo(prospect_name", task)  # no CRM lead: a ToDo on the prospect
         ready = self.read("agents", "orchestrator.py").split("def _segments_ready(")[1].split("\ndef ")[0]
-        self.assertIn("r.email or (r.phone and r.crm_lead)", ready)
+        self.assertIn("(r.email or r.phone)", ready)
 
     def test_approved_leads_join_campaigns_whatever_their_score_label(self):
         members = self.read("campaigns", "engine.py").split("def build_members(")[1].split("\ndef ")[0]

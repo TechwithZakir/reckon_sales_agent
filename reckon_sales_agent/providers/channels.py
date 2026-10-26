@@ -57,11 +57,15 @@ def reachability(channel: str, prospect, settings) -> tuple[bool, str, str | Non
             if not prospect.whatsapp_consent:
                 return False, "No recorded WhatsApp opt-in.", None
         return True, f"{channel} consent recorded.", phone
+    if channel == "Call Task":
+        # Live test: approved phone-only leads from Brave Places cannot enter the CRM until their name is confirmed
+        # (source retention), so a call goes to a ToDo on the prospect; the call itself confirms the business.
+        if not normalize_phone(prospect.phone):
+            return False, "No phone number to call.", None
+        return True, "Call task for a salesperson.", prospect.crm_lead or prospect.name
     if channel in TASK_CHANNELS:
         if not prospect.crm_lead:
             return False, "Not in the CRM yet.", None
-        if channel == "Call Task" and not normalize_phone(prospect.phone):
-            return False, "No phone number to call.", None
         return True, "CRM task for the lead owner.", prospect.crm_lead
     return False, f"Unknown channel {channel}.", None
 

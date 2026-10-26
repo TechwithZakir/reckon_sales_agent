@@ -339,11 +339,11 @@ def _segments_ready(company: str) -> list[dict]:
                                fields=["name", "campaign_name"], limit=50):
         if disc.name in open_for:
             continue
-        # Reachable: a business email, or a phone and a CRM lead for a salesperson's call (phone-first pilot).
+        # Reachable: a business email, or a phone for a salesperson's call (phone-first pilot).
         rows = frappe.get_all("Sales Prospect", filters={"company": company, "discovery_campaign": disc.name,
                                                          "review_status": "Approved", "do_not_contact": 0},
                               fields=["name", "email", "phone", "crm_lead"])
-        free = [r for r in rows if r.name not in in_campaign and (r.email or (r.phone and r.crm_lead))]
+        free = [r for r in rows if r.name not in in_campaign and (r.email or r.phone)]
         if free:
             ready.append({"discovery": disc.name, "label": disc.campaign_name, "count": len(free),
                           "with_email": sum(1 for r in free if r.email)})
