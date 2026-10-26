@@ -143,6 +143,9 @@ scheduler_events = {
     "daily": [
         "reckon_sales_agent.jobs.purge_expired_source_data",
     ],
+    "cron": {
+        "0 8 * * *": ["reckon_sales_agent.agents.digest.send_all"],  # the morning digest (server time)
+    },
     "weekly": [
         "reckon_sales_agent.qualification.service.recalibrate_all",
         "reckon_sales_agent.campaigns.analytics.analyze_active_campaigns",

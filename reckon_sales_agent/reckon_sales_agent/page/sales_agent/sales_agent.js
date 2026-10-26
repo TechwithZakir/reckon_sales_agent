@@ -44,7 +44,8 @@
 		contact_found: __("Found a business email"), contact_not_found: __("No email on the website"),
 		call_task_done: __("Call done"), call_interested: __("Call: interested"), call_callback: __("Call: call back"),
 		call_not_interested: __("Call: not interested"), call_wrong_number: __("Call: wrong number"),
-		call_no_answer: __("Call: no answer"),
+		call_no_answer: __("Call: no answer"), digest_manager: __("Sent the daily digest"),
+		digest_caller: __("Sent today's calls"),
 	};
 	const label = (a) => ACTIONS[a] || (a || "").replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
 	const plain = (html) => $("<div>").html(html || "").text();
@@ -115,8 +116,16 @@
 					${s.kill_switch ? pill("bad", __("Kill switch on")) : pill(s.outbound_enabled ? "ok" : "warn",
 						s.outbound_enabled ? __("Sending live") : __("Dry run: nothing is sent"))}
 					${ap.last_run ? pill("", __("Last run {0}", [frappe.datetime.prettyDate(ap.last_run)])) : ""}
+					<button class="btn btn-default btn-sm ags-digest">${__("Send me today's digest")}</button>
 					${s.can_manage ? `<button class="btn btn-primary btn-sm ags-run">${icon("spark", 14)} ${__("Run agents now")}</button>` : ""}
 				</div>`);
+			this.$root.find(".ags-digest").on("click", (ev) => {
+				$(ev.currentTarget).prop("disabled", true);
+				this.call("act", { action: "send_digest", args: "{}" }).then((r) => frappe.show_alert({
+					message: r.manager || r.caller ? __("Digest sent to your email and notifications") : __("No digest for you today"),
+					indicator: r.manager || r.caller ? "green" : "blue" }))
+					.finally(() => $(ev.currentTarget).prop("disabled", false));
+			});
 			this.$root.find(".ags-run").on("click", (ev) => {
 				$(ev.currentTarget).prop("disabled", true);
 				this.call("run_now").then(() => frappe.show_alert({ message: __("The agents are on it."), indicator: "green" }))
@@ -154,6 +163,8 @@
 					<label>${__("Auto-approve leads at fit score")} <input type="number" class="form-control ags-fit" min="0" max="100" value="${e(ap.auto_approve_min_fit)}"></label>
 					<label class="ags-check"><input type="checkbox" class="ags-segs" ${ap.auto_segments ? "checked" : ""}> ${__("Choose segments automatically")}</label>
 					<label>${__("Give calls and follow-ups to (user)")} <input class="form-control ags-assignee" value="${e(ap.task_assignee)}" placeholder="${__("salesperson@yourcompany.com")}"></label>
+					<label class="ags-check"><input type="checkbox" class="ags-daily" ${ap.daily_digest ? "checked" : ""}> ${__("Daily digest at 08:00")}</label>
+					<label>${__("Also send the manager digest to")} <textarea class="form-control ags-recipients" rows="2" placeholder="${__("one user or email per line")}">${e(ap.digest_recipients)}</textarea></label>
 					<label class="ags-check"><input type="checkbox" class="ags-triage" ${ap.ai_triage ? "checked" : ""}> ${__("Let AI decide clear-cut leads")}</label>
 					<button class="btn btn-default btn-sm ags-save">${__("Save")}</button>
 					<button class="btn btn-default btn-sm ags-off">${__("Turn autopilot off")}</button></div>
@@ -180,6 +191,7 @@
 				enabled: 1, weekly_leads: Number(el.find(".ags-weekly").val()), min_prospects: Number(el.find(".ags-min").val()),
 				auto_segments: el.find(".ags-segs").is(":checked") ? 1 : 0, min_fit: Number(el.find(".ags-fit").val()),
 				ai_triage: el.find(".ags-triage").is(":checked") ? 1 : 0, task_assignee: el.find(".ags-assignee").val().trim(),
+				daily_digest: el.find(".ags-daily").is(":checked") ? 1 : 0, digest_recipients: el.find(".ags-recipients").val(),
 			}));
 		}
 

@@ -91,6 +91,8 @@ def state() -> dict:
             "auto_approve_min_fit": settings.auto_approve_min_fit,
             "ai_triage": bool(settings.get("autopilot_ai_triage")),
             "task_assignee": settings.get("task_assignee") or "",
+            "daily_digest": bool(settings.get("daily_digest")),
+            "digest_recipients": settings.get("digest_recipients") or "",
             "last_run": settings.get("autopilot_last_run"),
             "summary": settings.get("autopilot_summary"),
         },
@@ -209,6 +211,12 @@ def set_autopilot(data) -> dict:
         # Live test: the old default (75) sat above the qualify threshold, so autopilot never approved anyone.
         settings.auto_approve_min_fit = float(frappe.db.get_value(
             "Sales Qualification Profile", {"company": company}, "qualify_threshold", order_by="creation asc") or 60)
+    if "daily_digest" in data:
+        settings.daily_digest = 1 if data["daily_digest"] else 0
+    if "digest_recipients" in data:
+        settings.digest_recipients = "\n".join(
+            line.strip() for line in str(data["digest_recipients"] or "").replace(",", "\n").splitlines()
+            if line.strip())[:2000] or None
     if "task_assignee" in data:
         user = (data["task_assignee"] or "").strip()
         if user and not frappe.db.get_value("User", user, "enabled"):
@@ -274,6 +282,11 @@ def act(action: str, args=None):
         return api.pause_campaign(args.get("campaign"))
     if action == "approve_messages":
         return api.approve_messages(json.dumps([str(m) for m in args.get("messages") or []]))
+    if action == "send_digest":
+        from reckon_sales_agent.agents.digest import send_company
+
+        # A preview of today's digest for the person asking (managers get theirs, salespeople their calls).
+        return send_company(company, only_user=frappe.session.user, force=True, as_manager=_can_manage())
     if action == "call_outcome":
         from reckon_sales_agent.campaigns.calls import OUTCOMES, call_message, record_call_outcome
 
