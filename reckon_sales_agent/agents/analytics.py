@@ -44,6 +44,19 @@ def funnel(rows: list[dict], key: str) -> list[dict]:
     return sorted(out, key=lambda g: (g["won_value"], g["won"], g["deals"], g["positive"], g["prospects"]), reverse=True)
 
 
+def call_summary(assigned: int, outcomes: dict) -> dict:
+    """Phone-first pilots: calls assigned to salespeople, outcomes logged, reached and interested.
+
+    ``outcomes`` counts events by type (call_interested, call_callback, call_not_interested, call_wrong_number,
+    call_no_answer). Reached means someone answered and talked; deals still decide the pilot verdict.
+    """
+    get = lambda key: int(outcomes.get(f"call_{key}") or 0)  # noqa: E731
+    reached = get("interested") + get("callback") + get("not_interested")
+    logged = reached + get("wrong_number") + get("no_answer")
+    return {"calls": int(assigned or 0), "logged": logged, "reached": reached, "interested": get("interested"),
+            "reach_rate": pct(reached, logged), "interest_rate": pct(get("interested"), reached)}
+
+
 def in_holdout(seed: str, percent: int) -> bool:
     """Deterministic: the same prospect in the same campaign is always on the same side."""
     share = max(0, min(int(percent or 0), 50))

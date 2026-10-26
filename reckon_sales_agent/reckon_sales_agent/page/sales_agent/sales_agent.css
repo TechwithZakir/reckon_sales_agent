@@ -114,10 +114,12 @@
 .ags-lead { display: flex; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--ags-line); }
 .ags-bulk { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 10px; border-radius: 10px;
 	background: var(--ags-soft); color: var(--ags-text); }
-.ags-ai {font-size: 12px; margin-top: 3px; padding: 3px 8px; border-radius: 6px; background: var(--ags-soft); }
+.ags-outcomes { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.ags-call { align-items: flex-start; }
+.ags-ai { font-size: 12px; margin-top: 3px; padding: 3px 8px; border-radius: 6px; background: var(--ags-soft); }
 .ags-ai.approve { background: color-mix(in srgb, var(--ags-ok) 10%, transparent); }
 .ags-ai.reject { background: color-mix(in srgb, var(--ags-bad) 10%, transparent); }
-.ags-score {font-size: 12px; color: var(--ags-muted); white-space: nowrap; }
+.ags-score { font-size: 12px; color: var(--ags-muted); white-space: nowrap; }
 
 @media (max-width: 1100px) { .ags-lanes { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 860px) {

@@ -52,9 +52,10 @@ def state() -> dict:
         (_("Qualified"), count("Sales Prospect", qualification_status="Qualified")),
         (_("Approved"), count("Sales Prospect", review_status="Approved")),
         (_("In CRM"), count("Sales Prospect", crm_lead=["is", "set"])),
-        (_("Contacted"), events("sent", "dry_run")),
-        (_("Replied"), events("received")),
-        (_("Positive"), events("positive_reply", "meeting_requested")),
+        # A call someone answered counts as contact and as a reply; "interested" as positive.
+        (_("Contacted"), events("sent", "dry_run", "call_interested", "call_callback", "call_not_interested")),
+        (_("Replied"), events("received", "call_interested", "call_callback", "call_not_interested")),
+        (_("Positive"), events("positive_reply", "meeting_requested", "call_interested")),
     ]
     metrics = {
         "Research": [(_("leads"), funnel[0][1]), (_("qualified"), funnel[2][1]),
@@ -155,8 +156,15 @@ def _detail(company: str, step) -> dict:
         prospects = {row.name: row for row in frappe.get_all(
             "Sales Prospect", filters={"name": ["in", [t.reference_name for t in todos] or [""]]},
             fields=["name", "business_name", "phone"])}
+        calls = set(frappe.get_all("Sales Communication Event", filters={
+            "event_type": "task_created", "company": company,
+            "provider_message_id": ["in", [t.name for t in todos] + [t["name"] for t in item["tasks"]] or [""]]},
+            pluck="provider_message_id"))
+        for task in item["tasks"]:
+            task["is_call"] = task["name"] in calls
         item["todos"] = [{
             "name": t.name, "due_date": t.date, "assignee": t.allocated_to, "prospect": t.reference_name,
+            "is_call": t.name in calls,
             "business": (prospects.get(t.reference_name) or {}).get("business_name"),
             "phone": (prospects.get(t.reference_name) or {}).get("phone"),
             "title": frappe.utils.strip_html(t.description or "").split("\n")[0][:140],
@@ -262,6 +270,18 @@ def act(action: str, args=None):
         return api.pause_campaign(args.get("campaign"))
     if action == "approve_messages":
         return api.approve_messages(json.dumps([str(m) for m in args.get("messages") or []]))
+    if action == "call_outcome":
+        from reckon_sales_agent.campaigns.calls import OUTCOMES, call_message, record_call_outcome
+
+        doctype = args.get("doctype") if args.get("doctype") in ("ToDo", "CRM Task") else None
+        task, outcome = str(args.get("task") or ""), str(args.get("outcome") or "")
+        message = call_message(task)
+        if not doctype or outcome not in OUTCOMES or not message:
+            frappe.throw(_("Unknown call task or outcome."))
+        get_tenant_doc("Sales Outreach Message", message, "read")  # the call belongs to the user's Company
+        frappe.get_doc(doctype, task).check_permission("write")
+        return record_call_outcome(doctype, task, outcome, str(args.get("note") or "")[:500],
+                                   args.get("callback_on") or None)
     if action == "task_done":
         todo = frappe.get_doc("ToDo", str(args.get("todo")))
         if todo.reference_type != "Sales Prospect" or todo.get("rsa_company") != company:

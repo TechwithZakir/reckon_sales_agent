@@ -111,11 +111,22 @@ def pilot_report(campaign) -> dict:
     result = pilot_result(len(treated), sum(converted(m) for m in treated), len(holdout), sum(converted(m) for m in holdout))
     summary = (f"Contacted {result['treated']} ({result['treated_rate']}% converted) vs hold-out {result['holdout']} "
                f"({result['holdout_rate']}%): lift {result['lift_points']} points, z={result['z']}. {result['why']}")
+    from reckon_sales_agent.agents.analytics import call_summary
+    from reckon_sales_agent.campaigns.calls import EVENT
+
+    # Frappe 16 rejects SQL functions in ``fields``: one count per outcome.
+    calls = call_summary(
+        frappe.db.count("Sales Outreach Message", {"campaign": campaign.name, "channel": "Call Task", "status": "Sent"}),
+        {event: frappe.db.count("Sales Communication Event", {"campaign": campaign.name, "event_type": event})
+         for event in EVENT.values()})
+    if calls["calls"]:
+        summary += (f" Calls: {calls['calls']} assigned, {calls['logged']} logged, {calls['reached']} reached "
+                    f"({calls['reach_rate']}%), {calls['interested']} interested ({calls['interest_rate']}% of reached).")
     campaign.db_set({"pilot_verdict": result["verdict"], "pilot_summary": summary[:1000],
                      "pilot_checked_on": now_datetime()}, update_modified=False)
     log_activity(campaign.company, "pilot_measured", campaign, summary, actor_type="agent", agent="Analytics",
                  policy_outcome="recommendation only" if result["verdict"] == "scale" else None)
-    return {**result, "summary": summary, "campaign": campaign.name}
+    return {**result, "summary": summary, "campaign": campaign.name, "calls": calls}
 
 
 def metrics_tips(metrics: dict) -> list[str]:

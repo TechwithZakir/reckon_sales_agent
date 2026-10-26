@@ -42,7 +42,9 @@
 		reply_answered: __("Answered a question"), reply_complaint: __("Complaint: needs a person"), pilot_measured: __("Measured a pilot"),
 		prospect_triaged: __("Judged a lead"), targeting_learned: __("Learned from your decisions"),
 		contact_found: __("Found a business email"), contact_not_found: __("No email on the website"),
-		call_task_done: __("Call done"),
+		call_task_done: __("Call done"), call_interested: __("Call: interested"), call_callback: __("Call: call back"),
+		call_not_interested: __("Call: not interested"), call_wrong_number: __("Call: wrong number"),
+		call_no_answer: __("Call: no answer"),
 	};
 	const label = (a) => ACTIONS[a] || (a || "").replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
 	const plain = (html) => $("<div>").html(html || "").text();
@@ -334,20 +336,50 @@
 		ask_followups(body, a) {
 			// CRM tasks carry a datetime; the date is enough (live test: "due 27-10-2026 00:00:00").
 			const due = (d) => (d ? " · " + __("due {0}", [frappe.datetime.str_to_user(String(d).slice(0, 10))]) : "");
-			const calls = (a.todos || []).map((t) => `<div class="ags-lead" data-todo="${e(t.name)}"><details class="grow">
+			// A call's outcome decides the next step (CRM lead and demo task, callback, retry or stop).
+			const OUTCOMES = [["interested", __("Interested")], ["callback", __("Call back")], ["no_answer", __("No answer")],
+				["not_interested", __("Not interested")], ["wrong_number", __("Wrong number")]];
+			const outcomeButtons = (doctype, name) => `<div class="ags-outcomes" data-doctype="${e(doctype)}" data-task="${e(name)}">
+				${OUTCOMES.map(([k, l]) => `<button class="btn btn-default btn-xs" data-outcome="${k}">${e(l)}</button>`).join("")}</div>`;
+			const calls = (a.todos || []).map((t) => `<div class="ags-lead ags-call" data-todo="${e(t.name)}"><div class="grow"><details>
 				<summary><b>${e(t.business || t.prospect)}</b>
 					${t.phone ? ` · <a href="tel:${e(t.phone)}" title="${__("Call")}">${e(t.phone)}</a>` : ""}
 					<span class="ags-muted">${e(due(t.due_date))} · ${e(t.assignee || "")}</span></summary>
 				<pre>${e(t.script)}</pre></details>
-				<button class="btn btn-default btn-xs ags-done">${__("Mark done")}</button></div>`).join("");
-			const tasks = (a.tasks || []).map((t) => `<div class="ags-lead"><div class="grow"><b>${e(t.title)}</b>
-				<div class="ags-muted">${e(t.business || "")}${e(due(t.due_date))}</div></div>
+				${t.is_call ? outcomeButtons("ToDo", t.name) : ""}</div>
+				${t.is_call ? "" : `<button class="btn btn-default btn-xs ags-done">${__("Mark done")}</button>`}</div>`).join("");
+			const tasks = (a.tasks || []).map((t) => `<div class="ags-lead ags-call"><div class="grow"><b>${e(t.title)}</b>
+				<div class="ags-muted">${e(t.business || "")}${e(due(t.due_date))}</div>
+				${t.is_call ? outcomeButtons("CRM Task", t.name) : ""}</div>
 				<a class="btn btn-default btn-xs" href="/crm/leads/${encodeURIComponent(t.reference_docname)}">${__("Open in CRM")}</a></div>`).join("");
 			body.html(calls + tasks || `<div class="ags-muted">${__("Open your ToDo list to see them.")}</div>`);
 			body.find(".ags-done").on("click", (ev) => {
 				const row = $(ev.currentTarget).closest(".ags-lead");
 				$(ev.currentTarget).prop("disabled", true);
 				this.act("task_done", { todo: row.data("todo") }, __("Marked done"));
+			});
+			body.find(".ags-outcomes button").on("click", (ev) => {
+				const box = $(ev.currentTarget).closest(".ags-outcomes");
+				const outcome = ev.currentTarget.dataset.outcome;
+				const send = (extra) => {
+					box.find("button").prop("disabled", true);
+					this.act("call_outcome", { doctype: box.data("doctype"), task: box.data("task"), outcome, ...extra },
+						{ interested: __("Added to the CRM with a 'book the demo' task"), callback: __("Callback scheduled"),
+							no_answer: __("Noted; the agent will retry"), not_interested: __("Noted; the sequence stops"),
+							wrong_number: __("Number removed from the lead") }[outcome])
+						.catch(() => box.find("button").prop("disabled", false));
+				};
+				if (outcome === "callback") {
+					frappe.prompt([{ fieldname: "callback_on", fieldtype: "Date", label: __("Call back on"), reqd: 1,
+						default: frappe.datetime.add_days(frappe.datetime.get_today(), 1) },
+					{ fieldname: "note", fieldtype: "Small Text", label: __("Note (what they said)") }],
+					(v) => send(v), __("Call back"), __("Schedule"));
+				} else if (outcome === "interested" || outcome === "not_interested") {
+					frappe.prompt([{ fieldname: "note", fieldtype: "Small Text", label: __("Note (what they said)") }],
+						(v) => send(v), outcome === "interested" ? __("Interested") : __("Not interested"), __("Save"));
+				} else {
+					send({});
+				}
 			});
 		}
 
