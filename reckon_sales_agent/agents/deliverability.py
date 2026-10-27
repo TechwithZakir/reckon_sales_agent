@@ -38,13 +38,40 @@ def warmup_limit(start: int, growth_percent: float, days_since_first_send: int, 
     return max(1, min(cap, value)) if cap else max(1, value)
 
 
+SPF_MECHANISMS = ("all", "include", "a", "mx", "ptr", "ip4", "ip6", "exists")
+SPF_LOOKUPS = ("include", "a", "mx", "ptr", "exists", "redirect")
+
+
+def spf_syntax(record: str) -> str:
+    """Advice when an SPF record is broken, else ''. Live: reckon.tech's record ended in
+    "~allfacebook-domain-verification=…" (a verification string glued onto it), which makes SPF fail."""
+    terms = record.split()[1:]
+    lookups = 0
+    for term in terms:
+        body = term.lstrip("+-~?")
+        name = body.split(":", 1)[0].split("=", 1)[0].split("/", 1)[0].lower()
+        if "=" in body and name in ("redirect", "exp"):
+            lookups += name == "redirect"
+            continue
+        if name not in SPF_MECHANISMS:
+            return (f"Your SPF record has an invalid part “{term[:60]}”. Another TXT value seems to be joined to it; "
+                    "publish it as its own TXT record, so SPF ends with ~all or -all.")
+        lookups += name in SPF_LOOKUPS
+    if lookups > 10:
+        return f"Your SPF record needs {lookups} DNS lookups (more than 10 makes SPF fail); remove unused includes."
+    if terms and terms[-1].lstrip("+-~?").lower() != "all" and not any(t.startswith("redirect=") for t in terms):
+        return "Your SPF record should end with ~all or -all."
+    return ""
+
+
 def evaluate_dns(spf: list[str], dmarc: list[str], dkim_selector: str | None) -> list[dict]:
     """Checks with plain advice. ``spf``/``dmarc`` are the TXT records found; ``dkim_selector`` the one found."""
     checks = []
     spf_records = [r for r in spf if r.lower().startswith("v=spf1")]
-    checks.append({"name": "SPF", "ok": len(spf_records) == 1,
+    spf_problem = spf_syntax(spf_records[0]) if len(spf_records) == 1 else ""
+    checks.append({"name": "SPF", "ok": len(spf_records) == 1 and not spf_problem,
                    "detail": spf_records[0] if spf_records else "",
-                   "advice": "" if len(spf_records) == 1 else (
+                   "advice": spf_problem if spf_problem else "" if len(spf_records) == 1 else (
                        "Publish one SPF TXT record that includes your email provider (e.g. include:_spf.google.com)."
                        if not spf_records else "Merge your SPF records into one; two SPF records make SPF fail.")})
     dmarc_records = [r for r in dmarc if r.lower().startswith("v=dmarc1")]

@@ -147,7 +147,31 @@ class DeliverabilityTests(unittest.TestCase):
         bad = evaluate_dns(["v=spf1 a", "v=spf1 mx"], [], None)
         self.assertEqual([c["ok"] for c in bad], [False, False, False])
         self.assertIn("Merge", bad[0]["advice"])
-        self.assertIn("monitoring", evaluate_dns(["v=spf1 a"], ["v=DMARC1; p=none"], "k1")[1]["advice"])
+        self.assertIn("monitoring", evaluate_dns(["v=spf1 a ~all"], ["v=DMARC1; p=none"], "k1")[1]["advice"])
+
+    def test_spf_syntax(self):
+        from reckon_sales_agent.agents.deliverability import spf_syntax
+
+        # Live: reckon.tech's SPF had a Facebook verification string glued to "~all".
+        broken = ("v=spf1 ip4:209.74.67.151 include:spf.web-hosting.com a mx include:_spf.google.com "
+                  "~allfacebook-domain-verification=3d7b01v7619vgxxtfe3ta0m2pfvq55")
+        self.assertIn("invalid part", spf_syntax(broken))
+        self.assertFalse(evaluate_dns([broken], ["v=DMARC1; p=quarantine"], "default")[0]["ok"])
+        self.assertEqual(spf_syntax("v=spf1 ip4:1.2.3.4 include:_spf.google.com -all"), "")
+        self.assertEqual(spf_syntax("v=spf1 redirect=_spf.example.com"), "")
+        self.assertIn("end with", spf_syntax("v=spf1 a mx"))
+        many = "v=spf1 " + " ".join(f"include:s{i}.example.com" for i in range(11)) + " ~all"
+        self.assertIn("lookups", spf_syntax(many))
+
+    def test_ai_errors_say_why(self):
+        from reckon_sales_agent.providers.llm import provider_reason
+
+        class Exc(Exception):
+            body = {"type": "error", "error": {"type": "invalid_request_error",
+                                               "message": "Your credit balance is too low to access the API."}}
+
+        self.assertEqual(provider_reason(Exc()), "Your credit balance is too low to access the API.")
+        self.assertEqual(provider_reason(ValueError("boom")), "boom")
 
     def test_send_path(self):
         send = read("campaigns", "engine.py").split("def send_message(")[1].split("\ndef ")[0]

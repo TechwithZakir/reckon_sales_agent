@@ -50,7 +50,9 @@ class ClaudeProvider:
         except anthropic.RateLimitError as exc:
             raise LLMError("AI rate limit reached; try again later.") from exc
         except anthropic.APIStatusError as exc:
-            raise LLMError(f"AI request failed ({exc.status_code}).") from exc
+            # Live: every call failed with a bare "(400)"; the provider's reason (e.g. a low credit balance or an
+            # unsupported option) is what the person needs to fix it. Keys never appear in these messages.
+            raise LLMError(f"AI request failed ({exc.status_code}): {provider_reason(exc)}") from exc
         except anthropic.APIConnectionError as exc:
             raise LLMError("AI service unreachable.") from exc
         if response.stop_reason == "refusal":
@@ -65,6 +67,17 @@ class ClaudeProvider:
         if not isinstance(data, dict):
             raise LLMError("The AI returned an unexpected shape.")
         return data
+
+
+def provider_reason(exc) -> str:
+    """The provider's own error message, short: {"error": {"message": ...}} in the body, else the exception text."""
+    body = getattr(exc, "body", None)
+    message = ""
+    if isinstance(body, dict):
+        error = body.get("error") if isinstance(body.get("error"), dict) else body
+        message = str(error.get("message") or "")
+    message = message or str(getattr(exc, "message", "") or exc)
+    return " ".join(message.split())[:240] or "no details"
 
 
 def untrusted(label: str, text: str) -> str:
