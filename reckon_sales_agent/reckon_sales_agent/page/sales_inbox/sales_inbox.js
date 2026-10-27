@@ -5,7 +5,7 @@
 	frappe.pages["sales-inbox"].on_page_load = function (wrapper) {
 		const page = frappe.ui.make_app_page({ parent: wrapper, title: __("Conversations"), single_column: true });
 		page.add_inner_button(__("Agent Studio"), () => frappe.set_route("sales-agent"));
-		page.add_inner_button(__("Channels"), () => frappe.set_route("sales-channels"));
+		page.add_inner_button(__("Integrations"), () => frappe.set_route("sales-channels"));
 		wrapper.inbox = new Inbox(page);
 	};
 	frappe.pages["sales-inbox"].on_page_show = (wrapper) => wrapper.inbox && wrapper.inbox.start();
@@ -51,8 +51,9 @@
 				this.rows = rows;
 				if (!this.current && rows.length) this.current = (rows.find((r) => r.needs_reply) || rows[0]).prospect;
 				this.render_list();
-				const typing = this.$root.find(".sin-text").val();
-				if (this.current && !(quiet && typing)) this.open(this.current);
+				// Never redraw the thread under someone typing a reply or a tag, or using a menu.
+				const busy = this.$root.find(".sin-text").val() || $.contains(this.$root.find(".sin-thread")[0], document.activeElement);
+				if (this.current && !(quiet && busy)) this.open(this.current);
 				else if (!this.current) this.$root.find(".sin-thread").html(`<div class="sin-empty">${__("No conversations yet. Replies, chats, texts, calls and lead forms appear here.")}</div>`);
 			});
 		}

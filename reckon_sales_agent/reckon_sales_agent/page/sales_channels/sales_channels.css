@@ -65,7 +65,7 @@
 /* slide-in panel */
 .sch-drawer { position: fixed; inset: 0; z-index: 1030; pointer-events: none; }
 .sch-scrim { position: absolute; inset: 0; background: rgba(15, 23, 42, .35); opacity: 0; transition: opacity .2s; }
-.sch-panel { position: absolute; top: 0; right: 0; bottom: 0; width: min(560px, 100%); background: var(--sch-card); color: var(--sch-text);
+.sch-panel { position: absolute; top: 0; right: 0; bottom: 0; width: min(560px, 100%); background: var(--modal-bg, var(--bg-color, #fff)); color: var(--sch-text);
 	box-shadow: -12px 0 32px rgba(15, 23, 42, .18); transform: translateX(100%); transition: transform .22s ease; display: flex; flex-direction: column; }
 .sch-drawer.open { pointer-events: auto; }
 .sch-drawer.open .sch-scrim { opacity: 1; }
