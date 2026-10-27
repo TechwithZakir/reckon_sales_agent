@@ -401,8 +401,7 @@ def save_settings(data: str | dict) -> dict:
         if kind == "check":
             value = 1 if value in (1, "1", True, "true") else 0
         elif doc.meta.get_field(field) and doc.meta.get_field(field).fieldtype == "Select":
-            options = (doc.meta.get_field(field).options or "").split("
-")
+            options = (doc.meta.get_field(field).options or "").splitlines()
             if str(value) not in options:
                 frappe.throw(_("{0} is not an option for {1}.").format(value, doc.meta.get_label(field)))
         doc.set(field, str(value).strip()[:2000] if kind != "check" else value)
