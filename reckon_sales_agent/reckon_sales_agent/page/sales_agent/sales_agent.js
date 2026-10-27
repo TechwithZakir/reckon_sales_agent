@@ -117,7 +117,7 @@
 					<p>${__("Five agents find, research, write and follow up. You only approve what goes out.")}</p></div>
 				<div class="ags-pills">
 					${pill(ap.enabled ? "ok" : "", ap.enabled ? __("Autopilot on") : __("Autopilot off"))}
-					${pill(s.ai ? "ok" : "warn", s.ai ? __("AI on") : __("AI off"))}
+					${pill(s.ai ? "ok" : "warn", (s.ai ? __("AI on") : __("AI off")) + (s.ai_label ? ` · ${s.ai_label}` : ""))}
 					${s.kill_switch ? pill("bad", __("Kill switch on")) : pill(s.outbound_enabled ? "ok" : "warn",
 						s.outbound_enabled ? __("Sending live") : __("Dry run: nothing is sent"))}
 					${ap.last_run ? pill("", __("Last run {0}", [frappe.datetime.prettyDate(ap.last_run)])) : ""}

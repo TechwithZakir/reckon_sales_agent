@@ -182,7 +182,7 @@ class DeliverabilityTests(unittest.TestCase):
         self.assertFalse(blocks_account(400, "max_tokens: too large"))  # one bad request, not the account
         steps = plan({**READY, "ai_blocked": "Your credit balance is too low."})
         self.assertEqual((steps[0].key, steps[0].kind), ("ai_blocked", ASK))
-        self.assertIn("if ai_blocked():", read("providers", "factory.py").split("def get_llm(")[1])
+        self.assertIn('frappe.cache.get_value(blocked_key(setup["scope"]))', read("providers", "factory.py").split("def get_llm(")[1])
 
     def test_send_path(self):
         send = read("campaigns", "engine.py").split("def send_message(")[1].split("\ndef ")[0]

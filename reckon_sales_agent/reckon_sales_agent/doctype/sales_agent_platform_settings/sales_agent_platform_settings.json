@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-26 10:00:00.000000",
+ "modified": "2026-10-27 15:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -20,9 +20,21 @@
   "internal_companies",
   "ai_section",
   "ai_enabled",
+  "ai_provider",
   "anthropic_api_key",
   "ai_model",
   "ai_effort",
+  "openai_section",
+  "openai_api_key",
+  "openai_model",
+  "openai_base_url",
+  "local_ai_section",
+  "local_ai_base_url",
+  "local_ai_model",
+  "local_ai_api_key",
+  "company_ai_section",
+  "allow_company_ai_override",
+  "allow_company_ai_endpoints",
   "places_section",
   "places_enabled",
   "google_places_api_key",
@@ -119,6 +131,14 @@
    "default": "0"
   },
   {
+   "fieldname": "ai_provider",
+   "fieldtype": "Select",
+   "label": "Default AI provider",
+   "options": "Anthropic (Claude)\nOpenAI\nLocal (OpenAI-compatible)",
+   "default": "Anthropic (Claude)",
+   "description": "Used by every Company unless it overrides it (when allowed below)."
+  },
+  {
    "fieldname": "anthropic_api_key",
    "fieldtype": "Password",
    "label": "Anthropic API Key"
@@ -135,6 +155,74 @@
    "label": "AI Effort",
    "options": "low\nmedium\nhigh",
    "default": "medium"
+  },
+  {
+   "fieldname": "openai_section",
+   "fieldtype": "Section Break",
+   "label": "OpenAI",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "openai_api_key",
+   "fieldtype": "Password",
+   "label": "OpenAI API key"
+  },
+  {
+   "fieldname": "openai_model",
+   "fieldtype": "Data",
+   "label": "OpenAI model",
+   "description": "The model name from your OpenAI account, for example one that supports structured outputs."
+  },
+  {
+   "fieldname": "openai_base_url",
+   "fieldtype": "Data",
+   "label": "OpenAI API address",
+   "default": "https://api.openai.com/v1",
+   "description": "Change only for an OpenAI-compatible gateway (e.g. Azure OpenAI through a proxy)."
+  },
+  {
+   "fieldname": "local_ai_section",
+   "fieldtype": "Section Break",
+   "label": "Local AI (OpenAI-compatible)",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "local_ai_base_url",
+   "fieldtype": "Data",
+   "label": "Local AI server address",
+   "description": "e.g. http://127.0.0.1:11434/v1 for Ollama, or your vLLM / LM Studio server."
+  },
+  {
+   "fieldname": "local_ai_model",
+   "fieldtype": "Data",
+   "label": "Local model",
+   "description": "e.g. qwen2.5:14b"
+  },
+  {
+   "fieldname": "local_ai_api_key",
+   "fieldtype": "Password",
+   "label": "Local AI key (if the server needs one)"
+  },
+  {
+   "fieldname": "company_ai_section",
+   "fieldtype": "Section Break",
+   "label": "Company overrides",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "allow_company_ai_override",
+   "fieldtype": "Check",
+   "label": "Companies may choose their own AI provider",
+   "default": "0",
+   "description": "A Company can pick another provider or model, and bring its own API key."
+  },
+  {
+   "fieldname": "allow_company_ai_endpoints",
+   "fieldtype": "Check",
+   "label": "Companies may use their own AI server address",
+   "default": "0",
+   "depends_on": "allow_company_ai_override",
+   "description": "HTTPS and public addresses only: a tenant's address is reached from the shared server."
   },
   {
    "fieldname": "places_section",

@@ -80,6 +80,7 @@ def state() -> dict:
         "company": company,
         "can_manage": _can_manage(),
         "ai": snapshot.get("ai"),
+        "ai_label": _ai_label(company),
         "outbound_enabled": bool(settings.outbound_enabled),
         "kill_switch": bool(settings.kill_switch),
         "human_approval": bool(settings.human_approval_required),
@@ -349,3 +350,14 @@ def _nudge(company: str) -> None:
 
     if get_settings(company).get("autopilot_enabled"):
         enqueue_run(company, "after your decision")
+
+
+def _ai_label(company: str) -> str:
+    """Which AI this Company uses, e.g. "OpenAI · gpt-x" (no keys or addresses)."""
+    from reckon_sales_agent.providers.factory import ai_setup
+
+    try:
+        setup = ai_setup(company)
+    except Exception:
+        return ""
+    return " · ".join(part for part in (setup["label"], setup["model"]) if part)

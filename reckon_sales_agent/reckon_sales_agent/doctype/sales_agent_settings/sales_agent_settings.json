@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-27 12:00:00.000000",
+ "modified": "2026-10-27 15:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -30,6 +30,10 @@
   "physical_address",
   "ai_section",
   "ai_enabled",
+  "ai_provider_override",
+  "ai_model_override",
+  "ai_api_key_override",
+  "ai_base_url_override",
   "max_results_per_job",
   "max_concurrent_jobs",
   "retention_days",
@@ -179,6 +183,32 @@
    "fieldtype": "Check",
    "label": "Use AI (Claude)",
    "default": "0"
+  },
+  {
+   "fieldname": "ai_provider_override",
+   "fieldtype": "Select",
+   "label": "AI provider",
+   "options": "\nAnthropic (Claude)\nOpenAI\nLocal (OpenAI-compatible)",
+   "description": "Empty: use the platform's default. Takes effect only if your provider allows Company overrides."
+  },
+  {
+   "fieldname": "ai_model_override",
+   "fieldtype": "Data",
+   "label": "AI model",
+   "depends_on": "ai_provider_override"
+  },
+  {
+   "fieldname": "ai_api_key_override",
+   "fieldtype": "Password",
+   "label": "Your own AI API key",
+   "depends_on": "ai_provider_override",
+   "description": "Optional: use your own account and quota."
+  },
+  {
+   "fieldname": "ai_base_url_override",
+   "fieldtype": "Data",
+   "label": "Your own AI server address (HTTPS)",
+   "depends_on": "eval:doc.ai_provider_override && doc.ai_provider_override != 'Anthropic (Claude)'"
   },
   {
    "fieldname": "max_results_per_job",
