@@ -64,10 +64,10 @@
   },
   {
    "type": "Link",
-   "label": "Channels",
+   "label": "Integrations",
    "link_to": "sales-channels",
    "link_type": "Page",
-   "icon": "share-2",
+   "icon": "plug",
    "child": 0,
    "indent": 0,
    "collapsible": 1,

@@ -211,8 +211,16 @@ def overview() -> dict:
                               order_by="platform asc, account_name asc")
     count = lambda channel: frappe.db.count("Sales Chat Message", {"company": company, "channel": channel,  # noqa: E731
                                                                    "direction": "In"})
+    from reckon_sales_agent.providers.factory import ai_setup
+
+    ai = ai_setup(company)
     return {
         "company": company,
+        "values": _values(settings),
+        "ai": {"on": bool(platform.get("ai_enabled") and settings.get("ai_enabled")), "label": ai["label"],
+               "model": ai["model"], "error": ai["error"]},
+        "phone": {"provider": settings.get("telephony_provider") or "Phone (tap to call)",
+                  "asterisk": bool(settings.get("ari_url"))},
         "can_manage": _can_manage(),
         "accounts": accounts,
         "meta_ready": bool(platform.get("meta_app_id") and platform.get("meta_app_secret")),
@@ -358,4 +366,46 @@ def new_verify_token() -> str:
     doc.meta_verify_token = token
     doc.save(ignore_permissions=True)
     return token
+
+
+# Settings a Company manages from the integration panels (secrets are write-only).
+EDITABLE = {
+    "sms_enabled": "check", "sms_provider": "text", "sms_api_key": "secret", "sms_account": "text",
+    "sms_sender_id": "text", "whatsapp_enabled": "check",
+    "telephony_provider": "text", "calling_hours": "text", "ari_url": "text", "ari_username": "text",
+    "ari_password": "secret", "sip_context": "text", "sip_caller_id": "text", "telephony_webhook_secret": "secret",
+    "twilio_account_sid": "text", "twilio_auth_token": "secret", "twilio_phone_number": "text",
+    "twilio_messaging_service_sid": "text", "twilio_record_calls": "check", "voice_ai_enabled": "check",
+    "voice_ai_greeting": "text", "voice_ai_language": "text", "voice_forward_to": "text",
+    "email_provider": "text", "sendgrid_api_key": "secret", "sendgrid_from_email": "text",
+    "sendgrid_webhook_key": "text",
+}
+
+
+def _values(settings) -> dict:
+    """Current values for the panels; a secret only says whether it is set."""
+    return {field: bool(settings.get(field)) if kind == "secret" else settings.get(field)
+            for field, kind in EDITABLE.items()}
+
+
+@frappe.whitelist(methods=["POST"])
+def save_settings(data: str | dict) -> dict:
+    """Save an integration panel. Only the listed fields; an empty secret keeps the stored one."""
+    _require_manager()
+    data = json.loads(data) if isinstance(data, str) else data
+    doc = get_tenant_doc("Sales Agent Settings", current_company(), "write")
+    for field, value in (data or {}).items():
+        kind = EDITABLE.get(field)
+        if not kind or (kind == "secret" and not str(value or "").strip()):
+            continue
+        if kind == "check":
+            value = 1 if value in (1, "1", True, "true") else 0
+        elif doc.meta.get_field(field) and doc.meta.get_field(field).fieldtype == "Select":
+            options = (doc.meta.get_field(field).options or "").split("
+")
+            if str(value) not in options:
+                frappe.throw(_("{0} is not an option for {1}.").format(value, doc.meta.get_label(field)))
+        doc.set(field, str(value).strip()[:2000] if kind != "check" else value)
+    doc.save()
+    return overview()
 

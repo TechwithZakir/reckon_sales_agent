@@ -66,6 +66,7 @@ jobs:
           python -m pip install --upgrade pip frappe-bench
       - name: Set up bench (Frappe version-16)
         run: |
+          exec > >(tee -a ~/ci.log) 2>&1
           bench init --skip-redis-config-generation --skip-assets --frappe-branch version-16 --python "$(which python)" ~/frappe-bench
           cd ~/frappe-bench
           bench set-config -g db_host 127.0.0.1
@@ -75,6 +76,7 @@ jobs:
       - name: Get apps
         run: |
           cd ~/frappe-bench
+          exec > >(tee -a ~/ci.log) 2>&1
           bench get-app --skip-assets --branch version-16 erpnext https://github.com/frappe/erpnext
           bench get-app --skip-assets --branch main crm https://github.com/frappe/crm
           bench get-app --skip-assets --branch main reckon_saas_platform https://github.com/TechwithZakir/Reckon-SaaS-Platform
@@ -82,11 +84,19 @@ jobs:
       - name: Create a site, install and migrate
         run: |
           cd ~/frappe-bench
-          bench new-site --db-root-password root --admin-password admin --mariadb-user-host-login-scope='%' ci.local
-          bench --site ci.local install-app erpnext crm reckon_saas_platform reckon_sales_agent
-          bench --site ci.local migrate
+          run() { echo "+ $*"; "$@" 2>&1 | tee -a ~/ci.log; return ${PIPESTATUS[0]}; }
+          run bench new-site --db-root-password root --admin-password admin --mariadb-user-host-login-scope='%' ci.local
+          for app in erpnext crm reckon_saas_platform reckon_sales_agent; do run bench --site ci.local install-app "$app"; done
+          run bench --site ci.local migrate
       - name: Smoke test
         run: |
           cd ~/frappe-bench
-          bench --site ci.local execute reckon_sales_agent.ci_smoke.run
+          set -o pipefail
+          bench --site ci.local execute reckon_sales_agent.ci_smoke.run 2>&1 | tee -a ~/ci.log
+      - name: Show why it failed
+        # Job logs need a GitHub sign-in; annotations are public, so the cause is readable from the API too.
+        if: failure()
+        run: |
+          tail -n 60 ~/ci.log 2>/dev/null | sed -e 's/%/%25/g' | awk 'BEGIN{ORS="%0A"} {print}' > ~/tail.txt || true
+          echo "::error title=Last lines before the failure::$(cat ~/tail.txt)"
 
