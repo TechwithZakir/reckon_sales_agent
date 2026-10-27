@@ -28,6 +28,10 @@ _CRM_SCOPED = (
     "Comment",
     "ToDo",
     "File",
+    "Lead Sync Source",
+    "Facebook Page",
+    "Facebook Lead Form",
+    "Failed Lead Sync Log",
     # Master lists: per Company plus shared read-only defaults.
     "CRM Territory",
     "CRM Industry",
@@ -37,6 +41,7 @@ _CRM_SCOPED = (
     "CRM Service Level Agreement",
     "CRM Dashboard",
     "CRM View Settings",
+    "Email Template",
 )
 _CRM_CONFIG = (
     "FCRM Settings",
@@ -129,6 +134,8 @@ for _doctype in _NAMED_BY_FIELD:
 doc_events["Communication"]["after_insert"] = "reckon_sales_agent.campaigns.engine.handle_communication"
 doc_events["Communication"]["on_update"] = "reckon_sales_agent.agents.engagement_agent.handle_communication_status"
 doc_events["CRM Deal"]["after_insert"] = "reckon_sales_agent.campaigns.engine.handle_deal"
+# Leads synced from Meta lead forms (Frappe CRM Lead Syncing) start the speed-to-lead flow.
+doc_events["CRM Lead"]["after_insert"] = "reckon_sales_agent.leads_bridge.on_crm_lead_insert"
 # Inbound WhatsApp replies (only fires when the frappe_whatsapp app is installed).
 doc_events["WhatsApp Message"] = {"after_insert": "reckon_sales_agent.campaigns.engine.handle_whatsapp"}
 
@@ -139,6 +146,7 @@ scheduler_events = {
         "reckon_sales_agent.jobs.run_scheduled_discovery",
         "reckon_sales_agent.agents.social_agent.publish_due_posts",
         "reckon_sales_agent.agents.orchestrator.run_all",
+        "reckon_sales_agent.agents.meetings.send_reminders",
     ],
     "daily": [
         "reckon_sales_agent.jobs.purge_expired_source_data",

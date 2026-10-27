@@ -1,0 +1,236 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Meeting",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-10-27 12:00:00.000000",
+ "modified": "2026-10-27 12:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 0,
+ "issingle": 0,
+ "editable_grid": 0,
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Vendor Superuser",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Admin",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "Reckon Sales Agent User",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  }
+ ],
+ "autoname": "hash",
+ "naming_rule": "Random",
+ "title_field": "title",
+ "show_title_field_in_link": 1,
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Proposed\nBooked\nHeld\nNo-show\nCancelled",
+   "default": "Proposed",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "prospect",
+   "fieldtype": "Link",
+   "label": "Lead",
+   "options": "Sales Prospect",
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "crm_lead",
+   "fieldtype": "Link",
+   "label": "CRM Lead",
+   "options": "CRM Lead"
+  },
+  {
+   "fieldname": "col1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "assigned_to",
+   "fieldtype": "Link",
+   "label": "Salesperson",
+   "options": "User",
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "mode",
+   "fieldtype": "Select",
+   "label": "Mode",
+   "options": "Video call\nPhone\nIn person",
+   "default": "Video call"
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "label": "Location or link"
+  },
+  {
+   "fieldname": "source",
+   "fieldtype": "Data",
+   "label": "Started by",
+   "read_only": 1
+  },
+  {
+   "fieldname": "time_section",
+   "fieldtype": "Section Break",
+   "label": "Time"
+  },
+  {
+   "fieldname": "slot_options",
+   "fieldtype": "Small Text",
+   "label": "Proposed slots",
+   "read_only": 1
+  },
+  {
+   "fieldname": "starts_on",
+   "fieldtype": "Datetime",
+   "label": "Starts on",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "ends_on",
+   "fieldtype": "Datetime",
+   "label": "Ends on"
+  },
+  {
+   "fieldname": "duration_minutes",
+   "fieldtype": "Int",
+   "label": "Minutes",
+   "default": "30"
+  },
+  {
+   "fieldname": "col2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "event",
+   "fieldtype": "Link",
+   "label": "Calendar event",
+   "options": "Event",
+   "read_only": 1
+  },
+  {
+   "fieldname": "invite_message",
+   "fieldtype": "Link",
+   "label": "Invitation",
+   "options": "Sales Outreach Message",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reminder_day_sent",
+   "fieldtype": "Check",
+   "label": "Day-before reminder sent",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reminder_hour_sent",
+   "fieldtype": "Check",
+   "label": "Hour-before reminder sent",
+   "read_only": 1
+  },
+  {
+   "fieldname": "outcome_section",
+   "fieldtype": "Section Break",
+   "label": "Outcome"
+  },
+  {
+   "fieldname": "outcome_notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "field_order": [
+  "company",
+  "title",
+  "status",
+  "prospect",
+  "crm_lead",
+  "col1",
+  "assigned_to",
+  "mode",
+  "location",
+  "source",
+  "time_section",
+  "slot_options",
+  "starts_on",
+  "ends_on",
+  "duration_minutes",
+  "col2",
+  "event",
+  "invite_message",
+  "reminder_day_sent",
+  "reminder_hour_sent",
+  "outcome_section",
+  "outcome_notes"
+ ]
+}

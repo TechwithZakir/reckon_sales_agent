@@ -31,6 +31,39 @@
   },
   {
    "type": "Link",
+   "label": "Conversations",
+   "link_to": "sales-inbox",
+   "link_type": "Page",
+   "icon": "message-circle",
+   "child": 0,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Meetings",
+   "link_to": "sales-meetings",
+   "link_type": "Page",
+   "icon": "calendar",
+   "child": 0,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Message Templates",
+   "link_to": "sales-templates",
+   "link_type": "Page",
+   "icon": "file-text",
+   "child": 0,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
    "label": "Lead Finder Studio",
    "link_to": "lead-finder",
    "link_type": "Page",

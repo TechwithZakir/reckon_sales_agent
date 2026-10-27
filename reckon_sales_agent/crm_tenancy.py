@@ -44,6 +44,11 @@ DATA_DOCTYPES = {
     "Comment": None,
     "ToDo": None,
     "File": None,
+    # Frappe CRM's lead syncing (Meta lead ads): a source holds the Company's Meta access token.
+    "Lead Sync Source": "type",
+    "Facebook Page": None,
+    "Facebook Lead Form": None,
+    "Failed Lead Sync Log": None,
 }
 MASTER_DOCTYPES = {
     "CRM Territory": "territory_name",
@@ -54,6 +59,8 @@ MASTER_DOCTYPES = {
     "CRM Service Level Agreement": "sla_name",
     "CRM Dashboard": "title",
     "CRM View Settings": None,
+    # The CRM email composer's templates: each Company's own, plus shared unowned ones.
+    "Email Template": "subject",
 }
 SCOPED_DOCTYPES = {**DATA_DOCTYPES, **MASTER_DOCTYPES}
 
@@ -262,6 +269,19 @@ def linked_records(doc) -> list[tuple[str, str]]:
     return links
 
 
+def lead_form_company(form_id: str) -> str | None:
+    """The Company that connected a Meta lead form (leads synced in the background carry only the form id)."""
+    form = frappe.db.get_value("Facebook Lead Form", {"id": form_id}, "name") \
+        if frappe.db.exists("DocType", "Facebook Lead Form") else None
+    if not form:
+        return None
+    company = get_record_company("Facebook Lead Form", form)
+    if not company:
+        source = frappe.db.get_value("Lead Sync Source", {"facebook_lead_form": form}, "name")
+        company = get_record_company("Lead Sync Source", source) if source else None
+    return company
+
+
 def inherited_company(doc) -> str | None:
     """Company implied by the records this one is attached or linked to.
 
@@ -274,6 +294,10 @@ def inherited_company(doc) -> str | None:
         if doctype in ADOPTABLE_DOCTYPES and doc.doctype not in ADOPTABLE_DOCTYPES:
             continue
         company = get_record_company(doctype, name)
+        if company:
+            return company
+    if doc.doctype == "CRM Lead" and doc.get("facebook_form_id"):
+        company = lead_form_company(doc.facebook_form_id)
         if company:
             return company
     if doc.doctype == "Contact" and doc.name and not doc.is_new():

@@ -365,6 +365,7 @@
 					${t.phone ? ` · <a href="tel:${e(t.phone)}" title="${__("Call")}">${e(t.phone)}</a>` : ""}
 					<span class="ags-muted">${e(due(t.due_date))} · ${e(t.assignee || "")}</span></summary>
 				<pre>${e(t.script)}</pre></details>
+				${t.is_call && this.data.office_phone && t.phone ? `<button class="btn btn-xs btn-default ags-dial" data-p="${e(t.prospect)}">${__("Call via office phone")}</button>` : ""}
 				${t.is_call ? outcomeButtons("ToDo", t.name) : ""}</div>
 				${t.is_call ? "" : `<button class="btn btn-default btn-xs ags-done">${__("Mark done")}</button>`}</div>`).join("");
 			const tasks = (a.tasks || []).map((t) => `<div class="ags-lead ags-call"><div class="grow"><b>${e(t.title)}</b>
@@ -376,6 +377,12 @@
 				const row = $(ev.currentTarget).closest(".ags-lead");
 				$(ev.currentTarget).prop("disabled", true);
 				this.act("task_done", { todo: row.data("todo") }, __("Marked done"));
+			});
+			body.find(".ags-dial").on("click", (ev) => {
+				$(ev.currentTarget).prop("disabled", true);
+				frappe.xcall("reckon_sales_agent.api_telephony.call", { prospect: ev.currentTarget.dataset.p })
+					.then(() => frappe.show_alert({ message: __("Your phone is ringing; answer to connect the lead."), indicator: "green" }))
+					.finally(() => $(ev.currentTarget).prop("disabled", false));
 			});
 			body.find(".ags-outcomes button").on("click", (ev) => {
 				const box = $(ev.currentTarget).closest(".ags-outcomes");
@@ -400,6 +407,16 @@
 					send({});
 				}
 			});
+		}
+
+		ask_conversations(body) {
+			$(`<button class="btn btn-primary btn-xs">${__("Open Conversations")}</button>`).appendTo(body)
+				.on("click", () => frappe.set_route("sales-inbox"));
+		}
+
+		ask_meetings(body, a) {
+			$(`<button class="btn btn-primary btn-xs">${__("Open Meetings")}</button>`).appendTo(body)
+				.on("click", () => frappe.set_route("sales-meetings"));
 		}
 
 		ask_pause_campaign(body, a) {

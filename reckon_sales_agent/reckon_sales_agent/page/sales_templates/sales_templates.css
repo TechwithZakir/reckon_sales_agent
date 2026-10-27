@@ -1,0 +1,33 @@
+/* Message Templates. Uses Reckon Aura variables when present, Frappe's otherwise (light and dark). */
+.stp {
+	--stp-accent: var(--aura-accent, var(--primary, #2a78d6));
+	--stp-soft: color-mix(in srgb, var(--stp-accent) 12%, transparent);
+	--stp-card: var(--aura-surface, var(--card-bg, #fff));
+	--stp-line: var(--aura-line, var(--border-color, #e3e5ea));
+	--stp-muted: var(--aura-muted, var(--text-muted, #6b7280));
+	--stp-ok: #0ca30c; --stp-bad: #d03b3b; --stp-warn: #d97706;
+	display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 12px; max-width: 1180px; margin: 0 auto; padding: 8px 4px 40px;
+	align-items: start;
+}
+.stp-main { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.stp-card { background: var(--stp-card); border: 1px solid var(--stp-line); border-radius: 14px; padding: 14px 16px; }
+.stp-card h3 { margin: 0 0 2px; font-size: 15px; font-weight: 650; }
+.stp-muted { color: var(--stp-muted); font-size: 12px; }
+.stp-row { display: flex; gap: 8px; margin: 10px 0 8px; }
+.stp-row select { max-width: 160px; }
+.stp-head { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+.stp-badge { font-size: 11px; padding: 1px 7px; border-radius: 6px; background: var(--stp-soft); color: var(--stp-accent); }
+.stp-badge.ok { color: var(--stp-ok); background: color-mix(in srgb, var(--stp-ok) 12%, transparent); }
+.stp-subject { font-weight: 600; margin-top: 8px; font-size: 13px; }
+.stp pre { white-space: pre-wrap; font-family: inherit; font-size: 13px; background: var(--stp-soft); border: 0; border-radius: 8px;
+	padding: 10px; margin: 6px 0; color: inherit; }
+.stp-actions { display: flex; gap: 6px; justify-content: flex-end; margin-top: 8px; }
+.stp-warn { font-size: 12px; white-space: pre-wrap; border-left: 3px solid var(--stp-warn); padding: 4px 8px;
+	background: color-mix(in srgb, var(--stp-warn) 8%, transparent); border-radius: 6px; }
+.stp-ok { font-size: 12px; color: var(--stp-ok); }
+.stp-check { padding: 8px 0; border-top: 1px solid var(--stp-line); font-size: 13px; }
+.stp-check:first-of-type { margin-top: 8px; }
+.stp-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--stp-line); margin-right: 6px; }
+.stp-dot.ok { background: var(--stp-ok); }
+.stp-dot.bad { background: var(--stp-bad); }
+@media (max-width: 900px) { .stp { grid-template-columns: 1fr; } }

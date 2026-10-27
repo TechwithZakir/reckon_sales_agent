@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-27 01:00:00.000000",
+ "modified": "2026-10-27 12:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -71,7 +71,29 @@
   "monthly_research_limit",
   "limits_col",
   "monthly_ai_limit",
-  "monthly_message_limit"
+  "monthly_message_limit",
+  "meetings_section",
+  "meeting_days",
+  "meeting_hours",
+  "meeting_minutes",
+  "meeting_link",
+  "telephony_section",
+  "telephony_provider",
+  "ari_url",
+  "ari_username",
+  "ari_password",
+  "telephony_col",
+  "sip_context",
+  "sip_caller_id",
+  "telephony_webhook_secret",
+  "deliverability_section",
+  "allowlist_only",
+  "outbound_allowlist",
+  "deliverability_col",
+  "warmup_enabled",
+  "warmup_start",
+  "warmup_growth",
+  "first_send_on"
  ],
  "fields": [
   {
@@ -403,6 +425,140 @@
    "fieldname": "monthly_message_limit",
    "fieldtype": "Int",
    "label": "Monthly Message Limit"
+  },
+  {
+   "fieldname": "meetings_section",
+   "fieldtype": "Section Break",
+   "label": "Meetings"
+  },
+  {
+   "fieldname": "meeting_days",
+   "fieldtype": "Data",
+   "label": "Meeting days",
+   "default": "Sun,Mon,Tue,Wed,Thu",
+   "description": "Days the Meeting agent may propose (Bangladesh: Sunday to Thursday)."
+  },
+  {
+   "fieldname": "meeting_hours",
+   "fieldtype": "Data",
+   "label": "Meeting hours",
+   "default": "10:00-17:00"
+  },
+  {
+   "fieldname": "meeting_minutes",
+   "fieldtype": "Int",
+   "label": "Meeting length (minutes)",
+   "default": "30"
+  },
+  {
+   "fieldname": "meeting_link",
+   "fieldtype": "Data",
+   "label": "Video meeting link",
+   "description": "Your standing Google Meet or Zoom room, if any."
+  },
+  {
+   "fieldname": "telephony_section",
+   "fieldtype": "Section Break",
+   "label": "Phone system"
+  },
+  {
+   "fieldname": "telephony_provider",
+   "fieldtype": "Select",
+   "label": "Calls go through",
+   "options": "Phone (tap to call)\nAsterisk (SIP)",
+   "default": "Phone (tap to call)"
+  },
+  {
+   "fieldname": "ari_url",
+   "fieldtype": "Data",
+   "label": "Asterisk ARI URL",
+   "depends_on": "eval:doc.telephony_provider=='Asterisk (SIP)'",
+   "description": "e.g. https://pbx.example.com:8089 (HTTPS)"
+  },
+  {
+   "fieldname": "ari_username",
+   "fieldtype": "Data",
+   "label": "ARI user",
+   "depends_on": "eval:doc.telephony_provider=='Asterisk (SIP)'"
+  },
+  {
+   "fieldname": "ari_password",
+   "fieldtype": "Password",
+   "label": "ARI password",
+   "depends_on": "eval:doc.telephony_provider=='Asterisk (SIP)'"
+  },
+  {
+   "fieldname": "telephony_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sip_context",
+   "fieldtype": "Data",
+   "label": "Dial plan context",
+   "default": "from-internal",
+   "depends_on": "eval:doc.telephony_provider=='Asterisk (SIP)'",
+   "description": "Routes +880 numbers to your IPTSP trunk and others to the international trunk."
+  },
+  {
+   "fieldname": "sip_caller_id",
+   "fieldtype": "Data",
+   "label": "Caller ID",
+   "depends_on": "eval:doc.telephony_provider=='Asterisk (SIP)'",
+   "description": "Your 09-series number from the IPTSP."
+  },
+  {
+   "fieldname": "telephony_webhook_secret",
+   "fieldtype": "Password",
+   "label": "Call events secret",
+   "depends_on": "eval:doc.telephony_provider=='Asterisk (SIP)'",
+   "description": "Shared secret the PBX signs call events with (HMAC-SHA256)."
+  },
+  {
+   "fieldname": "deliverability_section",
+   "fieldtype": "Section Break",
+   "label": "Email safety and deliverability"
+  },
+  {
+   "fieldname": "allowlist_only",
+   "fieldtype": "Check",
+   "label": "Only send to the allowlist",
+   "default": "0",
+   "description": "Safe mode for a first launch: messages go only to the addresses, domains and numbers listed."
+  },
+  {
+   "fieldname": "outbound_allowlist",
+   "fieldtype": "Small Text",
+   "label": "Allowlist",
+   "description": "One per line: email, @domain or phone."
+  },
+  {
+   "fieldname": "deliverability_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "warmup_enabled",
+   "fieldtype": "Check",
+   "label": "Warm up the sending domain",
+   "default": "1",
+   "description": "Start low and grow the daily email volume, so mailbox providers learn to trust you."
+  },
+  {
+   "fieldname": "warmup_start",
+   "fieldtype": "Int",
+   "label": "Warm-up: emails on day one",
+   "default": "20"
+  },
+  {
+   "fieldname": "warmup_growth",
+   "fieldtype": "Percent",
+   "label": "Warm-up: daily growth",
+   "default": "20"
+  },
+  {
+   "fieldname": "first_send_on",
+   "fieldtype": "Date",
+   "label": "First real send",
+   "read_only": 1
   }
  ],
  "permissions": [

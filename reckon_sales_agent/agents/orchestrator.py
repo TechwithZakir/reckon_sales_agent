@@ -75,6 +75,10 @@ def plan(state: dict) -> list[Step]:
             add(Step("Research", "discovery", WAIT, "Finding and researching leads",
                      f"{state['running_jobs']} search job(s) running."))
 
+    # Data quality first, so duplicates are marked before anything is approved (counted only in the agents' runs).
+    if state.get("data_issues") and auto:
+        add(Step("Research", "data_quality", DO, "Clean lead data",
+                 f"{state['data_issues']} fix(es): phone formats, duplicates, bounced emails."))
     # Review: clear misfits are set aside and strong leads approved by policy; the rest go to a person.
     set_aside = state.get("pending_foreign", 0) + state.get("pending_weak", 0) + state.get("pending_demo", 0)
     if set_aside and auto:
@@ -124,6 +128,17 @@ def plan(state: dict) -> list[Step]:
     if state.get("drafts_waiting"):
         add(Step("Engagement", "approve_drafts", ASK, "Approve messages",
                  f"{state['drafts_waiting']} message(s) are drafted and waiting for approval."))
+    if state.get("meetings_to_book") or state.get("meetings_to_log"):
+        add(Step("Engagement", "meetings", ASK, "Meetings",
+                 ", ".join(filter(None, [
+                     f"{state.get('meetings_to_book')} to book" if state.get("meetings_to_book") else "",
+                     f"{state.get('meetings_to_log')} to log" if state.get("meetings_to_log") else ""])) + "."))
+    if state.get("replies_to_draft") and auto and state.get("ai"):
+        add(Step("Engagement", "draft_replies", DO, "Draft replies for leads who wrote",
+                 f"{state['replies_to_draft']} conversation(s) waiting; drafts go to you for approval."))
+    if state.get("conversations_waiting"):
+        add(Step("Engagement", "conversations", ASK, "Leads waiting for a reply",
+                 f"{state['conversations_waiting']} lead(s) wrote last; answer them in Conversations."))
     if state.get("open_followups"):
         add(Step("Engagement", "followups", ASK, "Calls and follow-ups",
                  f"{state['open_followups']} task(s) for a salesperson: calls with scripts and replies to answer."))
@@ -163,7 +178,7 @@ def pick_segments(segments: list[dict], limit: int = 3) -> list[str]:
 # --------------------------------------------------------------------------- Frappe side
 
 
-def collect_state(company: str) -> dict:
+def collect_state(company: str, deep: bool = False) -> dict:
     import frappe
     from frappe.utils import add_to_date, date_diff, now_datetime, nowdate
 
@@ -219,6 +234,17 @@ def collect_state(company: str) -> dict:
             "stop searching " + "/".join(lesson["retire"]) if lesson["retire"] else ""]))
         for lesson in lessons(company)]
     state["missing_email"] = len(missing_email(company))
+    state["meetings_to_book"] = count("Sales Meeting", status="Proposed")
+    state["meetings_to_log"] = count("Sales Meeting", status="Booked", ends_on=["<", now_datetime()])
+    from reckon_sales_agent.agents.omni import threads
+
+    waiting = [t for t in threads(company, 100) if t["needs_reply"]]
+    state["conversations_waiting"] = len(waiting)
+    state["replies_to_draft"] = sum(1 for t in waiting if not t["draft_waiting"] and t.get("email"))
+    if deep:  # a full scan of the Company's leads: in the agents' runs, not on every Studio refresh
+        from reckon_sales_agent.agents.data_quality import pending_count
+
+        state["data_issues"] = pending_count(company)
     state["segments_ready"] = _segments_ready(company)
     state["campaigns_pending"] = [
         {"name": c.name, "label": c.campaign_name,
@@ -367,7 +393,7 @@ def run(company: str, trigger: str = "schedule") -> dict:
 
     from reckon_sales_agent.usage import log_activity
 
-    steps = plan(collect_state(company))
+    steps = plan(collect_state(company, deep=True))
     done, failed = [], []
     for step in steps:
         if step.kind != DO:
@@ -604,6 +630,27 @@ def _learn_targeting(company: str, step: Step) -> str:
     return apply_lessons(company)
 
 
+def _draft_replies(company: str, step: Step) -> str:
+    import frappe
+
+    from reckon_sales_agent.agents.omni import draft_reply, threads
+
+    drafted = 0
+    for t in [t for t in threads(company, 100) if t["needs_reply"] and not t["draft_waiting"] and t.get("email")][:10]:
+        try:
+            draft_reply(t["prospect"], reason="they wrote and are waiting for an answer")
+            drafted += 1
+        except frappe.ValidationError:
+            frappe.clear_messages()
+    return f"{drafted} reply draft(s) for approval"
+
+
+def _data_quality(company: str, step: Step) -> str:
+    from reckon_sales_agent.agents.data_quality import clean
+
+    return clean(company)
+
+
 def _find_contacts(company: str, step: Step) -> str:
     from reckon_sales_agent.agents.contacts import find_batch
 
@@ -666,6 +713,8 @@ DOERS = {
     "ai_triage": _ai_triage,
     "learn_targeting": _learn_targeting,
     "find_contacts": _find_contacts,
+    "data_quality": _data_quality,
+    "draft_replies": _draft_replies,
     "draft_campaign": _draft_campaign,
     "pilot_check": _pilot_check,
 }

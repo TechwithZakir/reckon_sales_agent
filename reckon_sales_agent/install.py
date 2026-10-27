@@ -52,6 +52,7 @@ def after_migrate() -> None:
     setup_roles()
     ensure_crm_company_fields()
     ensure_crm_agent_fields()
+    ensure_telephony_fields()
     ensure_shared_lead_source()
     ensure_workspace_sidebar()
     from reckon_sales_agent.access import backfill_users
@@ -144,6 +145,18 @@ def ensure_crm_agent_fields() -> None:
                             "insert_after": previous or COMPANY_FIELD, **field}).insert(ignore_permissions=True)
         previous = field["fieldname"]
     frappe.clear_cache(doctype="CRM Lead")
+
+
+def ensure_telephony_fields() -> None:
+    """Each salesperson's SIP extension on the PBX, kept on Frappe CRM's own Telephony Agent."""
+    if not frappe.db.exists("DocType", "CRM Telephony Agent"):
+        return
+    if not frappe.db.exists("Custom Field", {"dt": "CRM Telephony Agent", "fieldname": "rsa_sip_extension"}):
+        frappe.get_doc({"doctype": "Custom Field", "dt": "CRM Telephony Agent", "fieldname": "rsa_sip_extension",
+                        "label": "SIP extension", "fieldtype": "Data", "insert_after": "mobile_no",
+                        "description": "Extension on the Company's PBX (Asterisk). It rings first on click-to-call."
+                        }).insert(ignore_permissions=True)
+    frappe.clear_cache(doctype="CRM Telephony Agent")
 
 
 def _has_column(doctype: str, column: str) -> bool:

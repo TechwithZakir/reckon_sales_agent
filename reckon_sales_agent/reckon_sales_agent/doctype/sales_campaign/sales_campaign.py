@@ -21,6 +21,10 @@ class SalesCampaign(Document):
         self.steps.sort(key=lambda row: row.step_no)
         for idx, row in enumerate(self.steps, start=1):
             row.idx = idx
+            if row.get("message_template"):
+                from reckon_sales_agent.agents.templates import apply_to_step
+
+                apply_to_step(row, self.company)  # an approved template's exact wording
             if (row.delay_days or 0) < 0:
                 frappe.throw(_("Delays cannot be negative."))
             if (row.channel or "Email") == "Email" and not (row.subject_template or "").strip():

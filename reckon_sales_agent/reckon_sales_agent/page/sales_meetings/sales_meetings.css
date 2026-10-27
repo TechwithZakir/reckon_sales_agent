@@ -1,0 +1,18 @@
+/* Meetings. Uses Reckon Aura variables when present, Frappe's otherwise (light and dark). */
+.smt {
+	--smt-accent: var(--aura-accent, var(--primary, #2a78d6));
+	--smt-card: var(--aura-surface, var(--card-bg, #fff));
+	--smt-line: var(--aura-line, var(--border-color, #e3e5ea));
+	--smt-muted: var(--aura-muted, var(--text-muted, #6b7280));
+	max-width: 1000px; margin: 0 auto; padding: 8px 4px 40px; display: flex; flex-direction: column; gap: 14px;
+}
+.smt .grow { flex: 1; min-width: 0; }
+.smt-sec { background: var(--smt-card); border: 1px solid var(--smt-line); border-radius: 14px; padding: 14px 16px; }
+.smt-sec h3 { margin: 0; font-size: 15px; font-weight: 650; }
+.smt-sec h3 span { font-size: 12px; color: var(--smt-muted); font-weight: 500; margin-left: 4px; }
+.smt-muted { color: var(--smt-muted); font-size: 12px; }
+.smt-card { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding: 10px 0; border-top: 1px solid var(--smt-line); margin-top: 10px; }
+.smt-when { font-weight: 650; font-size: 13px; min-width: 150px; color: var(--smt-accent); }
+.smt-slots { display: flex; gap: 6px; flex-wrap: wrap; }
+.smt-empty { color: var(--smt-muted); font-size: 12px; padding: 10px 0 2px; }
+@media (max-width: 600px) { .smt-when { min-width: 0; width: 100%; } }

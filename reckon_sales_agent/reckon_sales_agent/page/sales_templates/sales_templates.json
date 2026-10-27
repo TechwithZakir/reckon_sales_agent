@@ -1,0 +1,30 @@
+{
+ "doctype": "Page",
+ "name": "sales-templates",
+ "page_name": "sales-templates",
+ "title": "Message Templates",
+ "icon": "file-text",
+ "module": "Reckon Sales Agent",
+ "standard": "Yes",
+ "roles": [
+  {
+   "role": "Reckon Sales Agent Admin"
+  },
+  {
+   "role": "Reckon Sales Agent Manager"
+  },
+  {
+   "role": "Reckon Sales Agent User"
+  },
+  {
+   "role": "Reckon Vendor Superuser"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
+ "creation": "2026-10-27 12:00:00.000000",
+ "modified": "2026-10-27 12:00:00.000000",
+ "owner": "Administrator",
+ "modified_by": "Administrator"
+}

@@ -1,0 +1,41 @@
+/* Conversations. Uses Reckon Aura variables when present, Frappe's otherwise (light and dark). */
+.sin {
+	--sin-accent: var(--aura-accent, var(--primary, #2a78d6));
+	--sin-soft: color-mix(in srgb, var(--sin-accent) 12%, transparent);
+	--sin-card: var(--aura-surface, var(--card-bg, #fff));
+	--sin-line: var(--aura-line, var(--border-color, #e3e5ea));
+	--sin-muted: var(--aura-muted, var(--text-muted, #6b7280));
+	--sin-warn: #d97706;
+	display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 12px; max-width: 1240px; margin: 0 auto; padding: 8px 4px 40px;
+}
+.sin-list, .sin-thread { background: var(--sin-card); border: 1px solid var(--sin-line); border-radius: 14px; min-width: 0; }
+.sin-list { padding: 8px; max-height: 78vh; overflow: auto; }
+.sin-thread { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.sin-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
+.sin-tabs button { flex: 1; border: 1px solid var(--sin-line); background: transparent; border-radius: 8px; padding: 5px; font-size: 12px; color: inherit; }
+.sin-tabs button.on { background: var(--sin-soft); border-color: var(--sin-accent); }
+.sin-item { display: block; width: 100%; text-align: left; border: 0; background: transparent; border-radius: 10px; padding: 9px 10px; color: inherit; }
+.sin-item:hover, .sin-item.on { background: var(--sin-soft); }
+.sin-item .top { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; }
+.sin-item .top span { color: var(--sin-muted); font-size: 11px; white-space: nowrap; }
+.sin-item .meta { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+.sin-badge { font-size: 10.5px; padding: 1px 7px; border-radius: 999px; background: var(--sin-soft); color: var(--sin-accent); }
+.sin-badge.warn { color: var(--sin-warn); background: color-mix(in srgb, var(--sin-warn) 12%, transparent); }
+.sin-badge.src { color: var(--sin-muted); }
+.sin-head { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.sin-head h3 { margin: 0 0 2px; font-size: 16px; }
+.sin-links { display: flex; gap: 6px; align-items: flex-start; }
+.sin-muted { color: var(--sin-muted); font-size: 12px; }
+.sin-timeline { display: flex; flex-direction: column; gap: 8px; max-height: 48vh; overflow: auto; padding-right: 4px; }
+.sin-msg { max-width: 78%; padding: 8px 11px; border-radius: 12px; border: 1px solid var(--sin-line); font-size: 13px; }
+.sin-msg.out { align-self: flex-end; background: var(--sin-soft); border-color: transparent; }
+.sin-msg.note { align-self: center; max-width: 90%; font-size: 12px; }
+.sin-msg .txt, .sin-draft .txt { white-space: pre-wrap; margin-top: 3px; }
+.sin-draft { border: 1px dashed var(--sin-accent); border-radius: 12px; padding: 10px 12px; font-size: 13px; }
+.sin-actions { display: flex; gap: 6px; justify-content: flex-end; margin-top: 8px; }
+.sin-warn { font-size: 12px; border-left: 3px solid var(--sin-warn); padding: 4px 8px; margin-top: 6px;
+	background: color-mix(in srgb, var(--sin-warn) 8%, transparent); border-radius: 6px; }
+.sin-compose { display: flex; gap: 8px; }
+.sin-empty { color: var(--sin-muted); padding: 24px; text-align: center; }
+.sin-empty.small { padding: 12px; font-size: 12px; }
+@media (max-width: 800px) { .sin { grid-template-columns: 1fr; } .sin-list { max-height: 40vh; } .sin-msg { max-width: 92%; } }

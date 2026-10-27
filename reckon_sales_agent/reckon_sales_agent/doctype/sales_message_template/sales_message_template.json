@@ -1,0 +1,240 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Message Template",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-10-27 12:00:00.000000",
+ "modified": "2026-10-27 12:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 0,
+ "issingle": 0,
+ "editable_grid": 0,
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Vendor Superuser",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Admin",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "Reckon Sales Agent User",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  }
+ ],
+ "autoname": "hash",
+ "naming_rule": "Random",
+ "title_field": "template_name",
+ "show_title_field_in_link": 1,
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "template_name",
+   "fieldtype": "Data",
+   "label": "Name",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "channel",
+   "fieldtype": "Select",
+   "label": "Channel",
+   "options": "Email\nWhatsApp\nSMS",
+   "default": "Email",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "language",
+   "fieldtype": "Select",
+   "label": "Language",
+   "options": "English\nBangla",
+   "default": "English"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nApproved\nRetired",
+   "default": "Draft",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "col1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "purpose",
+   "fieldtype": "Small Text",
+   "label": "Purpose",
+   "description": "What the message is for, e.g. 'first email to pharma distributors'."
+  },
+  {
+   "fieldname": "ai_generated",
+   "fieldtype": "Check",
+   "label": "Written by AI",
+   "read_only": 1
+  },
+  {
+   "fieldname": "content_section",
+   "fieldtype": "Section Break",
+   "label": "Message"
+  },
+  {
+   "fieldname": "subject",
+   "fieldtype": "Data",
+   "label": "Subject",
+   "mandatory_depends_on": "eval:doc.channel=='Email'"
+  },
+  {
+   "fieldname": "body",
+   "fieldtype": "Text",
+   "label": "Body",
+   "reqd": 1,
+   "description": "Placeholders: {{business_name}}, {{city}}, {{industry}}, {{sender_name}}, {{offer}}, {{personal_line}}. WhatsApp templates use {{1}}, {{2}}… mapped below."
+  },
+  {
+   "fieldname": "whatsapp_category",
+   "fieldtype": "Select",
+   "label": "WhatsApp category",
+   "options": "\nMarketing\nUtility",
+   "depends_on": "eval:doc.channel=='WhatsApp'"
+  },
+  {
+   "fieldname": "whatsapp_params",
+   "fieldtype": "Data",
+   "label": "WhatsApp variables",
+   "depends_on": "eval:doc.channel=='WhatsApp'",
+   "description": "Comma-separated placeholders for {{1}}, {{2}}…, e.g. business_name,offer"
+  },
+  {
+   "fieldname": "check_section",
+   "fieldtype": "Section Break",
+   "label": "Checks and approval"
+  },
+  {
+   "fieldname": "content_status",
+   "fieldtype": "Select",
+   "label": "Content check",
+   "options": "Not checked\nPassed\nNeeds review",
+   "default": "Not checked",
+   "read_only": 1
+  },
+  {
+   "fieldname": "content_issues",
+   "fieldtype": "Small Text",
+   "label": "Issues",
+   "read_only": 1
+  },
+  {
+   "fieldname": "col2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "approved_by",
+   "fieldtype": "Link",
+   "label": "Approved by",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "approved_on",
+   "fieldtype": "Datetime",
+   "label": "Approved on",
+   "read_only": 1
+  },
+  {
+   "fieldname": "email_template",
+   "fieldtype": "Link",
+   "label": "CRM email template",
+   "options": "Email Template",
+   "read_only": 1
+  },
+  {
+   "fieldname": "whatsapp_template",
+   "fieldtype": "Data",
+   "label": "WhatsApp template",
+   "read_only": 1
+  }
+ ],
+ "field_order": [
+  "company",
+  "template_name",
+  "channel",
+  "language",
+  "status",
+  "col1",
+  "purpose",
+  "ai_generated",
+  "content_section",
+  "subject",
+  "body",
+  "whatsapp_category",
+  "whatsapp_params",
+  "check_section",
+  "content_status",
+  "content_issues",
+  "col2",
+  "approved_by",
+  "approved_on",
+  "email_template",
+  "whatsapp_template"
+ ]
+}

@@ -356,6 +356,12 @@ def send_message(message) -> bool:
         return False
     if _sent_today(message.company, campaign.name) >= (campaign.daily_limit or 0):
         return False
+    from reckon_sales_agent.agents.deliverability import allowed, today_email_limit
+
+    if settings.get("allowlist_only") and not allowed(message.recipient, channel, settings.get("outbound_allowlist")):
+        return False  # safe mode: it waits, approved, until the recipient is listed or safe mode is off
+    if settings.outbound_enabled and channel == "Email" and _real_emails_today(message.company) >= today_email_limit(settings):
+        return False  # warming up the sending domain: the rest goes out on the following days
 
     if not settings.outbound_enabled:
         message.db_set({"status": "Dry Run", "sent_on": now_datetime()})
@@ -372,6 +378,8 @@ def send_message(message) -> bool:
         return False
     message.db_set({"status": "Sent", "sent_on": now_datetime()})
     record_event(message, "sent", f"sent:{message.name}", provider_message_id=result.provider_message_id)
+    if channel == "Email" and not settings.get("first_send_on"):
+        frappe.db.set_value("Sales Agent Settings", message.company, "first_send_on", nowdate())  # warm-up starts
     _advance(campaign, member)
     return True
 
@@ -402,6 +410,14 @@ def _cancel(message, reason: str) -> bool:
     message.db_set({"status": "Cancelled", "error": reason})
     record_event(message, "stopped", f"stopped:{message.name}", detail=reason)
     return False
+
+
+def _real_emails_today(company: str) -> int:
+    """Emails actually sent today (dry runs do not affect the domain's reputation)."""
+    sent = frappe.get_all("Sales Communication Event", filters={"company": company, "event_type": "sent",
+                                                                "event_time": [">=", f"{nowdate()} 00:00:00"]},
+                          pluck="message", limit=100000)
+    return frappe.db.count("Sales Outreach Message", {"name": ["in", sent], "channel": "Email"}) if sent else 0
 
 
 def _sent_today(company: str, campaign: str | None = None) -> int:
@@ -571,6 +587,10 @@ def classify_and_follow_up(message_name: str, text: str, source_key: str, rule_c
         from reckon_sales_agent.qualification.service import qualify_prospect
 
         qualify_prospect(message.prospect)  # engagement raises the deal probability
+    if final in ("interested", "meeting_request"):
+        from reckon_sales_agent.agents.meetings import start_meeting
+
+        start_meeting(message.prospect, f"replied: {final.replace('_', ' ')}")  # slots, invitation drafted
     _refresh_metrics(message.campaign)
     log_activity(message.company, f"reply_{final}", member, summary, "agent" if ai_class else "provider")
     frappe.db.commit()

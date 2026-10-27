@@ -12,6 +12,9 @@ REVIEW_PAGE = "sales-review"
 ANALYTICS_PAGE = "sales-analytics"
 STUDIO_PAGE = "lead-finder"
 SETUP_PAGE = "sales-setup"
+INBOX_PAGE = "sales-inbox"
+MEETINGS_PAGE = "sales-meetings"
+TEMPLATES_PAGE = "sales-templates"
 HOME_ROUTE = f"/desk/{HOME_PAGE}"
 WORKSPACE_SIDEBAR = "Sales Agent"
 
@@ -57,6 +60,8 @@ COMPANY_DOCTYPES = (
     "Sales Knowledge Item",
     "Sales Social Account",
     "Sales Social Post",
+    "Sales Meeting",
+    "Sales Message Template",
 )
 CHILD_DOCTYPES = ("Sales Planned Query", "Sales Research Fact", "Sales Campaign Step", "Sales Target Location",
                   "Sales Market Segment", "Sales Provider Budget", "Sales Social Post Target")
@@ -92,8 +97,8 @@ LOOKUP_ONLY_DOCTYPES = frozenset(
     | set(CHILD_DOCTYPES)
     | set(CRM_DOCTYPES)
 )
-ALLOWED_PAGES = frozenset({HOME_PAGE, REVIEW_PAGE, ANALYTICS_PAGE, STUDIO_PAGE, SETUP_PAGE, "print", "user-profile",
-                           "home"})
+ALLOWED_PAGES = frozenset({HOME_PAGE, REVIEW_PAGE, ANALYTICS_PAGE, STUDIO_PAGE, SETUP_PAGE, INBOX_PAGE, MEETINGS_PAGE,
+                           TEMPLATES_PAGE, "print", "user-profile", "home"})
 
 LEAD_SOURCE = "Sales Agent"
 

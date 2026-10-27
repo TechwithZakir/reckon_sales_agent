@@ -106,10 +106,10 @@ def record_call_outcome(task_doctype: str, task_name: str, outcome: str, note: s
         result["note"] = _("The number was removed from the lead.")
     if plan["crm_lead"]:
         result["crm_lead"] = _confirm_and_sync(prospect)
-        task = create_task(prospect.name, _("Book the demo: {0}").format(prospect.business_name),
-                           note or _("Interested on a call: book {0}.").format(message.subject or "the demo"),
-                           settings, priority="High")
-        result["next_task"] = task.provider_message_id
+        # The Meeting agent proposes demo slots and drafts the invitation (a person approves it).
+        from reckon_sales_agent.agents.meetings import start_meeting
+
+        result["meeting"] = start_meeting(prospect.name, f"interested on a call ({message.name})")
     if plan["callback"] or plan["new_call_in_days"]:
         due = callback_on if plan["callback"] else add_days(nowdate(), plan["new_call_in_days"])
         title = (_("Call back: {0}") if plan["callback"] else _("Try again: {0}")).format(prospect.business_name)

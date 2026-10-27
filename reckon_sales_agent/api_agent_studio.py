@@ -83,6 +83,7 @@ def state() -> dict:
         "outbound_enabled": bool(settings.outbound_enabled),
         "kill_switch": bool(settings.kill_switch),
         "human_approval": bool(settings.human_approval_required),
+        "office_phone": settings.get("telephony_provider") == "Asterisk (SIP)" and bool(settings.get("ari_url")),
         "autopilot": {
             "enabled": bool(settings.get("autopilot_enabled")),
             "auto_segments": bool(settings.get("autopilot_auto_segments")),
