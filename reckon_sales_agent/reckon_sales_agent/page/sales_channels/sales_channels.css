@@ -63,7 +63,8 @@
 .sch-empty { color: var(--sch-muted); padding: 32px; text-align: center; grid-column: 1 / -1; }
 
 /* slide-in panel */
-.sch-drawer { position: fixed; inset: 0; z-index: 1030; pointer-events: none; }
+/* Above Aura's tool dock (1030), below Frappe's dialogs (1050) so confirmations stay on top. */
+.sch-drawer { position: fixed; inset: 0; z-index: 1045; pointer-events: none; }
 .sch-scrim { position: absolute; inset: 0; background: rgba(15, 23, 42, .35); opacity: 0; transition: opacity .2s; }
 .sch-panel { position: absolute; top: 0; right: 0; bottom: 0; width: min(560px, 100%); background: var(--modal-bg, var(--bg-color, #fff)); color: var(--sch-text);
 	box-shadow: -12px 0 32px rgba(15, 23, 42, .18); transform: translateX(100%); transition: transform .22s ease; display: flex; flex-direction: column; }
