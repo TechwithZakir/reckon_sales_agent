@@ -25,9 +25,9 @@ from urllib.parse import urlencode
 
 META_VERSION = "v23.0"
 LINKEDIN_VERSION = "202509"
-META_SCOPES = ("pages_show_list", "pages_read_engagement", "pages_manage_posts", "pages_manage_metadata",
-               "pages_messaging", "instagram_basic", "instagram_content_publish", "instagram_manage_messages",
-               "business_management")
+META_SCOPES = ("pages_show_list", "pages_read_engagement", "pages_read_user_content", "pages_manage_posts",
+               "pages_manage_metadata", "pages_messaging", "instagram_basic", "instagram_content_publish",
+               "instagram_manage_messages", "instagram_manage_comments", "business_management")
 LINKEDIN_SCOPES = ("w_organization_social", "r_organization_social", "rw_organization_admin")
 STATE_TTL = 900  # seconds to finish signing in
 PROVIDERS = ("meta", "linkedin")
@@ -181,9 +181,9 @@ def _meta(code: str) -> list[dict]:
     accounts = meta_accounts(pages.get("data") or [])
     for account in accounts:
         if account["platform"] == "Facebook Page":
-            # Messages to the Page reach our webhook (and so Conversations).
+            # Messages and comments on the Page reach our webhook (and so Conversations).
             _get(f"{base}/{account['account_id']}/subscribed_apps", method="POST",
-                 params={"subscribed_fields": "messages,messaging_postbacks", "access_token": account["token"]})
+                 params={"subscribed_fields": "messages,messaging_postbacks,feed", "access_token": account["token"]})
     return accounts
 
 

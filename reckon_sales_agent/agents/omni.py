@@ -10,7 +10,12 @@ chat, calls and forms, and an AI reply on the right channel, waiting for a perso
 
 One-off replies that belong to no sequence go through the Company's "Conversations" campaign, which stays
 paused (the sequence engine never drafts from it) but keeps approval, limits and the audit trail.
-``choose_channel`` and ``needs_reply`` are pure.
+
+Fast answers (opt-in per Company): on a chat channel, a reply goes out without waiting for a person only when the
+policy matrix allows a routine answer: the AI says every fact came from the approved knowledge and nothing needs a
+person, the content check finds nothing, and what the lead wrote is not a complaint or an opt-out. Anything else
+stays a draft for approval.
+``choose_channel``, ``needs_reply`` and ``auto_answer_decision`` are pure.
 """
 
 from __future__ import annotations
@@ -19,6 +24,8 @@ from datetime import datetime, timedelta
 
 CONVERSATIONS = "Conversations"
 WINDOW = timedelta(hours=24)
+COMMENT_WINDOW = timedelta(days=7)  # Meta: one private reply to a comment, within 7 days
+CHAT_CHANNELS = ("Messenger", "Instagram", "Web Chat")
 # Only something the lead wrote asks for a written reply; call outcomes have their own next steps (a meeting,
 # a callback, or stopping), so a "not interested" call never triggers an AI message.
 INBOUND = ("received",)
@@ -26,8 +33,9 @@ OUTBOUND = ("sent", "dry_run")
 
 REPLY_SCHEMA = {
     "type": "object",
-    "properties": {"subject": {"type": "string"}, "body": {"type": "string"}, "why": {"type": "string"}},
-    "required": ["subject", "body", "why"],
+    "properties": {"subject": {"type": "string"}, "body": {"type": "string"}, "why": {"type": "string"},
+                   "grounded": {"type": "boolean"}, "needs_person": {"type": "boolean"}},
+    "required": ["subject", "body", "why", "grounded", "needs_person"],
     "additionalProperties": False,
 }
 REPLY_SYSTEM = (
@@ -37,7 +45,11 @@ REPLY_SYSTEM = (
     "Propose one simple next step (a call or a short demo). Match their language (English or Bangla). Email: "
     "subject under 60 characters, body under 120 words. WhatsApp, Messenger, Instagram and website chat: under 60 "
     "words, conversational, no subject (use empty). "
-    "why: one sentence for the salesperson on why this reply. Do not add an unsubscribe line; it is added."
+    "why: one sentence for the salesperson on why this reply. Do not add an unsubscribe line; it is added. "
+    "grounded: true only if every fact, figure and offer in your reply is in the approved knowledge. "
+    "needs_person: true if they ask for a discount, a custom price, credit terms, a contract, complain, raise a legal "
+    "or delivery problem, or ask anything the knowledge does not answer. If they commented on a post, this is a "
+    "private message answering that comment: thank them and answer it."
 )
 
 
@@ -48,8 +60,9 @@ def choose_channel(prospect: dict, last_whatsapp_inbound: datetime | None, now: 
     ``last_chat`` is the lead's latest Messenger / Instagram / website chat message ({channel, at}): answer where
     they wrote, while the platform allows it (Meta: 24 hours; the website chat keeps the thread).
     """
+    window = COMMENT_WINDOW if last_chat and last_chat.get("kind") == "Comment" else WINDOW
     if last_chat and last_chat.get("at") and (
-            last_chat["channel"] == "Web Chat" or now - last_chat["at"] < WINDOW) and (
+            last_chat["channel"] == "Web Chat" or now - last_chat["at"] < window) and (
             not last_whatsapp_inbound or last_chat["at"] >= last_whatsapp_inbound):
         return last_chat["channel"], f"They wrote on {last_chat['channel']}; answer there."
     if (prospect.get("whatsapp_consent") and prospect.get("phone") and last_whatsapp_inbound
@@ -60,6 +73,25 @@ def choose_channel(prospect: dict, last_whatsapp_inbound: datetime | None, now: 
     if prospect.get("phone"):
         return None, "Only a phone number: a salesperson should call."
     return None, "No way to reach this lead yet."
+
+
+def auto_answer_decision(enabled: bool, channel: str, data: dict, issues: list[str], inbound_class: str,
+                         suppressed: bool = False, kill_switch: bool = False):
+    """The policy decision for sending a reply without a person's approval (a ``policy.Decision``)."""
+    from reckon_sales_agent.agents.policy import NEEDS_APPROVAL, Decision, decide
+
+    if not enabled or channel not in CHAT_CHANNELS:
+        return decide("answer_routine_question", {"channel_allows": False})
+    if inbound_class in ("complaint", "unsubscribe"):
+        return decide("handle_complaint")
+    if data.get("needs_person"):
+        return decide("change_commercial_terms")
+    if not data.get("grounded"):
+        return decide("make_uncertain_claim")
+    if issues:
+        return Decision(NEEDS_APPROVAL, "The content check found: " + "; ".join(issues)[:300], "Engagement")
+    return decide("answer_routine_question", {"channel_allows": True, "suppressed": suppressed,
+                                              "kill_switch": kill_switch})
 
 
 def needs_reply(last_inbound: datetime | None, last_outbound: datetime | None) -> bool:
@@ -132,8 +164,9 @@ def timeline(prospect_name: str, limit: int = 40) -> list[dict]:
                 items.append({"at": w.creation, "direction": "in", "channel": "WhatsApp", "status": "Received",
                               "subject": "", "text": (w.message or "")[:1500], "ref": w.name})
     for c in frappe.get_all("Sales Chat Message", filters={"prospect": prospect_name, "direction": "In"},
-                            fields=["name", "channel", "text", "sent_at"], limit=200):
-        items.append({"at": c.sent_at, "direction": "in", "channel": c.channel, "status": "Received", "subject": "",
+                            fields=["name", "channel", "text", "sent_at", "kind"], limit=200):
+        items.append({"at": c.sent_at, "direction": "in", "channel": c.channel,
+                      "status": "Comment on a post" if c.kind == "Comment" else "Received", "subject": "",
                       "text": (c.text or "")[:1500], "ref": c.name})
     if frappe.db.exists("DocType", "Sales Meeting"):
         for m in frappe.get_all("Sales Meeting", filters={"prospect": prospect_name},
@@ -264,7 +297,7 @@ def draft_reply(prospect_name: str, reason: str = "", instruction: str = "") -> 
     message = frappe.get_doc({
         "doctype": "Sales Outreach Message", "company": company, "campaign": campaign, "member": member,
         "prospect": prospect.name, "step_no": 0, "channel": channel,
-        "recipient": prospect.email if channel == "Email" else chat["contact_id"] if chat and channel == chat["channel"]
+        "recipient": prospect.email if channel == "Email" else chat["recipient"] if chat and channel == chat["channel"]
         else prospect.phone,
         "subject": subject or f"Reply: {prospect.business_name}"[:140], "body": html, "ai_generated": 1,
         "is_reply": 1, "status": "Draft",
@@ -272,7 +305,25 @@ def draft_reply(prospect_name: str, reason: str = "", instruction: str = "") -> 
         "idempotency_key": f"omni:{prospect.name}:{frappe.generate_hash(length=8)}",
     }).insert(ignore_permissions=True)
     record_event(message, "drafted", f"draft:{message.name}", detail=str(data.get("why") or "")[:500])
+    from reckon_sales_agent.campaigns.replies import classify_rules
+
+    last_in = next((i["text"] for i in reversed(timeline(prospect_name, 15)) if i["direction"] == "in"), "")
+    decision = auto_answer_decision(bool(settings.get("chat_auto_answer")), channel, data, issues,
+                                    classify_rules(last_in), bool(prospect.do_not_contact), bool(settings.kill_switch))
+    if decision.allowed:
+        from reckon_sales_agent.agents.approvals import fingerprint, message_payload
+
+        message.db_set({"status": "Approved", "auto_approved_by_policy": 1,
+                        "approval_fingerprint": fingerprint(message_payload(message))})
+        log_activity(company, "reply_auto_answered", message, f"{channel}: {data.get('why') or ''}"[:500],
+                     actor_type="agent", agent="Conversations", policy_outcome=decision.reason)
+        frappe.db.commit()
+        from reckon_sales_agent.campaigns.engine import send_message
+
+        send_message(frappe.get_doc("Sales Outreach Message", message.name))  # dry run while sending is off
+        frappe.db.commit()
+        return message.name
     log_activity(company, "reply_drafted_omni", message, f"{channel}: {data.get('why') or why_channel}"[:500],
-                 actor_type="agent", agent="Conversations", policy_outcome="draft only: a person approves")
+                 actor_type="agent", agent="Conversations", policy_outcome=f"draft: {decision.reason}"[:140])
     frappe.db.commit()
     return message.name

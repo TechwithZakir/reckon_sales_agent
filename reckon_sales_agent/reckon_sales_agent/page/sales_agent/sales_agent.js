@@ -50,7 +50,8 @@
 		call_task_done: __("Call done"), call_interested: __("Call: interested"), call_callback: __("Call: call back"),
 		call_not_interested: __("Call: not interested"), call_wrong_number: __("Call: wrong number"),
 		call_no_answer: __("Call: no answer"), digest_manager: __("Sent the daily digest"),
-		digest_caller: __("Sent today's calls"), chat_received: __("A lead wrote in a chat"),
+		digest_caller: __("Sent today's calls"), chat_received: __("A lead wrote in a chat"), comment_received: __("A buying comment on a post"),
+		reply_auto_answered: __("Answered a chat at once"), fast_answers_set: __("Fast answers changed"),
 		social_connected: __("Connected social accounts"), reply_drafted_omni: __("Drafted a reply"),
 	};
 	const label = (a) => ACTIONS[a] || (a || "").replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());

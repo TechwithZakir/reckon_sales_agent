@@ -74,6 +74,7 @@ def state() -> dict:
         "Data Quality": [(_("duplicates marked"), count("Sales Prospect", possible_duplicate_of=["is", "set"])),
                          (_("do not contact"), count("Sales Prospect", do_not_contact=1))],
         "Conversations": [(_("waiting"), snapshot.get("conversations_waiting", 0)),
+                          (_("min to answer"), _reply_minutes(company)),
                           (_("chats today"), count("Sales Chat Message", direction="In",
                                                    sent_at=[">=", frappe.utils.nowdate()])),
                           (_("channels"), count("Sales Social Account", enabled=1, receive_messages=1)
@@ -380,3 +381,11 @@ def _ai_label(company: str) -> str:
     except Exception:
         return ""
     return " · ".join(part for part in (setup["label"], setup["model"]) if part)
+
+
+def _reply_minutes(company: str) -> str:
+    """Median minutes to answer a chat this week ("–" before the first answer)."""
+    from reckon_sales_agent.agents.chat import response_stats
+
+    value = response_stats(company)["median_minutes"]
+    return "–" if value is None else f"{value:g}"

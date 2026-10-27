@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-27 18:00:00.000000",
+ "modified": "2026-10-28 10:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -40,6 +40,10 @@
   "webchat_title",
   "webchat_welcome",
   "webchat_allowed_origins",
+  "fast_answers_section",
+  "chat_auto_answer",
+  "chat_reply_sla_minutes",
+  "comment_to_chat",
   "max_results_per_job",
   "max_concurrent_jobs",
   "retention_days",
@@ -256,6 +260,33 @@
    "fieldtype": "Small Text",
    "label": "Websites allowed to show the chat",
    "description": "One per line, e.g. https://www.example.com. Empty: any website."
+  },
+  {
+   "fieldname": "fast_answers_section",
+   "fieldtype": "Section Break",
+   "label": "Fast answers",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "chat_auto_answer",
+   "fieldtype": "Check",
+   "label": "Answer simple chat questions at once",
+   "default": "0",
+   "description": "Messenger, Instagram and website chat: the AI sends an answer without waiting for approval only when every fact is in your approved knowledge and it passes the content check. Prices it cannot find, discounts, complaints and anything unsure still wait for a person."
+  },
+  {
+   "fieldname": "chat_reply_sla_minutes",
+   "fieldtype": "Int",
+   "label": "Remind us when a chat waits (minutes)",
+   "default": "15",
+   "description": "0 turns the reminder off."
+  },
+  {
+   "fieldname": "comment_to_chat",
+   "fieldtype": "Check",
+   "label": "Answer buying comments in a private message",
+   "default": "0",
+   "description": "A comment like \"price?\" or \"দাম কত?\" on your Facebook or Instagram posts gets one private reply (Meta allows one, within 7 days), drafted by the AI."
   },
   {
    "fieldname": "max_results_per_job",

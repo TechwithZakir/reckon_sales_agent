@@ -51,6 +51,21 @@
 							: __("Ask your system provider to install the Frappe WhatsApp app (official WhatsApp Business Cloud API).")}</p>
 					</div>
 				</div>
+				<div class="sch-card sch-fast">
+					<div class="sch-head"><div><h3>${__("Fast answers")}</h3>
+						<p class="sch-muted">${__("Chats go cold in minutes. Let the AI answer simple questions at once, turn buying comments into private chats, and get a reminder when someone waits.")}</p></div>
+						${status(d.fast.auto_answer, __("Instant answers on"), __("Every reply waits for approval"))}</div>
+					<div class="sch-form">
+						<label class="sch-check"><input type="checkbox" class="sch-auto" ${d.fast.auto_answer ? "checked" : ""} ${d.can_manage ? "" : "disabled"}>
+							${__("Answer simple chat questions at once (only facts from your approved knowledge; prices, discounts, complaints and anything unsure still wait for you)")}</label>
+						<label class="sch-check"><input type="checkbox" class="sch-comments" ${d.fast.comment_to_chat ? "checked" : ""} ${d.can_manage ? "" : "disabled"}>
+							${__("Answer buying comments (\"price?\", \"দাম কত?\") on our Facebook and Instagram posts with one private message")}</label>
+						<label>${__("Remind {0} when a chat waits longer than (minutes; 0 = off)", [e(d.fast.assignee || __("the salesperson"))])}
+							<input type="number" class="form-control sch-sla" min="0" max="1440" value="${e(d.fast.sla_minutes)}" ${d.can_manage ? "" : "disabled"}></label>
+						${d.fast.assignee ? "" : `<div class="sch-muted">${__("Name the salesperson in Agent Studio → autopilot settings to receive reminders.")}</div>`}
+						${d.can_manage ? `<div><button class="btn btn-default btn-sm sch-fast-save">${__("Save")}</button></div>` : ""}
+					</div>
+				</div>
 				<div class="sch-card">
 					<div class="sch-head"><div><h3>${__("Facebook, Instagram and Messenger")}</h3>
 						<p class="sch-muted">${__("Sign in with Facebook to connect your Pages and the Instagram accounts linked to them. The agents can then publish approved posts, and messages to your Page or Instagram appear in Conversations.")}</p></div>
@@ -123,6 +138,13 @@
 			});
 			r.find(".sch-wc-save").on("click", save_chat);
 			r.find(".sch-wc-on").on("change", save_chat);
+			r.find(".sch-fast-save").on("click", () => this.call("set_fast_answers", { data: JSON.stringify({
+				auto_answer: r.find(".sch-auto").is(":checked") ? 1 : 0, comment_to_chat: r.find(".sch-comments").is(":checked") ? 1 : 0,
+				sla_minutes: Number(r.find(".sch-sla").val() || 0),
+			}) }).then((d) => {
+				this.render(d);
+				frappe.show_alert({ message: __("Fast answers saved"), indicator: "green" });
+			}));
 			r.find(".sch-copy").on("click", () => frappe.utils.copy_to_clipboard(r.find(".sch-code").text()));
 		}
 	}

@@ -153,6 +153,7 @@ scheduler_events = {
         "reckon_sales_agent.agents.social_connect.refresh_accounts",  # LinkedIn tokens, account health
     ],
     "cron": {
+        "*/5 * * * *": ["reckon_sales_agent.agents.chat.remind_waiting"],  # chats waiting too long
         "0 8 * * *": ["reckon_sales_agent.agents.digest.send_all"],  # the morning digest (server time)
     },
     "weekly": [

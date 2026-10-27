@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-27 18:00:00.000000",
- "modified": "2026-10-27 18:00:00.000000",
+ "modified": "2026-10-28 10:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -91,6 +91,15 @@
    "read_only": 1
   },
   {
+   "fieldname": "kind",
+   "fieldtype": "Select",
+   "options": "Message\nComment",
+   "default": "Message",
+   "label": "Kind",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
    "fieldname": "col1",
    "fieldtype": "Column Break"
   },
@@ -122,6 +131,13 @@
    "unique": 1
   },
   {
+   "fieldname": "post_id",
+   "fieldtype": "Data",
+   "label": "Post ID",
+   "read_only": 1,
+   "depends_on": "eval:doc.kind=='Comment'"
+  },
+  {
    "fieldname": "outreach_message",
    "fieldtype": "Link",
    "options": "Sales Outreach Message",
@@ -150,11 +166,13 @@
   "prospect",
   "channel",
   "direction",
+  "kind",
   "col1",
   "sent_at",
   "contact_id",
   "account_id",
   "external_id",
+  "post_id",
   "outreach_message",
   "body_section",
   "contact_name",

@@ -23,13 +23,15 @@ A Company's AI override applies only while "Use the AI set for each Company" is 
 3. Add webhooks for the **Page** and **Instagram** objects:
    - Callback URL: `https://<site>/api/method/reckon_sales_agent.api_channels.meta_webhook`
    - Verify token: any long random text. Enter the same text in Platform Settings under "Webhook verify token".
-   - Fields: `messages` and `messaging_postbacks`.
+   - Fields: `messages` and `messaging_postbacks`. For comment-to-chat, add `feed` (Page) and `comments`
+     (Instagram).
 4. In Platform Settings, enter the Meta app ID and app secret. The secret also verifies every webhook call
    (`X-Hub-Signature-256`).
 5. Have these permissions approved in App Review, with Business Verification. Until then, only people with a
    role on the app can connect:
-   - `pages_show_list`, `pages_read_engagement`, `pages_manage_posts`, `pages_manage_metadata`, `pages_messaging`
-   - `instagram_basic`, `instagram_content_publish`, `instagram_manage_messages`
+   - `pages_show_list`, `pages_read_engagement`, `pages_read_user_content`, `pages_manage_posts`,
+     `pages_manage_metadata`, `pages_messaging`
+   - `instagram_basic`, `instagram_content_publish`, `instagram_manage_messages`, `instagram_manage_comments`
    - `business_management`
 
 When a Company clicks **Connect with Facebook**, it gets:
@@ -41,6 +43,29 @@ When a Company clicks **Connect with Facebook**, it gets:
 - A chat always starts with the lead. The agent never messages anyone first.
 - Replies go out as `RESPONSE` within 24 hours of the lead's last message. After that, the reply is cancelled
   with the reason. Call or email the lead instead.
+
+## Fast answers (each Company, on the Channels page)
+
+All three are off until the Company turns them on.
+
+**Answer simple chat questions at once** (Messenger, Instagram, website chat only). The reply goes out without
+approval only when all of these hold; otherwise it waits as a draft:
+- the AI says every fact it used is in the approved knowledge, and that nothing needs a person (discounts,
+  custom prices, credit terms, contracts, complaints, questions the knowledge does not answer);
+- the content check finds no figure, offer or claim outside the approved knowledge;
+- what the lead wrote is not a complaint or an opt-out;
+- the lead is not suppressed and the kill switch is off.
+Email and WhatsApp replies always wait for a person. While dry run is on, these answers are recorded, not sent.
+
+**Answer buying comments with a private message.** A comment on the Company's Facebook or Instagram posts that
+asks to buy or for details ("price?", "দাম কত?", "inbox plz") opens a conversation, and the AI drafts one private
+reply. Meta allows one private reply per comment, within 7 days. Other comments are ignored. When the person
+then writes back in Messenger, Meta gives them a different ID, so that chat may appear as a second lead; Data
+Quality's duplicate check can merge them.
+
+**Reminders.** When a chat waits longer than the set minutes (15 by default), the salesperson named in the
+autopilot settings gets a notification, once per message. The Agent Studio's Conversations lane shows the
+median minutes to answer a chat this week.
 
 ## LinkedIn company pages (system provider, once)
 

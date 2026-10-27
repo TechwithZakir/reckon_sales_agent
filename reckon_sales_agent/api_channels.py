@@ -52,13 +52,19 @@ def meta_webhook(**kwargs):
     except ValueError:
         return Response("invalid JSON", status=400, mimetype="text/plain")
     frappe.set_user("Administrator")  # a verified Meta event: act as the system
-    for event in meta_events(payload)[:100]:
+    from reckon_sales_agent.agents.chat import buying_comment, meta_comments
+
+    comments = [c for c in meta_comments(payload) if buying_comment(c["text"])]
+    for event in (meta_events(payload) + comments)[:100]:
         owner = account_company(event["channel"], event["account_id"])
         if not owner:
             continue  # a Page no Company has connected (or it switched messages off)
+        if event.get("kind") == "Comment" and not get_settings(owner[0]).get("comment_to_chat"):
+            continue
         try:
             name = receive_chat(owner[0], event["channel"], event["account_id"], event["contact_id"], event["text"],
-                                event["external_id"], event["at"])
+                                event["external_id"], event["at"], contact_name=event.get("contact_name"),
+                                kind=event.get("kind") or "Message", post_id=event.get("post_id"))
             frappe.db.commit()
             if name:
                 _queue_draft(name)
@@ -214,6 +220,10 @@ def overview() -> dict:
                     "script": frappe.utils.get_url("/assets/reckon_sales_agent/js/reckon_webchat.js"),
                     "site": frappe.utils.get_url()},
         "counts": {c: count(c) for c in ("Messenger", "Instagram", "Web Chat")},
+        "fast": {"auto_answer": bool(settings.get("chat_auto_answer")),
+                 "sla_minutes": settings.get("chat_reply_sla_minutes") or 0,
+                 "comment_to_chat": bool(settings.get("comment_to_chat")),
+                 "assignee": settings.get("task_assignee") or ""},
         "outbound_enabled": bool(settings.outbound_enabled),
     }
 
@@ -232,6 +242,23 @@ def set_webchat(data: str | dict) -> dict:
         if key in data:
             setattr(doc, field, str(data.get(key) or "")[:limit])
     doc.save()
+    return overview()
+
+
+@frappe.whitelist(methods=["POST"])
+def set_fast_answers(data: str | dict) -> dict:
+    _require_manager()
+    data = json.loads(data) if isinstance(data, str) else data
+    doc = get_tenant_doc("Sales Agent Settings", current_company(), "write")
+    doc.chat_auto_answer = 1 if data.get("auto_answer") else 0
+    doc.comment_to_chat = 1 if data.get("comment_to_chat") else 0
+    doc.chat_reply_sla_minutes = max(0, min(int(data.get("sla_minutes") or 0), 1440))
+    doc.save()
+    from reckon_sales_agent.usage import log_activity
+
+    log_activity(doc.company, "fast_answers_set", doc, f"instant answers {'on' if doc.chat_auto_answer else 'off'}, "
+                 f"comment to chat {'on' if doc.comment_to_chat else 'off'}, remind after "
+                 f"{doc.chat_reply_sla_minutes} min", agent="Conversations")
     return overview()
 
 
