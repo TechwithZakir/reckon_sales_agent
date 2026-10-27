@@ -19,7 +19,8 @@ def threads() -> list[dict]:
 
 @frappe.whitelist()
 def thread(prospect: str) -> dict:
-    from reckon_sales_agent.agents.omni import timeline
+    from reckon_sales_agent.agents.conversations import agents_for
+    from reckon_sales_agent.agents.omni import reply_channels, timeline
 
     doc = get_tenant_doc("Sales Prospect", prospect, "read")
     drafts = frappe.get_all("Sales Outreach Message", filters={"prospect": prospect, "status": "Draft"},
@@ -30,7 +31,89 @@ def thread(prospect: str) -> dict:
                                              "crm_lead", "source_type", "consent_source", "do_not_contact")},
         "timeline": timeline(prospect),
         "drafts": drafts,
+        "conversation": _conversation(doc),
+        "channels": reply_channels(doc.name),
+        "agents": agents_for(doc.company),
+        "me": frappe.session.user,
     }
+
+
+def _conversation(prospect_doc) -> dict:
+    from reckon_sales_agent.agents.conversations import get, mode_for, parse_tags
+
+    convo = get(prospect_doc.company, prospect_doc.name)
+    return {"name": convo.name, "status": convo.status, "assigned_to": convo.assigned_to, "ai_mode": convo.ai_mode,
+            "effective": mode_for(prospect_doc.company, prospect_doc.name), "handoff_reason": convo.handoff_reason,
+            "tags": parse_tags(frappe.db.get_value("Sales Conversation", convo.name, "_user_tags"))}
+
+
+def _convo(prospect: str):
+    from reckon_sales_agent.agents.conversations import get
+
+    doc = get_tenant_doc("Sales Prospect", prospect, "read")
+    convo = get(doc.company, doc.name)
+    get_tenant_doc("Sales Conversation", convo.name, "write")
+    return doc, convo
+
+
+@frappe.whitelist(methods=["POST"])
+def assign(prospect: str, user: str | None = None) -> dict:
+    from reckon_sales_agent.agents.conversations import agents_for, notify
+
+    doc, convo = _convo(prospect)
+    if user and user not in {a["user"] for a in agents_for(doc.company)}:
+        frappe.throw(_("{0} is not one of this Company's users.").format(user))
+    convo.db_set("assigned_to", user or None)
+    if user and user != frappe.session.user:
+        notify(convo, user, f"{frappe.session.user} gave you the conversation with {convo.title}")
+    return thread(prospect)
+
+
+@frappe.whitelist(methods=["POST"])
+def set_status(prospect: str, status: str) -> dict:
+    from frappe.utils import now_datetime
+
+    from reckon_sales_agent.agents.conversations import NEEDS_HUMAN, remove_tag
+
+    if status not in ("Open", "Resolved"):
+        frappe.throw(_("Unknown status."))
+    _doc, convo = _convo(prospect)
+    convo.db_set({"status": status, "resolved_on": now_datetime() if status == "Resolved" else None,
+                  "handoff_reason": None if status == "Resolved" else convo.handoff_reason})
+    if status == "Resolved":
+        remove_tag(convo.name, NEEDS_HUMAN)
+    return thread(prospect)
+
+
+@frappe.whitelist(methods=["POST"])
+def set_mode(prospect: str, mode: str) -> dict:
+    from reckon_sales_agent.agents.conversations import MODES
+
+    if mode not in MODES:
+        frappe.throw(_("Unknown AI mode."))
+    _doc, convo = _convo(prospect)
+    convo.db_set("ai_mode", mode)
+    return thread(prospect)
+
+
+@frappe.whitelist(methods=["POST"])
+def tag(prospect: str, tag: str, remove: int = 0) -> dict:
+    from reckon_sales_agent.agents.conversations import add_tag, remove_tag
+
+    _doc, convo = _convo(prospect)
+    (remove_tag if int(remove or 0) else add_tag)(convo.name, tag)
+    return thread(prospect)
+
+
+@frappe.whitelist(methods=["POST"])
+def send(prospect: str, channel: str, text: str) -> str:
+    """A person's own reply on the chosen channel, sent now."""
+    from reckon_sales_agent.agents.omni import compose
+    from reckon_sales_agent.usage import assert_entitled
+
+    doc = get_tenant_doc("Sales Prospect", prospect, "write")
+    assert_entitled(doc.company)
+    return compose(doc.name, channel, text[:3000])
 
 
 @frappe.whitelist()

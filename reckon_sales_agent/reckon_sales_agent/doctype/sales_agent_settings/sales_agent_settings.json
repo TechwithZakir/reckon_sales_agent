@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-28 14:00:00.000000",
+ "modified": "2026-10-28 20:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -42,6 +42,25 @@
   "webchat_allowed_origins",
   "fast_answers_section",
   "chat_auto_answer",
+  "autopilot_whatsapp",
+  "chat_agents",
+  "auto_assign",
+  "twilio_section",
+  "twilio_account_sid",
+  "twilio_auth_token",
+  "twilio_phone_number",
+  "twilio_messaging_service_sid",
+  "twilio_col",
+  "twilio_record_calls",
+  "voice_ai_enabled",
+  "voice_ai_greeting",
+  "voice_ai_language",
+  "voice_forward_to",
+  "email_section",
+  "email_provider",
+  "sendgrid_api_key",
+  "sendgrid_from_email",
+  "sendgrid_webhook_key",
   "chat_reply_sla_minutes",
   "comment_to_chat",
   "agents_section",
@@ -83,6 +102,10 @@
   "task_assignee",
   "channels_section",
   "sms_enabled",
+  "sms_provider",
+  "sms_api_key",
+  "sms_account",
+  "sms_sender_id",
   "whatsapp_enabled",
   "limits_section",
   "monthly_discovery_limit",
@@ -268,15 +291,133 @@
   {
    "fieldname": "fast_answers_section",
    "fieldtype": "Section Break",
-   "label": "Fast answers",
+   "label": "Conversations: AI autopilot and team",
    "collapsible": 1
   },
   {
    "fieldname": "chat_auto_answer",
    "fieldtype": "Check",
-   "label": "Answer simple chat questions at once",
+   "label": "AI autopilot replies on chats",
    "default": "0",
    "description": "Messenger, Instagram and website chat: the AI sends an answer without waiting for approval only when every fact is in your approved knowledge and it passes the content check. Prices it cannot find, discounts, complaints and anything unsure still wait for a person."
+  },
+  {
+   "fieldname": "autopilot_whatsapp",
+   "fieldtype": "Check",
+   "label": "Autopilot also answers WhatsApp",
+   "default": "0",
+   "description": "Within WhatsApp's 24-hour window, with the same rules. Email always waits for a person."
+  },
+  {
+   "fieldname": "chat_agents",
+   "fieldtype": "Small Text",
+   "label": "People who answer conversations",
+   "description": "One user email per line. New conversations go to whoever has the fewest open ones; a conversation the AI cannot answer goes to its person at once."
+  },
+  {
+   "fieldname": "auto_assign",
+   "fieldtype": "Check",
+   "label": "Assign new conversations automatically",
+   "default": "1"
+  },
+  {
+   "fieldname": "twilio_section",
+   "fieldtype": "Section Break",
+   "label": "Twilio",
+   "collapsible": 1,
+   "description": "One Twilio account for SMS and RCS, phone calls, an AI voice assistant and (through Twilio SendGrid) email."
+  },
+  {
+   "fieldname": "twilio_account_sid",
+   "fieldtype": "Data",
+   "label": "Twilio Account SID"
+  },
+  {
+   "fieldname": "twilio_auth_token",
+   "fieldtype": "Password",
+   "label": "Twilio auth token",
+   "description": "Also checks that every webhook call really comes from Twilio."
+  },
+  {
+   "fieldname": "twilio_phone_number",
+   "fieldtype": "Data",
+   "label": "Twilio phone number",
+   "description": "E.164, e.g. +15551234567: calls come from it, and texts when no Messaging Service is set."
+  },
+  {
+   "fieldname": "twilio_messaging_service_sid",
+   "fieldtype": "Data",
+   "label": "Messaging Service SID (MG…)",
+   "description": "Send through a Messaging Service to use RCS where the phone supports it, with automatic SMS fallback."
+  },
+  {
+   "fieldname": "twilio_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "twilio_record_calls",
+   "fieldtype": "Check",
+   "label": "Record Twilio calls",
+   "default": "0",
+   "description": "Recordings are transcribed and summarised on the call log. Tell callers calls are recorded."
+  },
+  {
+   "fieldname": "voice_ai_enabled",
+   "fieldtype": "Check",
+   "label": "AI voice assistant answers incoming calls",
+   "default": "0",
+   "description": "It says it is an AI assistant, answers only from your approved knowledge, and connects the caller to a person for anything else."
+  },
+  {
+   "fieldname": "voice_ai_greeting",
+   "fieldtype": "Small Text",
+   "label": "Greeting",
+   "default": "Hello, you have reached us. I am an AI assistant. How can I help?"
+  },
+  {
+   "fieldname": "voice_ai_language",
+   "fieldtype": "Data",
+   "label": "Speech language",
+   "default": "en-US",
+   "description": "e.g. en-US, en-IN or bn-BD."
+  },
+  {
+   "fieldname": "voice_forward_to",
+   "fieldtype": "Data",
+   "label": "Connect callers to (phone)",
+   "description": "Where callers go when they ask for a person or the assistant cannot help."
+  },
+  {
+   "fieldname": "email_section",
+   "fieldtype": "Section Break",
+   "label": "Email sending",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "email_provider",
+   "fieldtype": "Select",
+   "label": "Send email through",
+   "options": "Frappe email account\nTwilio SendGrid",
+   "default": "Frappe email account"
+  },
+  {
+   "fieldname": "sendgrid_api_key",
+   "fieldtype": "Password",
+   "label": "SendGrid API key",
+   "depends_on": "eval:doc.email_provider == 'Twilio SendGrid'"
+  },
+  {
+   "fieldname": "sendgrid_from_email",
+   "fieldtype": "Data",
+   "label": "From email (verified in SendGrid)",
+   "depends_on": "eval:doc.email_provider == 'Twilio SendGrid'"
+  },
+  {
+   "fieldname": "sendgrid_webhook_key",
+   "fieldtype": "Small Text",
+   "label": "Event webhook verification key",
+   "depends_on": "eval:doc.email_provider == 'Twilio SendGrid'",
+   "description": "SendGrid → Mail Settings → Signed Event Webhook: the public key. Bounces and spam reports then reach the do-not-contact list."
   },
   {
    "fieldname": "chat_reply_sla_minutes",
@@ -523,9 +664,39 @@
   {
    "fieldname": "sms_enabled",
    "fieldtype": "Check",
-   "label": "SMS (BulkSMSBD)",
+   "label": "SMS",
    "default": "0",
    "description": "Sent only to contacts with recorded SMS consent."
+  },
+  {
+   "fieldname": "sms_provider",
+   "fieldtype": "Select",
+   "label": "SMS provider",
+   "options": "Platform gateway\nBulkSMSBD\nSSL Wireless\nTwilio (SMS and RCS)",
+   "default": "Platform gateway",
+   "depends_on": "sms_enabled",
+   "description": "Platform gateway: the system provider's account. Or your own account with a Bangladeshi gateway (BulkSMSBD, SSL Wireless) or Twilio (also receives replies)."
+  },
+  {
+   "fieldname": "sms_api_key",
+   "fieldtype": "Password",
+   "label": "SMS API key / token",
+   "depends_on": "eval:doc.sms_enabled && !['Platform gateway','Twilio (SMS and RCS)'].includes(doc.sms_provider)",
+   "description": "BulkSMSBD API key or SSL Wireless API token."
+  },
+  {
+   "fieldname": "sms_account",
+   "fieldtype": "Data",
+   "label": "SMS account / SID",
+   "depends_on": "eval:doc.sms_enabled && doc.sms_provider == 'SSL Wireless'",
+   "description": "SSL Wireless SID."
+  },
+  {
+   "fieldname": "sms_sender_id",
+   "fieldtype": "Data",
+   "label": "Sender ID / number",
+   "depends_on": "eval:doc.sms_enabled && !['Platform gateway','Twilio (SMS and RCS)'].includes(doc.sms_provider)",
+   "description": "The approved sender ID (masking) or number, e.g. 8809617000000 or +1555..."
   },
   {
    "fieldname": "whatsapp_enabled",
@@ -603,7 +774,7 @@
    "fieldname": "telephony_provider",
    "fieldtype": "Select",
    "label": "Calls go through",
-   "options": "Phone (tap to call)\nAsterisk (SIP)",
+   "options": "Phone (tap to call)\nAsterisk (SIP)\nTwilio",
    "default": "Phone (tap to call)"
   },
   {

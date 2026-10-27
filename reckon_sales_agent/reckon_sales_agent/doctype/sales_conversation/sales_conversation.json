@@ -1,0 +1,154 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Conversation",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-10-28 18:00:00.000000",
+ "modified": "2026-10-28 18:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 0,
+ "issingle": 0,
+ "editable_grid": 0,
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "Reckon Vendor Superuser",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "Reckon Sales Agent Admin",
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "Reckon Sales Agent Manager",
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "Reckon Sales Agent User",
+   "read": 1,
+   "write": 1,
+   "report": 1
+  }
+ ],
+ "autoname": "hash",
+ "naming_rule": "Random",
+ "title_field": "title",
+ "show_title_field_in_link": 1,
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "options": "Company",
+   "label": "Company",
+   "reqd": 1,
+   "read_only": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "prospect",
+   "fieldtype": "Link",
+   "options": "Sales Prospect",
+   "label": "Lead",
+   "reqd": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "options": "Open\nResolved",
+   "default": "Open",
+   "label": "Status",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "col1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "assigned_to",
+   "fieldtype": "Link",
+   "options": "User",
+   "label": "Assigned to",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "ai_mode",
+   "fieldtype": "Select",
+   "label": "AI",
+   "options": "Company default\nAutopilot\nSuggest only\nHuman only",
+   "default": "Company default",
+   "description": "Autopilot: the AI answers routine questions at once and hands the rest to a person. Suggest only: the AI drafts, a person sends. Human only: no AI in this conversation."
+  },
+  {
+   "fieldname": "last_channel",
+   "fieldtype": "Data",
+   "label": "Last channel",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_inbound_at",
+   "fieldtype": "Datetime",
+   "label": "Lead wrote at",
+   "read_only": 1
+  },
+  {
+   "fieldname": "handoff_reason",
+   "fieldtype": "Small Text",
+   "label": "Why a person is needed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "resolved_on",
+   "fieldtype": "Datetime",
+   "label": "Resolved on",
+   "read_only": 1
+  }
+ ],
+ "field_order": [
+  "company",
+  "prospect",
+  "title",
+  "status",
+  "col1",
+  "assigned_to",
+  "ai_mode",
+  "last_channel",
+  "last_inbound_at",
+  "handoff_reason",
+  "resolved_on"
+ ]
+}

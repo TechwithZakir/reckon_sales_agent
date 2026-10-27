@@ -106,6 +106,10 @@ def click_to_call(company: str, user: str, prospect_name: str) -> str:
     from reckon_sales_agent.usage import get_settings, log_activity
 
     settings = get_settings(company)
+    if settings.get("telephony_provider") == "Twilio":
+        from reckon_sales_agent.providers.twilio import click_to_call as twilio_call
+
+        return twilio_call(company, user, prospect_name)
     if settings.get("telephony_provider") != ASTERISK or not settings.get("ari_url"):
         frappe.throw(_("Set up the phone system first (Sales Agent Settings → Phone system)."))
     extension = extension_of(user)

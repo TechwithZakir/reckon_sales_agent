@@ -38,3 +38,9 @@
 	.sch-account { flex-wrap: wrap; }
 }
 .sch-buttons { display: flex; gap: 6px; flex-wrap: wrap; flex: none; }
+.sch-chips, .sch-checks { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; }
+.sch-urls summary { cursor: pointer; font-size: 12px; color: var(--sch-accent); }
+.sch-url { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 8px; align-items: center; margin: 6px 0; }
+.sch-url .sch-muted { grid-column: 1 / -1; }
+.sch-url code { font-size: 11px; word-break: break-all; background: var(--sch-soft); padding: 4px 6px; border-radius: 6px; }
+.sch-vendor { border-style: dashed; }

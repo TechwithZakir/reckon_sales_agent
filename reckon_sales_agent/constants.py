@@ -64,6 +64,7 @@ COMPANY_DOCTYPES = (
     "Sales Meeting",
     "Sales Message Template",
     "Sales Chat Message",
+    "Sales Conversation",
 )
 CHILD_DOCTYPES = ("Sales Planned Query", "Sales Research Fact", "Sales Campaign Step", "Sales Target Location",
                   "Sales Market Segment", "Sales Provider Budget", "Sales Social Post Target")

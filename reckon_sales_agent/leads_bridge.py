@@ -232,17 +232,23 @@ def _sync_linkedin_account(account) -> int:
     since = int(get_datetime(account.get("synced_until")).timestamp() * 1000) if account.get("synced_until") \
         else int((time.time() - 7 * 86400) * 1000)
     owner = quote(f"urn:li:organization:{account.account_id}", safe="")
-    url = (f"https://api.linkedin.com/rest/leadFormResponses?q=owner&owner=(organization:{owner})"
-           f"&leadType=(leadType:SPONSORED)&submittedAtTimeRange=(start:{since},end:{int(time.time() * 1000)})"
-           "&limitedToTestLeads=false&count=100")
-    response = requests.get(url, headers=headers, timeout=30)
-    if response.status_code >= 400:
-        from reckon_sales_agent.providers.llm import http_reason
+    base = (f"https://api.linkedin.com/rest/leadFormResponses?q=owner&owner=(organization:{owner})"
+            f"&leadType=(leadType:SPONSORED)&submittedAtTimeRange=(start:{since},end:{int(time.time() * 1000)})"
+            "&limitedToTestLeads=false&count=100")
+    elements: list = []
+    for page in range(20):  # up to 2,000 answers an hour
+        response = requests.get(f"{base}&start={page * 100}", headers=headers, timeout=30)
+        if response.status_code >= 400:
+            from reckon_sales_agent.providers.llm import http_reason
 
-        raise RuntimeError(f"LinkedIn refused the lead sync: {http_reason(response)}")
+            raise RuntimeError(f"LinkedIn refused the lead sync: {http_reason(response)}")
+        batch = (response.json() or {}).get("elements") or []
+        elements += batch
+        if len(batch) < 100:
+            break
     forms: dict[str, dict] = {}
     created = 0
-    for element in (response.json() or {}).get("elements") or []:
+    for element in elements:
         form_urn = str(element.get("versionedLeadGenFormUrn") or element.get("leadGenFormUrn") or "")
         form_id = form_urn.split(":")[-1].split(",")[0].strip("()")
         if form_id and form_id not in forms:

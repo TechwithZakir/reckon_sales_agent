@@ -27,7 +27,7 @@ from datetime import datetime, timedelta
 CHAT_CHANNELS = ("Messenger", "Instagram", "Web Chat")
 META_CHANNELS = {"page": "Messenger", "instagram": "Instagram"}
 ACCOUNT_PLATFORM = {"Messenger": "Facebook Page", "Instagram": "Instagram"}
-SOURCE_TYPES = {"Messenger": "messenger", "Instagram": "instagram", "Web Chat": "web_chat"}
+SOURCE_TYPES = {"Messenger": "messenger", "Instagram": "instagram", "Web Chat": "web_chat", "SMS": "sms", "Voice": "voice"}
 WINDOW = timedelta(hours=24)  # Meta's standard messaging window
 COMMENT_WINDOW = timedelta(days=7)  # Meta: one private reply per comment, within 7 days
 COMMENT = "comment:"  # recipient prefix for a private reply to a comment
@@ -206,6 +206,9 @@ def receive_chat(company: str, channel: str, account_id: str, contact_id: str, t
         "provider_message_id": external_id[:140], "idempotency_key": f"received:chat:{external_id}"[:140],
         "detail": text[:500],
     }).insert(ignore_permissions=True)
+    from reckon_sales_agent.agents.conversations import touch_inbound
+
+    touch_inbound(company, prospect.name, channel, doc.sent_at)
     log_activity(company, "comment_received" if kind == "Comment" else "chat_received", prospect,
                  f"{channel}: {text[:200]}", actor_type="system",
                  agent="Conversations")
@@ -222,10 +225,11 @@ def _prospect_for(company, channel, contact_id, contact_name, email, phone):
     known = frappe.db.get_value("Sales Chat Message", {"company": company, "channel": channel,
                                                        "contact_id": contact_id, "prospect": ["is", "set"]},
                                 "prospect", order_by="creation desc")
-    if not known and email:
+    trusted = channel != "Web Chat"  # what a website visitor types is not verified
+    if not known and email and trusted:
         known = frappe.db.get_value("Sales Prospect", {"company": company, "email": email, "merged_into": ["is", "not set"]})
     phone = normalize_phone(phone) if phone else None
-    if not known and phone:
+    if not known and phone and trusted:
         known = frappe.db.get_value("Sales Prospect", {"company": company, "normalized_phone": phone,
                                                        "merged_into": ["is", "not set"]})
     if known:
@@ -343,10 +347,14 @@ def auto_draft(prospect: str) -> str | None:
     out at once only when the fast-answer policy allows, else a person approves it."""
     import frappe
 
+    from reckon_sales_agent.agents.conversations import mode_for
     from reckon_sales_agent.usage import get_settings
 
     doc = frappe.get_doc("Sales Prospect", prospect)
     settings = get_settings(doc.company)
+    mode = mode_for(doc.company, prospect)
+    if mode == "Human only":
+        return None  # a person has this conversation
     if not (settings.get("autopilot_enabled") or settings.get("chat_auto_answer") or settings.get("comment_to_chat")):
         return None
     if frappe.db.exists("Sales Outreach Message", {"prospect": prospect, "status": "Draft", "is_reply": 1}):
@@ -354,7 +362,8 @@ def auto_draft(prospect: str) -> str | None:
     from reckon_sales_agent.agents.omni import draft_reply
 
     try:
-        return draft_reply(prospect, reason="they just wrote and are waiting for an answer")
+        return draft_reply(prospect, reason="they just wrote and are waiting for an answer",
+                           allow_auto=mode == "Autopilot")
     except frappe.ValidationError:
         frappe.clear_messages()  # no AI or no written channel: the thread waits in Conversations
         return None

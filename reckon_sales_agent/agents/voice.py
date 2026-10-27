@@ -57,7 +57,11 @@ def _recording(company: str, url: str) -> bytes:
 
     settings = get_settings(company)
     auth = None
-    if same_host(url, settings.get("ari_url")):
+    if same_host(url, "https://api.twilio.com"):
+        from reckon_sales_agent.providers.twilio import credentials
+
+        auth = credentials(settings)  # Twilio recordings need the account's credentials
+    elif same_host(url, settings.get("ari_url")):
         # The Company's own PBX (often on its private network): its credentials, its address.
         auth = (settings.get("ari_username") or "", settings.get_password("ari_password", raise_exception=False) or "")
     else:
@@ -65,7 +69,8 @@ def _recording(company: str, url: str) -> bytes:
             validate_url(url)
         except UnsafeURL:
             frappe.throw("The recording is not on a public address or the Company's phone system.")
-    response = requests.get(url, auth=auth, timeout=60, stream=True)
+    # No redirects: a redirect could lead from a checked address to a private one.
+    response = requests.get(url, auth=auth, timeout=60, stream=True, allow_redirects=False)
     response.raise_for_status()
     data = b""
     for chunk in response.iter_content(65536):

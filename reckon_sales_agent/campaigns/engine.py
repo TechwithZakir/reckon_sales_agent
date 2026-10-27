@@ -500,6 +500,11 @@ def _whatsapp_conversation(phone: str, doc) -> None:
         "channel": "WhatsApp", "event_time": now_datetime(), "idempotency_key": f"received:whatsapp:{doc.name}"[:140],
         "detail": (doc.get("message") or "")[:500],
     }).insert(ignore_permissions=True)
+    from reckon_sales_agent.agents.conversations import touch_inbound
+
+    touch_inbound(prospect.company, prospect.name, "WhatsApp")
+    frappe.enqueue("reckon_sales_agent.agents.chat.auto_draft", queue="short", prospect=prospect.name,
+                   job_id=f"chat-draft:{prospect.name}", deduplicate=True, enqueue_after_commit=True)
 
 
 def receive_reply(message_name: str, text: str, source_key: str, channel: str) -> None:
@@ -510,6 +515,9 @@ def receive_reply(message_name: str, text: str, source_key: str, channel: str) -
     if frappe.db.exists("Sales Communication Event", {"idempotency_key": f"received:{source_key}"}):
         return  # the same inbound message delivered twice: handled already
     record_event(message, "received", f"received:{source_key}")
+    from reckon_sales_agent.agents.conversations import touch_inbound
+
+    touch_inbound(message.company, message.prospect, channel)
     member = frappe.get_doc("Sales Campaign Member", message.member)
     rule_class = classify_rules(text)
     action = actions_for(rule_class)

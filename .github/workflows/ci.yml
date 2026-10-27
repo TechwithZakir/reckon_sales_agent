@@ -18,7 +18,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install tooling and Frappe's HTTP/HTML dependencies
-        run: python -m pip install ruff beautifulsoup4 requests urllib3 certifi "anthropic>=1.0"
+        run: python -m pip install ruff beautifulsoup4 requests urllib3 certifi cryptography "anthropic>=1.0"
       - name: Lint
         run: ruff check .
       - name: Validate JSON
@@ -27,3 +27,66 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: JavaScript syntax
         run: for f in $(git ls-files '*.js'); do node --check "$f"; done
+
+  bench:
+    # A real Frappe v16 site: the app installs, migrates and every page's API answers (database-free tests cannot
+    # catch a DocType that does not migrate or a field a query names that does not exist).
+    name: Install, migrate and smoke-test on Frappe v16
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    services:
+      mariadb:
+        image: mariadb:11.8
+        env:
+          MARIADB_ROOT_PASSWORD: root
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s --health-timeout=2s --health-retries=30
+      redis-cache:
+        image: redis:7-alpine
+        ports: ["13000:6379"]
+      redis-queue:
+        image: redis:7-alpine
+        ports: ["11000:6379"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: app
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install bench
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mariadb-client libmariadb-dev pkg-config
+          python -m pip install --upgrade pip frappe-bench
+      - name: Set up bench (Frappe version-16)
+        run: |
+          bench init --skip-redis-config-generation --skip-assets --frappe-branch version-16 --python "$(which python)" ~/frappe-bench
+          cd ~/frappe-bench
+          bench set-config -g db_host 127.0.0.1
+          bench set-config -g redis_cache redis://127.0.0.1:13000
+          bench set-config -g redis_queue redis://127.0.0.1:11000
+          bench set-config -g redis_socketio redis://127.0.0.1:13000
+      - name: Get apps
+        run: |
+          cd ~/frappe-bench
+          bench get-app --skip-assets --branch version-16 erpnext https://github.com/frappe/erpnext
+          bench get-app --skip-assets --branch main crm https://github.com/frappe/crm
+          bench get-app --skip-assets --branch main reckon_saas_platform https://github.com/TechwithZakir/Reckon-SaaS-Platform
+          bench get-app --skip-assets reckon_sales_agent "$GITHUB_WORKSPACE/app"
+      - name: Create a site, install and migrate
+        run: |
+          cd ~/frappe-bench
+          bench new-site --db-root-password root --admin-password admin --mariadb-user-host-login-scope='%' ci.local
+          bench --site ci.local install-app erpnext crm reckon_saas_platform reckon_sales_agent
+          bench --site ci.local migrate
+      - name: Smoke test
+        run: |
+          cd ~/frappe-bench
+          bench --site ci.local execute reckon_sales_agent.ci_smoke.run
+

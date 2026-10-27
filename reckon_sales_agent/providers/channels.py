@@ -79,7 +79,9 @@ def send(channel: str, message, settings) -> SendResult:
     if channel == "Email":
         return _email(message, settings)
     if channel == "SMS":
-        return _sms(message)
+        from reckon_sales_agent.providers.sms import send as send_sms
+
+        return SendResult(send_sms(message, settings))
     if channel == "WhatsApp":
         return _whatsapp(message)
     if channel in CHAT_CHANNELS:
@@ -93,6 +95,10 @@ def send(channel: str, message, settings) -> SendResult:
 
 
 def _email(message, settings) -> SendResult:
+    if settings.get("email_provider") == "Twilio SendGrid":
+        from reckon_sales_agent.providers.twilio import send_email
+
+        return SendResult(send_email(message, settings))
     from frappe.core.doctype.communication.email import make
 
     result = make(
@@ -106,18 +112,6 @@ def _email(message, settings) -> SendResult:
         communication_medium="Email",
     )
     return SendResult(frappe.db.get_value("Communication", result.get("name"), "message_id"))
-
-
-def _sms(message) -> SendResult:
-    try:
-        from reckon_saas_platform.sms import is_sms_configured, send_sms
-    except ImportError as exc:
-        raise ChannelUnavailable("SMS gateway is not installed.") from exc
-    if not is_sms_configured():
-        raise ChannelUnavailable("SMS gateway is not configured.")
-    text = html_to_text(message.body)[:SMS_MAX_CHARS]
-    reference = send_sms(message.recipient.lstrip("+"), text)
-    return SendResult(str(reference) if reference else None)
 
 
 def _whatsapp(message) -> SendResult:

@@ -131,3 +131,74 @@ In Platform Settings → Call transcription, choose OpenAI or a local Whisper-co
 - The note includes a suggested outcome, the next step and a coaching tip.
 - Callers must hear a recording notice.
 
+## Conversations desk
+
+Each lead has one conversation across all channels:
+- email and WhatsApp;
+- SMS and RCS;
+- Messenger and Instagram, including buying comments;
+- website chat;
+- phone calls.
+
+**Owner.** List the people who answer conversations on the Channels page. New conversations go to whoever has
+the fewest open ones. Owners are notified, and anyone can reassign a conversation in Conversations.
+
+**Status.** A conversation stays Open until someone resolves it. A new message from the lead reopens it.
+
+**Tags.** Type a tag in a conversation. Tags are Frappe tags, so list views can filter on them too. The tag
+`needs-human` marks conversations the AI handed to a person.
+
+**AI mode** (per conversation; "Company default" follows the Channels page):
+- **AI autopilot:** routine answers from approved knowledge go out at once on chats. With the extra setting
+  ticked, WhatsApp is answered too, within its 24-hour window. Anything else is handed to the owner, with the
+  reason and the `needs-human` tag.
+- **AI suggests, we send:** the AI drafts and a person sends.
+- **Human only:** no AI. When a person writes a reply themselves, the conversation switches to Human only. Pick
+  the mode again to hand the conversation back to the AI.
+
+**Replying.** People reply from Conversations on any channel open for that lead. They can write their own reply,
+or start from the AI's draft and edit it.
+
+## SMS
+
+In Sales Agent Settings → SMS, choose a provider:
+- **Platform gateway:** the system provider's BulkSMSBD account.
+- **BulkSMSBD** or **SSL Wireless:** your own key and approved sender ID.
+- **Twilio (SMS and RCS):** see below.
+
+SMS goes only to leads with recorded SMS consent. A lead who texts STOP (or বন্ধ) is put on the do-not-contact
+list. Replies by SMS come in through Twilio only, because the Bangladeshi gateways have no reply webhook.
+
+## Twilio (each Company)
+
+In Sales Agent Settings → Twilio, enter the Account SID, auth token, phone number and, for RCS, a Messaging
+Service SID. Then paste the addresses from the Channels page into Twilio:
+- **Phone number → "A call comes in":** the voice address. The AI voice assistant answers if it is on;
+  otherwise the call goes to the number for people.
+- **Phone number or Messaging Service → "A message comes in":** the SMS address.
+
+**What it adds:**
+- **Calls:** set "Calls go through" to Twilio. Click-to-call and the power dialer ring the salesperson's mobile
+  (from their user profile), then connect the lead from your Twilio number, inside your calling hours. Calls
+  appear in the CRM Call Log. With recording on, each recording is transcribed and summarised. Callers must be
+  told that calls are recorded.
+- **AI voice assistant:** it says it is an AI, listens with Twilio speech recognition, and answers only from
+  approved knowledge. It connects the caller to the number for people when they ask for someone, or when the
+  answer is not in the knowledge or involves money. It stops after 6 turns. Each call is a conversation in
+  Conversations.
+- **SMS and RCS:** with a Messaging Service, Twilio uses RCS where the phone supports it and falls back to SMS.
+- **Email through Twilio SendGrid:** set "Send email through" to Twilio SendGrid, then add an API key and a
+  verified from address. To have bounces and spam reports reach the do-not-contact list, turn on SendGrid's
+  Signed Event Webhook with the events address from the Channels page, and paste its public key into Sales Agent
+  Settings.
+
+Every Twilio webhook is checked against the Company's auth token (`X-Twilio-Signature`). SendGrid events are
+checked against the signed-webhook key.
+
+## Easier setup
+
+The Channels page has the following:
+- **For the system provider:** a checklist and the exact addresses to paste into Meta and LinkedIn, plus a
+  button that makes a new webhook verify token.
+- **For each Company:** one-click Connect buttons and every webhook address with a Copy button.
+

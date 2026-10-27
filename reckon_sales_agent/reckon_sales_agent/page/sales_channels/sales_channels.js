@@ -37,29 +37,53 @@
 			const status = (ok, on, off) => `<span class="sch-pill ${ok ? "ok" : ""}">${e(ok ? on : off)}</span>`;
 			const social = (platforms) => d.accounts.filter((a) => platforms.includes(a.platform));
 			this.$root.html(`
+				${d.vendor ? this.vendor_card(d.vendor) : ""}
 				${d.outbound_enabled ? "" : `<div class="sch-note">${__("Dry run is on: replies you approve are recorded but not delivered. Switch it off in Sales Agent Settings when you are ready.")}</div>`}
 				<div class="sch-grid">
 					<div class="sch-card">
-						<div class="sch-head"><h3>${__("Email")}</h3>${status(d.email.account, __("Ready"), __("Not set up"))}</div>
-						<p class="sch-muted">${d.email.account ? __("Replies go out from {0}.", [e(d.email.account)]) : __("Add an outgoing Email Account so the agents can send.")}</p>
+						<div class="sch-head"><h3>${__("Email")}</h3>${status(d.twilio.email || d.email.account, __("Ready"), __("Not set up"))}</div>
+						<p class="sch-muted">${d.twilio.email ? __("Sent through Twilio SendGrid; bounces and spam reports come back automatically.")
+							: d.email.account ? __("Replies go out from {0}.", [e(d.email.account)]) : __("Add an outgoing Email Account, or use Twilio SendGrid (Sales Agent Settings → Email sending).")}</p>
 						<a class="btn btn-default btn-xs" href="/desk/sales-templates">${__("Check email health")}</a>
 					</div>
 					<div class="sch-card">
 						<div class="sch-head"><h3>WhatsApp</h3>${status(d.whatsapp.installed && d.whatsapp.enabled, __("On"), d.whatsapp.installed ? __("Off") : __("Not installed"))}</div>
 						<p class="sch-muted">${d.whatsapp.installed
 							? __("WhatsApp Business Cloud API through the Frappe WhatsApp app. Messages from leads open a conversation; replies inside 24 hours are free-form, later ones need an approved template.")
-							: __("Ask your system provider to install the Frappe WhatsApp app (official WhatsApp Business Cloud API).")}</p>
+								: __("Ask your system provider to install the Frappe WhatsApp app (official WhatsApp Business Cloud API).")}</p>
+					</div>
+					<div class="sch-card">
+						<div class="sch-head"><h3>${__("SMS")}</h3>${status(d.sms.enabled && d.sms.configured, __(d.sms.provider), d.sms.enabled ? __("Needs keys") : __("Off"))}</div>
+						<p class="sch-muted">${__("Bangladeshi gateways (BulkSMSBD, SSL Wireless), the platform gateway, or Twilio with RCS. Texts go only to leads with SMS consent; a lead who texts STOP is never texted again.")}</p>
+						<a class="btn btn-default btn-xs" href="/desk/sales-agent-settings/${encodeURIComponent(d.company)}">${__("SMS settings")}</a>
+					</div>
+					<div class="sch-card">
+						<div class="sch-head"><h3>Twilio</h3>${status(d.twilio.ready, __("Connected"), __("Not set up"))}</div>
+						<p class="sch-muted">${__("One account for calls (click-to-call, recordings, an AI voice assistant), SMS and RCS, and email through SendGrid.")}</p>
+						${d.twilio.ready ? `<div class="sch-chips">${[[d.twilio.calls, __("Calls")], [d.twilio.voice_ai, __("AI voice assistant")],
+							[d.twilio.sms, __("SMS / RCS")], [d.twilio.messaging_service, __("RCS via Messaging Service")], [d.twilio.email, __("SendGrid email")]]
+							.map(([on, l]) => `<span class="sch-pill ${on ? "ok" : ""}">${e(l)}</span>`).join("")}</div>
+							<details class="sch-urls"><summary>${__("Addresses to paste into Twilio and SendGrid")}</summary>
+								${this.copy_row(__("Phone number → A call comes in"), d.twilio.urls.voice)}
+								${this.copy_row(__("Phone number / Messaging Service → A message comes in"), d.twilio.urls.sms)}
+								${this.copy_row(__("SendGrid → Event Webhook"), d.twilio.urls.sendgrid_events)}</details>` : ""}
 					</div>
 				</div>
 				<div class="sch-card sch-fast">
-					<div class="sch-head"><div><h3>${__("Fast answers")}</h3>
-						<p class="sch-muted">${__("Chats go cold in minutes. Let the AI answer simple questions at once, turn buying comments into private chats, and get a reminder when someone waits.")}</p></div>
+						<div class="sch-head"><div><h3>${__("Conversations: AI autopilot and team")}</h3>
+						<p class="sch-muted">${__("Chats go cold in minutes. The AI answers simple questions at once and hands everything else to a person on your team; you can change this per conversation.")}</p></div>
 						${status(d.fast.auto_answer, __("Instant answers on"), __("Every reply waits for approval"))}</div>
 					<div class="sch-form">
 						<label class="sch-check"><input type="checkbox" class="sch-auto" ${d.fast.auto_answer ? "checked" : ""} ${d.can_manage ? "" : "disabled"}>
 							${__("Answer simple chat questions at once (only facts from your approved knowledge; prices, discounts, complaints and anything unsure still wait for you)")}</label>
 						<label class="sch-check"><input type="checkbox" class="sch-comments" ${d.fast.comment_to_chat ? "checked" : ""} ${d.can_manage ? "" : "disabled"}>
 							${__("Answer buying comments (\"price?\", \"দাম কত?\") on our Facebook and Instagram posts with one private message")}</label>
+						<label class="sch-check"><input type="checkbox" class="sch-wa" ${d.fast.whatsapp ? "checked" : ""} ${d.can_manage ? "" : "disabled"}>
+							${__("The autopilot also answers WhatsApp (inside the 24-hour window)")}</label>
+						<label>${__("People who answer conversations (one email per line)")}
+							<textarea class="form-control sch-agents" rows="3" placeholder="sales1@yourcompany.com" ${d.can_manage ? "" : "disabled"}>${e(d.fast.agents)}</textarea></label>
+						<label class="sch-check"><input type="checkbox" class="sch-assign" ${d.fast.auto_assign ? "checked" : ""} ${d.can_manage ? "" : "disabled"}>
+							${__("Share new conversations among them automatically (fewest open first)")}</label>
 						<label>${__("Remind {0} when a chat waits longer than (minutes; 0 = off)", [e(d.fast.assignee || __("the salesperson"))])}
 							<input type="number" class="form-control sch-sla" min="0" max="1440" value="${e(d.fast.sla_minutes)}" ${d.can_manage ? "" : "disabled"}></label>
 						${d.fast.assignee ? "" : `<div class="sch-muted">${__("Name the salesperson in Agent Studio → autopilot settings to receive reminders.")}</div>`}
@@ -102,6 +126,22 @@
 			this.bind();
 		}
 
+		copy_row(label, url) {
+			return `<div class="sch-url"><span class="sch-muted">${e(label)}</span><code>${e(url)}</code>
+				<button class="btn btn-default btn-xs sch-copy-url" data-url="${e(url)}">${__("Copy")}</button></div>`;
+		}
+
+		vendor_card(v) {
+			return `<div class="sch-card sch-vendor"><div class="sch-head"><div><h3>${__("System provider setup")}</h3>
+				<p class="sch-muted">${__("Only you see this. Set these once and every Company connects its own accounts with one click.")}</p></div>
+				<a class="btn btn-default btn-xs" href="/desk/sales-agent-platform-settings">${__("Platform settings")}</a></div>
+				<div class="sch-checks">${v.checks.map((c) => `<span class="sch-pill ${c.ok ? "ok" : ""}">${c.ok ? "✓" : "•"} ${e(c.label)}</span>`).join("")}</div>
+				${this.copy_row(__("Meta and LinkedIn: OAuth redirect URI"), v.redirect_uri)}
+				${this.copy_row(__("Meta: webhook callback URL (Page and Instagram)"), v.meta_webhook)}
+				<button class="btn btn-default btn-xs sch-token">${__("Make a new webhook verify token")}</button>
+				<span class="sch-muted">${__("Step-by-step: docs/channels.md")}</span></div>`;
+		}
+
 		accounts(rows, messaging) {
 			if (!rows.length) return `<div class="sch-muted sch-none">${__("Nothing connected yet.")}</div>`;
 			const manage = this.data.can_manage;
@@ -142,11 +182,16 @@
 			r.find(".sch-wc-on").on("change", save_chat);
 			r.find(".sch-fast-save").on("click", () => this.call("set_fast_answers", { data: JSON.stringify({
 				auto_answer: r.find(".sch-auto").is(":checked") ? 1 : 0, comment_to_chat: r.find(".sch-comments").is(":checked") ? 1 : 0,
-				sla_minutes: Number(r.find(".sch-sla").val() || 0),
+				sla_minutes: Number(r.find(".sch-sla").val() || 0), whatsapp: r.find(".sch-wa").is(":checked") ? 1 : 0,
+				agents: r.find(".sch-agents").val(), auto_assign: r.find(".sch-assign").is(":checked") ? 1 : 0,
 			}) }).then((d) => {
 				this.render(d);
 				frappe.show_alert({ message: __("Fast answers saved"), indicator: "green" });
 			}));
+			r.find(".sch-copy-url").on("click", (ev) => frappe.utils.copy_to_clipboard(ev.currentTarget.dataset.url));
+			r.find(".sch-token").on("click", () => frappe.confirm(__("Make a new verify token? The old one stops working in the Meta app."),
+				() => this.call("new_verify_token").then((token) => frappe.msgprint({ title: __("Paste this into the Meta app's webhook settings"),
+					message: `<pre class="sch-code">${e(token)}</pre><p>${__("It is shown only once.")}</p>` }))));
 			r.find(".sch-copy").on("click", () => frappe.utils.copy_to_clipboard(r.find(".sch-code").text()));
 		}
 	}

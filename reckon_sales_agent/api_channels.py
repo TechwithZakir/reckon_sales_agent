@@ -3,6 +3,7 @@ Channels page where a Company connects them."""
 
 from __future__ import annotations
 
+import hmac
 import json
 import re
 
@@ -33,7 +34,8 @@ def meta_webhook(**kwargs):
     platform = platform_settings()
     if frappe.request.method == "GET":
         token = platform.get_password("meta_verify_token", raise_exception=False) if platform.get("meta_verify_token") else ""
-        if token and frappe.form_dict.get("hub.mode") == "subscribe" and frappe.form_dict.get("hub.verify_token") == token:
+        offered = str(frappe.form_dict.get("hub.verify_token") or "")
+        if token and frappe.form_dict.get("hub.mode") == "subscribe" and hmac.compare_digest(offered, token):
             return Response(str(frappe.form_dict.get("hub.challenge") or ""), mimetype="text/plain")
         return Response("forbidden", status=403, mimetype="text/plain")
     from reckon_sales_agent.agents.chat import (
@@ -210,6 +212,7 @@ def overview() -> dict:
     count = lambda channel: frappe.db.count("Sales Chat Message", {"company": company, "channel": channel,  # noqa: E731
                                                                    "direction": "In"})
     return {
+        "company": company,
         "can_manage": _can_manage(),
         "accounts": accounts,
         "meta_ready": bool(platform.get("meta_app_id") and platform.get("meta_app_secret")),
@@ -224,7 +227,20 @@ def overview() -> dict:
                     "script": frappe.utils.get_url("/assets/reckon_sales_agent/js/reckon_webchat.js"),
                     "site": frappe.utils.get_url()},
         "counts": {c: count(c) for c in ("Messenger", "Instagram", "Web Chat")},
+        "twilio": {"ready": bool(settings.get("twilio_account_sid") and settings.get("twilio_auth_token")),
+                   "phone": settings.get("twilio_phone_number") or "",
+                   "messaging_service": bool(settings.get("twilio_messaging_service_sid")),
+                   "voice_ai": bool(settings.get("voice_ai_enabled")), "calls": settings.get("telephony_provider") == "Twilio",
+                   "sms": settings.get("sms_provider") == "Twilio (SMS and RCS)",
+                   "email": settings.get("email_provider") == "Twilio SendGrid",
+                   "urls": {k: _twilio_url(k, company) for k in ("voice", "sms", "sendgrid_events")}},
+        "sms": {"enabled": bool(settings.get("sms_enabled")), "provider": settings.get("sms_provider") or "Platform gateway",
+                "configured": bool(settings.get("sms_api_key") or settings.get("sms_provider") in (
+                    None, "", "Platform gateway", "Twilio (SMS and RCS)"))},
+        "vendor": _vendor_setup(platform) if _is_vendor() else None,
         "fast": {"auto_answer": bool(settings.get("chat_auto_answer")),
+                 "whatsapp": bool(settings.get("autopilot_whatsapp")),
+                 "agents": settings.get("chat_agents") or "", "auto_assign": bool(settings.get("auto_assign", 1)),
                  "sla_minutes": settings.get("chat_reply_sla_minutes") or 0,
                  "comment_to_chat": bool(settings.get("comment_to_chat")),
                  "assignee": settings.get("task_assignee") or ""},
@@ -257,6 +273,14 @@ def set_fast_answers(data: str | dict) -> dict:
     doc.chat_auto_answer = 1 if data.get("auto_answer") else 0
     doc.comment_to_chat = 1 if data.get("comment_to_chat") else 0
     doc.chat_reply_sla_minutes = max(0, min(int(data.get("sla_minutes") or 0), 1440))
+    if "agents" in data:
+        from reckon_sales_agent.agents.conversations import parse_agents
+
+        doc.chat_agents = "\n".join(parse_agents(str(data.get("agents") or "")))
+    if "auto_assign" in data:
+        doc.auto_assign = 1 if data.get("auto_assign") else 0
+    if "whatsapp" in data:
+        doc.autopilot_whatsapp = 1 if data.get("whatsapp") else 0
     doc.save()
     from reckon_sales_agent.usage import log_activity
 
@@ -290,3 +314,48 @@ def check_account(account: str) -> dict:
         frappe.clear_messages()
     frappe.db.commit()
     return overview()
+
+
+def _twilio_url(kind: str, company: str) -> str:
+    from reckon_sales_agent.providers.twilio import webhook_url
+
+    return webhook_url(kind, company)
+
+
+def _is_vendor() -> bool:
+    from reckon_sales_agent.constants import VENDOR_ROLES
+
+    return bool(set(frappe.get_roles()) & set(VENDOR_ROLES))
+
+
+def _vendor_setup(platform) -> dict:
+    """The system provider's one-time checklist, with the exact addresses to paste into Meta and LinkedIn."""
+    from frappe.utils import get_url
+
+    from reckon_sales_agent.agents.social_connect import redirect_uri
+
+    return {
+        "redirect_uri": redirect_uri(),
+        "meta_webhook": get_url("/api/method/reckon_sales_agent.api_channels.meta_webhook"),
+        "checks": [
+            {"label": _("Meta app ID and secret"), "ok": bool(platform.get("meta_app_id") and platform.get("meta_app_secret"))},
+            {"label": _("Meta webhook verify token"), "ok": bool(platform.get("meta_verify_token"))},
+            {"label": _("LinkedIn client ID and secret"),
+             "ok": bool(platform.get("linkedin_client_id") and platform.get("linkedin_client_secret"))},
+            {"label": _("Default AI provider"), "ok": bool(platform.get("ai_enabled"))},
+            {"label": _("Call transcription"), "ok": bool(platform.get("transcription_enabled"))},
+        ],
+    }
+
+
+@frappe.whitelist(methods=["POST"])
+def new_verify_token() -> str:
+    """System provider only: a fresh Meta webhook verify token, shown once to paste into the Meta app."""
+    if not _is_vendor():
+        frappe.throw(_("Only the system provider can do this."), frappe.PermissionError)
+    token = frappe.generate_hash(length=32)
+    doc = frappe.get_doc("Sales Agent Platform Settings")
+    doc.meta_verify_token = token
+    doc.save(ignore_permissions=True)
+    return token
+

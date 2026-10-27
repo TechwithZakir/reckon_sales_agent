@@ -39,3 +39,20 @@
 .sin-empty { color: var(--sin-muted); padding: 24px; text-align: center; }
 .sin-empty.small { padding: 12px; font-size: 12px; }
 @media (max-width: 800px) { .sin { grid-template-columns: 1fr; } .sin-list { max-height: 40vh; } .sin-msg { max-width: 92%; } }
+.sin-search { margin-bottom: 8px; }
+.sin-tabs { flex-wrap: wrap; }
+.sin-tabs button { flex: 1 1 30%; }
+.sin-badge.tag { color: var(--sin-muted); }
+.sin-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 12px; padding: 8px 0;
+	border-top: 1px solid var(--sin-line); border-bottom: 1px solid var(--sin-line); }
+.sin-bar label { display: inline-flex; gap: 6px; align-items: center; margin: 0; color: var(--sin-muted); }
+.sin-bar select { width: auto; min-width: 120px; height: 26px; padding: 0 6px; font-size: 12px; }
+.sin-tags { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.sin-untag { margin-left: 3px; cursor: pointer; color: inherit; }
+.sin-tag-in { border: 1px dashed var(--sin-line); border-radius: 999px; padding: 1px 8px; font-size: 11px; width: 80px;
+	background: transparent; color: inherit; }
+.sin-reply { display: flex; flex-direction: column; gap: 6px; }
+.sin-reply-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.sin-reply-row select { width: auto; min-width: 140px; }
+.sin-reply .sin-actions { align-items: center; }
+.sin-reply .sin-instr { flex: 1; }

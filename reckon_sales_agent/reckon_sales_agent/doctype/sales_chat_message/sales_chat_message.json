@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-27 18:00:00.000000",
- "modified": "2026-10-28 10:00:00.000000",
+ "modified": "2026-10-28 20:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -76,7 +76,7 @@
   {
    "fieldname": "channel",
    "fieldtype": "Select",
-   "options": "Messenger\nInstagram\nWeb Chat",
+   "options": "Messenger\nInstagram\nWeb Chat\nSMS\nVoice",
    "label": "Channel",
    "in_list_view": 1,
    "in_standard_filter": 1,
