@@ -31,13 +31,15 @@ KNOWLEDGE = "Sales Knowledge Item"
 EDITABLE = ("Draft", "Paused", "Pending Approval")
 
 
-def approved_knowledge(company: str, language: str | None = None) -> list[dict]:
-    """Approved, unexpired knowledge items in the language (or Any)."""
+def approved_knowledge(company: str, language: str | None = None, include_competitors: bool = False) -> list[dict]:
+    """Approved, unexpired knowledge items in the language (or Any). Competitor facts (the battlecard) only where
+    asked for: never in outreach."""
     rows = frappe.get_all(KNOWLEDGE, filters={"company": company, "status": "Approved"},
                           fields=["title", "category", "content", "language", "valid_until"], limit=200)
     today = getdate(nowdate())
     return [r for r in rows if (not r.valid_until or getdate(r.valid_until) >= today)
-            and (not language or r.language in (None, "", "Any", language))]
+            and (not language or r.language in (None, "", "Any", language))
+            and (include_competitors or r.category != "Competitor")]
 
 
 def _brand(company: str) -> tuple[str, list[str], dict]:

@@ -53,7 +53,11 @@ def meta_webhook(**kwargs):
         return Response("invalid JSON", status=400, mimetype="text/plain")
     frappe.set_user("Administrator")  # a verified Meta event: act as the system
     from reckon_sales_agent.agents.chat import buying_comment, meta_comments
+    from reckon_sales_agent.leads_bridge import leadgen_events
 
+    for lead in leadgen_events(payload)[:50]:
+        frappe.enqueue("reckon_sales_agent.leads_bridge.receive_meta_lead", queue="short", job_id=f"leadgen:{lead['leadgen_id']}",
+                       deduplicate=True, page_id=lead["page_id"], leadgen_id=lead["leadgen_id"], form_id=lead["form_id"])
     comments = [c for c in meta_comments(payload) if buying_comment(c["text"])]
     for event in (meta_events(payload) + comments)[:100]:
         owner = account_company(event["channel"], event["account_id"])

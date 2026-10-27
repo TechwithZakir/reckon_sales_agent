@@ -1,6 +1,17 @@
 # Reckon Sales Agent: roadmap for new agents, telephony and social leads
 
-Status: plan, October 2026. Nothing here is built yet. Facts about third-party products are as of
+Status, 28 October 2026: **built**, not yet tested on a live site.
+- All nine agents below run in the orchestrator and have a lane in the Agent Studio. The Signals agent is part of
+  Research, the Competitor agent part of Content, and the Voice agent part of Engagement.
+- Telephony phases 1, 2 and 3 (voice transcription) and phase 4 (the power dialer) are built for Asterisk;
+  `docs/telephony-asterisk.md` has the setup.
+- Leads arrive from Meta lead ads (the CRM's sync plus the real-time webhook) and from LinkedIn Lead Gen forms (hourly).
+  `docs/channels.md` has the setup.
+- Still open:
+  - e-GP tenders: there is no public API;
+  - Twilio as a second telephony provider: Frappe CRM's own Twilio integration covers international calls.
+
+The original plan follows. Facts about third-party products are as of
 October 2026, with sources at the end. Re-check them before building; telecom rules in particular change.
 
 ---

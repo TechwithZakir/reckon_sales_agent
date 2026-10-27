@@ -7,7 +7,7 @@ import json
 import frappe
 from frappe.utils import add_days, now_datetime, nowdate
 
-from reckon_sales_agent.agents.analytics import funnel, pilot_result, recommendations
+from reckon_sales_agent.agents.analytics import AGENT_FAMILY, funnel, pilot_result, recommendations
 from reckon_sales_agent.campaigns.replies import POSITIVE
 from reckon_sales_agent.usage import log_activity
 
@@ -182,7 +182,8 @@ def dashboard(company: str, days: int = 30, campaign: str | None = None) -> dict
             continue  # reports and heartbeats, not work
         # Rows logged before the agent field existed: the action says whose work it was (live: 660 such rows
         # all showed as Governance).
-        activity.setdefault(row.agent or agent_for(row.action), []).append(row.creation)
+        agent = row.agent or agent_for(row.action)
+        activity.setdefault(AGENT_FAMILY.get(agent, agent), []).append(row.creation)
     agents = ("Research", "Content", "Governance", "Engagement", "Analytics")
     calls_now = now_events
     call_counts = {event: sum(1 for e in calls_now if e.event_type == event) for event in EVENT.values()}
@@ -211,6 +212,54 @@ def dashboard(company: str, days: int = 30, campaign: str | None = None) -> dict
         "campaign_options": frappe.get_list("Sales Campaign", fields=["name", "campaign_name"],
                                             order_by="modified desc", page_length=50),
         "recommendations": recommendations(segments=segments, sources=sources),
+        "channels": channel_report(company, str(start)),
+    }
+
+
+def channel_report(company: str, start: str) -> dict:
+    """Where leads talk to the Company: messages in and answered per channel, reply speed, leads and deals."""
+    from frappe.utils import get_datetime
+
+    from reckon_sales_agent.agents.analytics import SOURCE_CHANNEL, channel_table
+    from reckon_sales_agent.agents.chat import median, response_minutes
+
+    since = f"{start} 00:00:00"
+    received = frappe.get_all("Sales Communication Event", filters={"company": company, "event_type": "received",
+                                                                    "event_time": [">=", since]},
+                              fields=["channel", "message"], limit=100000)
+    message_channel = dict(frappe.get_all("Sales Outreach Message", filters={
+        "name": ["in", list({r.message for r in received if r.message}) or [""]]}, fields=["name", "channel"],
+        as_list=True))
+    inbound = [r.channel or message_channel.get(r.message) or "Email" for r in received]
+    calls = frappe.db.count("Sales Communication Event", {"company": company, "event_time": [">=", since],
+                                                         "event_type": ["like", "call\\_%"]})
+    inbound += ["Call"] * calls
+    replies = frappe.get_all("Sales Outreach Message", filters={"company": company, "is_reply": 1,
+                                                                "status": ["in", ["Sent", "Dry Run"]],
+                                                                "sent_on": [">=", since]},
+                             fields=["channel", "auto_approved_by_policy"], limit=100000)
+    chats = frappe.get_all("Sales Chat Message", filters={"company": company, "sent_at": [">=", since]},
+                           fields=["prospect", "channel", "direction", "sent_at", "kind"], order_by="sent_at asc",
+                           limit=100000)
+    threads: dict[tuple, list] = {}
+    for row in chats:
+        threads.setdefault((row.channel, row.prospect), []).append((row.direction, get_datetime(row.sent_at)))
+    minutes: dict[str, list[float]] = {}
+    for (channel, _prospect), rows in threads.items():
+        minutes.setdefault(channel, []).extend(response_minutes(rows))
+    new_leads = frappe.get_all("Sales Prospect", filters={"company": company, "creation": [">=", since],
+                                                          "source_type": ["in", list(SOURCE_CHANNEL)]},
+                               fields=["source_type", "crm_lead"], limit=100000)
+    deals = _deals_by_lead([p.crm_lead for p in new_leads if p.crm_lead])
+    all_minutes = [m for values in minutes.values() for m in values]
+    return {
+        "rows": channel_table(inbound, [r.channel for r in replies], minutes,
+                              [SOURCE_CHANNEL[p.source_type] for p in new_leads],
+                              [SOURCE_CHANNEL[p.source_type] for p in new_leads if p.crm_lead and deals.get(p.crm_lead)]),
+        "chats": sum(1 for r in chats if r.direction == "In" and r.kind != "Comment"),
+        "comments": sum(1 for r in chats if r.kind == "Comment"),
+        "instant": sum(1 for r in replies if r.auto_approved_by_policy),
+        "median_minutes": median(all_minutes),
     }
 
 

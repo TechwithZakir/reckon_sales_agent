@@ -25,6 +25,9 @@
 		"Data Quality": '<path d="M4 6h16M4 12h10M4 18h6"/><path d="m15 17 2 2 4-4"/>',
 		Conversations: '<path d="M3 5h12v8H7l-4 3z"/><path d="M9 16v1h8l4 3V9h-4"/>',
 		Meetings: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+		Compliance: '<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="M9 9l6 6M15 9l-6 6"/>',
+		Deals: '<path d="M3 12l4-4 4 4 4-4 6 6"/><path d="M3 20h18"/>',
+		Customers: '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4a3 3 0 0 1 0 6M21 20c0-2.6-1.7-4.9-4-5.7"/>',
 		Social: '<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="m8.2 10.8 7.6-3.6M8.2 13.2l7.6 3.6"/>',
 		spark: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>',
 	};
@@ -52,6 +55,11 @@
 		call_no_answer: __("Call: no answer"), digest_manager: __("Sent the daily digest"),
 		digest_caller: __("Sent today's calls"), chat_received: __("A lead wrote in a chat"), comment_received: __("A buying comment on a post"),
 		reply_auto_answered: __("Answered a chat at once"), fast_answers_set: __("Fast answers changed"),
+		deals_coached: __("Coached stuck deals"), forecast_ready: __("Forecast ready"), proposal_drafted: __("Drafted a proposal"),
+		compliance_enforced: __("Applied do-not-contact"), signals_recheck: __("Re-checked leads for signals"),
+		competitors_checked: __("Checked competitors"), customer_checkins: __("Found customers to call"),
+		call_summarized: __("Summarised a call"), meta_lead_ads_received: __("New Meta ad lead"),
+		linkedin_lead_gen_received: __("New LinkedIn ad lead"),
 		social_connected: __("Connected social accounts"), reply_drafted_omni: __("Drafted a reply"),
 	};
 	const label = (a) => ACTIONS[a] || (a || "").replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
@@ -263,7 +271,7 @@
 				const fn = this[`ask_${a.key}`];
 				if (fn) fn.call(this, body, a);
 				else if (["research_market", "start_discovery", "draft_campaign", "auto_review", "ai_triage", "learn_targeting",
-					"find_contacts"].includes(a.key)) this.ask_do(body, a);
+					"find_contacts", "compliance"].includes(a.key)) this.ask_do(body, a);
 			});
 		}
 
@@ -381,7 +389,17 @@
 				<div class="ags-muted">${e(t.business || "")}${e(due(t.due_date))}</div>
 				${t.is_call ? outcomeButtons("CRM Task", t.name) : ""}</div>
 				<a class="btn btn-default btn-xs" href="/crm/leads/${encodeURIComponent(t.reference_docname)}">${__("Open in CRM")}</a></div>`).join("");
-			body.html(calls + tasks || `<div class="ags-muted">${__("Open your ToDo list to see them.")}</div>`);
+			// Power dialer: ring the next due call, and after each outcome the one after (within calling hours).
+			const dialer = this.data.office_phone && (a.todos || []).some((t) => t.is_call)
+				? `<div class="ags-dialer">${this.dialing
+					? `<span class="ags-spin"></span> ${__("Calling {0}", [e(this.dialing.business)])}
+						<button class="btn btn-default btn-xs ags-stop">${__("Stop calling")}</button>`
+					: `<button class="btn btn-primary btn-xs ags-start">${__("Start calling")}</button>
+						<span class="ags-muted">${__("Rings your phone for each due call in turn; log the outcome to move on.")}</span>`}</div>` : "";
+			body.html(dialer + (calls + tasks || `<div class="ags-muted">${__("Open your ToDo list to see them.")}</div>`));
+			if (this.dialing) body.find(`.ags-call[data-todo="${CSS.escape(this.dialing.todo)}"]`).addClass("ags-active").find("details").attr("open", true);
+			body.find(".ags-start").on("click", () => this.dial_next());
+			body.find(".ags-stop").on("click", () => { this.dialing = null; this.inboxKey = null; this.refresh(); });
 			body.find(".ags-done").on("click", (ev) => {
 				const row = $(ev.currentTarget).closest(".ags-lead");
 				$(ev.currentTarget).prop("disabled", true);
@@ -402,6 +420,7 @@
 						{ interested: __("Added to the CRM with a 'book the demo' task"), callback: __("Callback scheduled"),
 							no_answer: __("Noted; the agent will retry"), not_interested: __("Noted; the sequence stops"),
 							wrong_number: __("Number removed from the lead") }[outcome])
+						.then(() => { if (this.dialing && this.dialing.todo === box.data("task")) setTimeout(() => this.dial_next(), 2500); })
 						.catch(() => box.find("button").prop("disabled", false));
 				};
 				if (outcome === "callback") {
@@ -418,6 +437,16 @@
 			});
 		}
 
+		dial_next() {
+			return frappe.xcall("reckon_sales_agent.api_telephony.next_call").then((r) => {
+				this.dialing = r || null;
+				this.inboxKey = null;
+				frappe.show_alert(r ? { message: __("Your phone is ringing: {0}", [r.business]), indicator: "green" }
+					: { message: __("No more calls due today."), indicator: "blue" });
+				this.refresh();
+			}).catch(() => { this.dialing = null; });
+		}
+
 		ask_conversations(body) {
 			$(`<button class="btn btn-primary btn-xs">${__("Open Conversations")}</button>`).appendTo(body)
 				.on("click", () => frappe.set_route("sales-inbox"));
@@ -426,6 +455,35 @@
 		ask_meetings(body, a) {
 			$(`<button class="btn btn-primary btn-xs">${__("Open Meetings")}</button>`).appendTo(body)
 				.on("click", () => frappe.set_route("sales-meetings"));
+		}
+
+		ask_deals(body, a) {
+			body.html((a.deals || []).map((d) => `<div class="ags-lead"><div class="grow"><b>${e(d.organization)}</b>
+				<span class="ags-muted">${e(d.status)} · ${e(d.problem === "overdue" ? __("{0} days past closing date", [d.days]) : __("quiet {0} days", [d.days]))}${d.owner ? " · " + e(d.owner) : ""}</span>
+				<div class="ags-muted">${e(d.action)}</div></div>
+				<div class="ags-actions">${this.data.can_manage ? `<button class="btn btn-default btn-xs ags-proposal" data-deal="${e(d.name)}">${__("Draft proposal")}</button>` : ""}
+				<a class="btn btn-default btn-xs" href="/crm/deals/${encodeURIComponent(d.name)}">${__("Open in CRM")}</a></div></div>`).join(""));
+			body.find(".ags-proposal").on("click", (ev) => {
+				$(ev.currentTarget).prop("disabled", true);
+				this.act("draft_proposal", { deal: ev.currentTarget.dataset.deal }, __("Proposal drafted as a note on the deal"))
+					.catch(() => $(ev.currentTarget).prop("disabled", false));
+			});
+		}
+
+		ask_signals(body, a) {
+			const rows = a.prospects || [];
+			body.html(rows.map((p) => `<div class="ags-lead"><div class="grow"><a href="/desk/sales-prospect/${encodeURIComponent(p.name)}"><b>${e(p.business_name)}</b></a>
+				<span class="ags-muted">${e(p.city || "")} · ${__("buying signals {0} → {1}", [e(p.previous_buying_score), e(p.buying_signal_score)])}</span></div></div>`).join("")
+				+ `<button class="btn btn-default btn-xs ags-seen">${__("Seen")}</button>`);
+			body.find(".ags-seen").on("click", () => this.act("signals_seen", { prospects: rows.map((p) => p.name) }, __("Marked as seen")));
+		}
+
+		ask_compliance_review(body) {
+			$(`<a class="btn btn-default btn-xs" href="/desk/sales-outreach-message?status=Sent">${__("Review sent messages")}</a>`).appendTo(body);
+		}
+
+		ask_approve_competitor(body) {
+			$(`<a class="btn btn-primary btn-xs" href="/desk/sales-knowledge-item?category=Competitor&status=Draft">${__("Review battlecard facts")}</a>`).appendTo(body);
 		}
 
 		ask_approve_social(body) {

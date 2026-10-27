@@ -75,7 +75,8 @@ class MetaBridgeTests(unittest.TestCase):
                       read("hooks.py"))
         bridge = read("leads_bridge.py").split("def speed_to_lead(")[1]
         self.assertIn('"review_status": "Approved"', bridge)
-        self.assertIn('"consent_source": CONSENT', bridge)
+        self.assertIn("SOURCE, CONSENT", bridge)  # the shared inbound-lead flow
+        self.assertIn('"consent_source": consent', bridge)
         self.assertIn('"task_due_days": 0', bridge)  # call today
 
 

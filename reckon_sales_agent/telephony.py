@@ -116,6 +116,9 @@ def click_to_call(company: str, user: str, prospect_name: str) -> str:
         frappe.throw(_("This lead has no phone number."))
     if prospect.do_not_contact:
         frappe.throw(_("This lead asked not to be contacted."))
+    from reckon_sales_agent.agents.compliance import check_call
+
+    check_call(company)  # calling hours
     call_id = f"rsa-{frappe.generate_hash(length=16)}"
     reference = prospect.crm_lead or prospect.name
     query, body = originate_params(extension, prospect.phone, settings.get("sip_context"),
@@ -151,7 +154,45 @@ def apply_event(company: str, payload: dict) -> str:
                       receiver=user if event["type"] == "Incoming" else None)
     if event["type"] == "Incoming" and event["status"] in ("Ringing", "Initiated", "In Progress", "No Answer"):
         _notify_inbound(company, event, user)
+    if event["status"] == "Completed" and event.get("recording_url"):
+        from reckon_sales_agent.agents.voice import queue
+
+        queue(name)  # transcript and AI summary on the call log
     return name
+
+
+def next_call(company: str, user: str) -> dict | None:
+    """Power dialer: the user's next due call task (high priority first) that was not called today; dials it."""
+    import frappe
+    from frappe.utils import nowdate
+
+    todos = frappe.get_all("ToDo", filters={"status": "Open", "allocated_to": user, "reference_type": "Sales Prospect",
+                                            "date": ["<=", nowdate()], "rsa_company": company},
+                           fields=["name", "reference_name", "priority", "date", "description"],
+                           order_by="date asc", limit=300)
+    order = {"High": 0, "Medium": 1, "Low": 2}
+    todos.sort(key=lambda t: (order.get(t.priority, 1), str(t.date)))
+    events = frappe.get_all("Sales Communication Event", filters={
+        "company": company, "event_type": "task_created",
+        "provider_message_id": ["in", [t.name for t in todos] or [""]]}, fields=["provider_message_id", "message"])
+    call_messages = set(frappe.get_all("Sales Outreach Message", filters={
+        "name": ["in", [e.message for e in events] or [""]], "channel": "Call Task"}, pluck="name"))
+    calls = {e.provider_message_id for e in events if e.message in call_messages}
+    for todo in todos:
+        if todo.name not in calls:
+            continue
+        prospect = frappe.db.get_value("Sales Prospect", todo.reference_name,
+                                       ["name", "business_name", "phone", "crm_lead", "do_not_contact"], as_dict=True)
+        if not prospect or prospect.do_not_contact or not dial_digits(prospect.phone):
+            continue
+        refs = [r for r in (prospect.name, prospect.crm_lead) if r]
+        if frappe.db.exists("CRM Call Log", {"reference_docname": ["in", refs], "start_time": [">=", nowdate()]}):
+            continue  # already called today
+        call_id = click_to_call(company, user, prospect.name)
+        return {"todo": todo.name, "prospect": prospect.name, "business": prospect.business_name,
+                "phone": prospect.phone, "call_id": call_id,
+                "script": frappe.utils.strip_html((todo.description or "").replace("<br>", chr(10)))[:3000]}
+    return None
 
 
 def _match(company: str, number: str) -> tuple[str | None, str | None]:

@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-26 10:00:00.000000",
- "modified": "2026-10-27 18:00:00.000000",
+ "modified": "2026-10-28 14:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -28,6 +28,7 @@
   "connected_by",
   "receive_messages",
   "linked_page_id",
+  "synced_until",
   "health_section",
   "last_check",
   "health_col",
@@ -55,7 +56,7 @@
    "fieldname": "platform",
    "fieldtype": "Select",
    "label": "Platform",
-   "options": "Facebook Page\nInstagram\nLinkedIn",
+   "options": "Facebook Page\nInstagram\nLinkedIn\nLinkedIn Lead Gen",
    "reqd": 1,
    "in_list_view": 1,
    "in_standard_filter": 1
@@ -117,6 +118,13 @@
    "read_only": 1,
    "depends_on": "eval:doc.platform=='Instagram'",
    "description": "Instagram messages are answered through this Page."
+  },
+  {
+   "fieldname": "synced_until",
+   "fieldtype": "Datetime",
+   "label": "Leads synced until",
+   "read_only": 1,
+   "depends_on": "eval:doc.platform=='LinkedIn Lead Gen'"
   },
   {
    "fieldname": "health_section",

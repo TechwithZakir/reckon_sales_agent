@@ -153,3 +153,35 @@ def recommendations(metrics: dict | None = None, segments: list[dict] | None = N
     if not tips:
         tips.append("Not enough data for a confident recommendation yet; keep the pilot running.")
     return tips
+
+
+# Channels -------------------------------------------------------------------
+
+CHANNEL_ORDER = ("Email", "WhatsApp", "Messenger", "Instagram", "Web Chat", "SMS", "Call")
+SOURCE_CHANNEL = {"messenger": "Messenger", "instagram": "Instagram", "web_chat": "Web Chat",
+                  "meta_lead_ads": "Messenger", "linkedin_lead_gen": "LinkedIn"}
+# The agent-work chart keeps five colours: each agent is drawn in its family's.
+AGENT_FAMILY = {
+    "Research": "Research", "Data Quality": "Research", "Signals": "Research",
+    "Content": "Content", "Social": "Content", "Competitor": "Content",
+    "Governance": "Governance", "Compliance": "Governance",
+    "Engagement": "Engagement", "Conversations": "Engagement", "Meetings": "Engagement", "Deals": "Engagement",
+    "Customers": "Engagement",
+    "Analytics": "Analytics", "Forecast": "Analytics",
+}
+
+
+def channel_table(inbound: list[str], answered: list[str], minutes: dict[str, list[float]],
+                  leads: list[str], deals: list[str]) -> list[dict]:
+    """One row per channel: messages in, answers out, median minutes to answer, new leads and deals it brought."""
+    from statistics import median
+
+    names = [c for c in CHANNEL_ORDER if c in set(inbound) | set(answered) | set(leads) | set(deals) | set(minutes)]
+    names += sorted(set(inbound) | set(answered) | set(leads) | set(deals) - set(names) - set(CHANNEL_ORDER))
+    rows = []
+    for name in dict.fromkeys(names):
+        times = minutes.get(name) or []
+        rows.append({"channel": name, "inbound": inbound.count(name), "answered": answered.count(name),
+                     "median_minutes": round(median(times), 1) if times else None, "leads": leads.count(name),
+                     "deals": deals.count(name)})
+    return rows

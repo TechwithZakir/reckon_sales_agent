@@ -17,6 +17,14 @@ def call(prospect: str) -> str:
     return click_to_call(current_company(), frappe.session.user, doc.name)
 
 
+@frappe.whitelist(methods=["POST"])
+def next_call() -> dict | None:
+    """Power dialer: ring the next due call on today's list (within calling hours)."""
+    from reckon_sales_agent.telephony import next_call as dial
+
+    return dial(current_company(), frappe.session.user)
+
+
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 def call_event() -> dict:
     """Call events from the PBX, signed with the Company's call-events secret (header X-Reckon-Signature)."""

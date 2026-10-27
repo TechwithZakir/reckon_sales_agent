@@ -27,13 +27,19 @@ WORK_LINES = (
                       "call_no_answer")),
     ("interested on a call", ("call_interested",)),
     ("search lessons learned", ("targeting_learned",)),
+    ("chats and comments received", ("chat_received", "comment_received")),
+    ("chats answered at once", ("reply_auto_answered",)),
+    ("inbound ad leads", ("meta_lead_ads_received", "linkedin_lead_gen_received")),
+    ("calls summarised", ("call_summarized",)),
+    ("proposals drafted", ("proposal_drafted",)),
 )
 
 
 def _singular(label: str) -> str:
     """'calls logged' -> 'call logged' (live preview read "1 calls logged")."""
     words = {"replies": "reply", "leads": "lead", "websites": "website", "emails": "email", "calls": "call",
-             "campaigns": "campaign", "lessons": "lesson"}
+             "campaigns": "campaign", "lessons": "lesson", "chats": "chat",
+             "proposals": "proposal"}
     return " ".join(words.get(word, word) for word in label.split())
 
 

@@ -11,8 +11,9 @@
 	const e = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
 	const num = (v) => (v == null ? "0" : Number(v).toLocaleString());
 	const SERIES = ["--s1", "--s2", "--s3", "--s4", "--s5"];
-	const AGENTS = { Research: __("Research"), Content: __("Content"), Governance: __("Governance"),
-		Engagement: __("Engagement"), Analytics: __("Analytics") };
+	// The new agents are drawn in their family's colour (five series stay readable).
+	const AGENTS = { Research: __("Research & data"), Content: __("Content & social"), Governance: __("Governance"),
+		Engagement: __("Engagement & conversations"), Analytics: __("Analytics & forecast") };
 	const SOURCES = { brave_place_search: __("Brave Places"), brave_llm_context: __("Brave LLM Context"),
 		brave_web_search: __("Brave Web Search"), multi_source: __("Smart Sources"), fixture: __("Demo data"),
 		scrapingdog_google_maps: __("Google Maps · Scrapingdog"), scrapingbee_google_maps: __("Google Maps · ScrapingBee"),
@@ -57,6 +58,7 @@
 				<div class="sad-kpis"></div>
 				<div class="sad-grid"><div class="sad-card sad-trend"></div><div class="sad-card sad-funnel"></div></div>
 				<div class="sad-grid even"><div class="sad-card sad-activity"></div><div class="sad-card sad-calls"></div></div>
+				<div class="sad-card sad-channels" style="margin-bottom:12px"></div>
 				<div class="sad-grid even"><div class="sad-card sad-segments"></div><div class="sad-card sad-sources"></div></div>
 				<div class="sad-card sad-camp" style="margin-bottom:12px"></div>
 				<div class="sad-card sad-advice"></div>`);
@@ -67,6 +69,7 @@
 			this.render_funnel(this.$root.find(".sad-funnel"), d.funnel);
 			this.render_activity(this.$root.find(".sad-activity"), d.activity, d.trend);
 			this.render_calls(this.$root.find(".sad-calls"), d.calls, d.call_outcomes, d.triage);
+			this.render_channels(this.$root.find(".sad-channels"), d.channels);
 			this.render_table(this.$root.find(".sad-segments"), __("Segments"), __("Which customer segments turn into replies and deals"), d.by_segment);
 			this.render_table(this.$root.find(".sad-sources"), __("Lead sources"), __("Which sources find leads that convert"), d.by_source);
 			this.render_campaigns(this.$root.find(".sad-camp"), d.campaigns);
@@ -228,6 +231,26 @@
 				<div class="sad-hbars">${[["approve", __("Looks like a fit")], ["reject", __("Misfit")], ["unsure", __("Unsure")]].map(([k, name]) =>
 					`<div class="row"><span>${e(name)}</span><div><div class="fill" style="width:${(100 * (triage[k] || 0)) / tmax}%;background:var(--s3)"></div></div>
 					<span class="n">${num(triage[k] || 0)}</span></div>`).join("")}</div>`);
+		}
+
+		// ------------------------------------------------------------ channels
+		render_channels(el, c) {
+			const minutes = (v) => (v == null ? "–" : `${num(v)} ${__("min")}`);
+			el.html(`<h3>${__("Channels")}</h3><div class="sub">${__("Where leads talk to you, how fast they get an answer, and what it brings")}</div>
+				<div class="sad-mini">
+					<div><b>${num(c.chats)}</b><span>${__("chats")}</span></div>
+					<div><b>${num(c.comments)}</b><span>${__("buying comments")}</span></div>
+					<div><b>${num(c.instant)}</b><span>${__("answered at once")}</span></div>
+					<div><b>${minutes(c.median_minutes)}</b><span>${__("median time to answer")}</span></div></div>`);
+			if (!c.rows.length) return el.append(`<div class="sad-empty">${__("No conversations in this period.")}</div>`);
+			const max = Math.max(1, ...c.rows.map((r) => r.inbound));
+			const NAMES = { "Web Chat": __("Website chat"), Call: __("Calls") };
+			el.append(`<div class="tw"><table class="t"><thead><tr><th>${__("Channel")}</th><th>${__("Messages in")}</th>
+				<th>${__("Answered")}</th><th>${__("Median answer")}</th><th>${__("New leads")}</th><th>${__("Deals")}</th></tr></thead><tbody>
+				${c.rows.map((r) => `<tr><td>${e(NAMES[r.channel] || __(r.channel))}</td>
+					<td><span class="inbar" style="width:${Math.round((48 * r.inbound) / max)}px"></span>${num(r.inbound)}</td>
+					<td>${num(r.answered)}</td><td>${minutes(r.median_minutes)}</td><td>${num(r.leads)}</td>
+					<td>${num(r.deals)}</td></tr>`).join("")}</tbody></table></div>`);
 		}
 
 		// ------------------------------------------------------------ attribution tables with inline bars

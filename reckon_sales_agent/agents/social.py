@@ -243,6 +243,6 @@ def client_for(platform: str, account_id: str, token: str, *, meta_version: str 
         return FacebookPage(account_id, token, meta_version, session=session)
     if platform == "Instagram":
         return Instagram(account_id, token, meta_version, session=session)
-    if platform == "LinkedIn":
+    if platform in ("LinkedIn", "LinkedIn Lead Gen"):
         return LinkedInOrganization(account_id, token, linkedin_version, session=session)
     raise SocialError(f"{platform} is not supported through an official API here.", manual=True)

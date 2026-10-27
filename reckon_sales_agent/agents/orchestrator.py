@@ -142,6 +142,36 @@ def plan(state: dict) -> list[Step]:
     if state.get("conversations_waiting"):
         add(Step("Conversations", "conversations", ASK, "Leads waiting for a reply",
                  f"{state['conversations_waiting']} lead(s) wrote last; answer them in Conversations."))
+    # Deals, customers, compliance, signals, competitors, forecast: periodic agents (cadence in collect_state).
+    if state.get("deals_stuck"):
+        if auto and state.get("coach_due"):
+            add(Step("Deals", "coach_deals", DO, "Coach stuck deals",
+                     f"{state['deals_stuck']} deal(s) stuck or past their closing date: tasks for their owners."))
+        add(Step("Deals", "deals", ASK, "Deals that need a push",
+                 f"{state['deals_stuck']} deal(s) stuck or past their closing date."))
+    if auto and state.get("forecast_due") and state.get("open_deals"):
+        add(Step("Analytics", "forecast", DO, "Forecast the pipeline", f"{state['open_deals']} open deal(s)."))
+    if state.get("compliance_fixes"):
+        add(Step("Compliance", "compliance", DO if auto else ASK, "Apply do-not-contact everywhere",
+                 f"{state['compliance_fixes']} change(s): suppressed leads marked, their sequences and drafts stopped."))
+    if state.get("compliance_audit"):
+        add(Step("Compliance", "compliance_review", ASK, "Messages sent without approval",
+                 f"{state['compliance_audit']} message(s) in 30 days went out without an approval on record."))
+    if auto and state.get("signals_due"):
+        add(Step("Research", "recheck_signals", DO, "Re-check approved leads for buying signals",
+                 "Monthly re-research of up to 20 approved leads that are not in a sequence."))
+    if state.get("new_signals"):
+        add(Step("Research", "signals", ASK, "New buying signals",
+                 f"{state['new_signals']} approved lead(s) show new buying signals: worth reaching out."))
+    if auto and state.get("competitors_due") and state.get("ai"):
+        add(Step("Content", "watch_competitors", DO, "Check competitors' websites",
+                 "Battlecard facts from their own sites, as drafts for your approval."))
+    if state.get("competitor_drafts"):
+        add(Step("Content", "approve_competitor", ASK, "Approve battlecard facts",
+                 f"{state['competitor_drafts']} competitor fact(s) wait for your approval."))
+    if auto and state.get("customers_due"):
+        add(Step("Customers", "customer_checkins", DO, "Find customers to call",
+                 "Late re-orders and growing customers from your sales, as tasks for the salesperson."))
     if state.get("channels_broken"):
         add(Step("Social", "channels", ASK, "Reconnect a social account",
                  f"{state['channels_broken']} connected account(s) stopped working; posts and messages wait."))
@@ -254,10 +284,32 @@ def collect_state(company: str, deep: bool = False) -> dict:
     state["replies_to_draft"] = sum(1 for t in waiting if not t["draft_waiting"] and (t.get("email") or t.get("chat")))
     state["social_waiting"] = count("Sales Social Post", status="Pending Approval")
     state["channels_broken"] = count("Sales Social Account", enabled=1, last_error=["is", "set"])
+    from reckon_sales_agent.agents.cadence import due
+
     if deep:  # a full scan of the Company's leads: in the agents' runs, not on every Studio refresh
+        from reckon_sales_agent.agents.compliance import scan
         from reckon_sales_agent.agents.data_quality import pending_count
 
         state["data_issues"] = pending_count(company)
+        if due(company, "compliance"):
+            found = scan(company)
+            state["compliance_fixes"] = found["fix"]
+            state["compliance_audit"] = len(found["audit"])
+    from reckon_sales_agent.agents.deals import company_deals, deal_health
+    from reckon_sales_agent.agents.signals import new_signals
+
+    deals = company_deals(company)
+    today = frappe.utils.getdate(nowdate())
+    state["deals_stuck"] = sum(1 for d in deals if deal_health(d, today))
+    state["open_deals"] = sum(1 for d in deals if d["status_type"] in ("Open", "Ongoing", "On Hold"))
+    state["coach_due"] = due(company, "coach_deals")
+    state["forecast_due"] = due(company, "forecast")
+    state["signals_due"] = due(company, "signals")
+    state["new_signals"] = len(new_signals(company))
+    state["competitors_due"] = bool(settings.get("competitors")) and due(company, "competitors")
+    state["competitor_drafts"] = count("Sales Knowledge Item", status="Draft", category="Competitor")
+    state["customers_due"] = bool(settings.get("task_assignee")) and frappe.db.table_exists("Sales Invoice") \
+        and due(company, "customers")
     state["segments_ready"] = _segments_ready(company)
     state["campaigns_pending"] = [
         {"name": c.name, "label": c.campaign_name,
@@ -717,7 +769,61 @@ def _pilot_check(company: str, step: Step) -> str:
     return pilot_report(frappe.get_doc("Sales Campaign", step.ref["campaign"]))["verdict"]
 
 
+def _periodic(job: str, hours: int, run):
+    """A DOER for a daily or weekly agent: runs it, then marks it done for that period."""
+    def doer(company: str, step: Step) -> str:
+        from reckon_sales_agent.agents.cadence import mark_done
+
+        result = run(company)
+        mark_done(company, job, hours)
+        return result if isinstance(result, str) else ""
+    return doer
+
+
+def _coach(company: str) -> str:
+    from reckon_sales_agent.agents.deals import coach
+
+    return coach(company)
+
+
+def _forecast(company: str) -> str:
+    from reckon_sales_agent.agents.deals import run_forecast
+
+    d90 = run_forecast(company)["d90"]
+    return f"{d90['expected']:,.0f} expected in 90 days"
+
+
+def _compliance(company: str) -> str:
+    from reckon_sales_agent.agents.compliance import enforce
+
+    return enforce(company)
+
+
+def _signals(company: str) -> str:
+    from reckon_sales_agent.agents.signals import recheck
+
+    return recheck(company)
+
+
+def _competitors(company: str) -> str:
+    from reckon_sales_agent.agents.competitors import watch
+
+    return watch(company)
+
+
+def _customers(company: str) -> str:
+    from reckon_sales_agent.agents.customers import check_ins
+
+    return check_ins(company)
+
+
 DOERS = {
+    "coach_deals": _periodic("coach_deals", 24, _coach),
+    "forecast": _periodic("forecast", 7 * 24, _forecast),
+    "compliance": _periodic("compliance", 24, _compliance),
+    "recheck_signals": _periodic("signals", 7 * 24, _signals),
+    "watch_competitors": _periodic("competitors", 7 * 24, _competitors),
+    "customer_checkins": _periodic("customers", 7 * 24, _customers),
     "research_market": _research_market,
     "approve_segments": _approve_segments,
     "start_discovery": _start_discovery,

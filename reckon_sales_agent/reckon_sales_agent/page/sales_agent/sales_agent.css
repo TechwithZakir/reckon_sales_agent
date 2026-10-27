@@ -18,6 +18,9 @@
 	--Conversations: #db2777;
 	--Meetings: #4f46e5;
 	--Social: #65a30d;
+	--Compliance: #b91c1c;
+	--Deals: #0d9488;
+	--Customers: #7c3aed;
 	color: var(--ags-text);
 	max-width: 1180px;
 	margin: 0 auto;
@@ -125,3 +128,6 @@
 	.ags-ask-body { margin-left: 0; }
 	.ags-lead { flex-wrap: wrap; }
 }
+.ags-dialer { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 6px 0 10px; }
+.ags-call.ags-active { outline: 2px solid var(--ags-ok); border-radius: 8px; }
+.ags-actions { display: flex; gap: 6px; flex: none; align-items: flex-start; }

@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-26 23:00:00.000000",
+ "modified": "2026-10-28 14:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -71,6 +71,9 @@
   "latest_qualification",
   "scoring_col",
   "buying_signal_score",
+  "previous_buying_score",
+  "signal_checked_on",
+  "signal_seen",
   "evidence_confidence",
   "ai_fit_score",
   "deal_probability",
@@ -431,6 +434,24 @@
    "fieldname": "buying_signal_score",
    "fieldtype": "Float",
    "label": "Buying Signal Score",
+   "read_only": 1
+  },
+  {
+   "fieldname": "previous_buying_score",
+   "fieldtype": "Int",
+   "label": "Buying signals before re-check",
+   "read_only": 1
+  },
+  {
+   "fieldname": "signal_checked_on",
+   "fieldtype": "Datetime",
+   "label": "Signals re-checked on",
+   "read_only": 1
+  },
+  {
+   "fieldname": "signal_seen",
+   "fieldtype": "Check",
+   "label": "New signal seen",
    "read_only": 1
   },
   {

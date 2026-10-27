@@ -37,3 +37,4 @@
 	.sch-head { flex-direction: column; }
 	.sch-account { flex-wrap: wrap; }
 }
+.sch-buttons { display: flex; gap: 6px; flex-wrap: wrap; flex: none; }

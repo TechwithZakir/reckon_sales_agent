@@ -27,10 +27,13 @@ META_VERSION = "v23.0"
 LINKEDIN_VERSION = "202509"
 META_SCOPES = ("pages_show_list", "pages_read_engagement", "pages_read_user_content", "pages_manage_posts",
                "pages_manage_metadata", "pages_messaging", "instagram_basic", "instagram_content_publish",
-               "instagram_manage_messages", "instagram_manage_comments", "business_management")
+               "instagram_manage_messages", "instagram_manage_comments", "leads_retrieval", "pages_manage_ads",
+               "business_management")
 LINKEDIN_SCOPES = ("w_organization_social", "r_organization_social", "rw_organization_admin")
+# Lead Gen forms: a separate LinkedIn approval (Lead Sync API), so a separate connection.
+LINKEDIN_LEAD_SCOPES = ("r_marketing_leadgen_automation", "r_organization_admin")
 STATE_TTL = 900  # seconds to finish signing in
-PROVIDERS = ("meta", "linkedin")
+PROVIDERS = ("meta", "linkedin", "linkedin_leads")
 
 
 def sign_state(data: dict, secret: str, now: float | None = None) -> str:
@@ -60,10 +63,10 @@ def authorize_url(provider: str, client_id: str, redirect_uri: str, state: str) 
         return f"https://www.facebook.com/{META_VERSION}/dialog/oauth?" + urlencode({
             "client_id": client_id, "redirect_uri": redirect_uri, "state": state, "response_type": "code",
             "scope": ",".join(META_SCOPES)})
-    if provider == "linkedin":
+    if provider in ("linkedin", "linkedin_leads"):
         return "https://www.linkedin.com/oauth/v2/authorization?" + urlencode({
             "response_type": "code", "client_id": client_id, "redirect_uri": redirect_uri, "state": state,
-            "scope": " ".join(LINKEDIN_SCOPES)})
+            "scope": " ".join(LINKEDIN_LEAD_SCOPES if provider == "linkedin_leads" else LINKEDIN_SCOPES)})
     raise ValueError(provider)
 
 
@@ -118,7 +121,8 @@ def _app(provider: str) -> tuple[str, str]:
     from reckon_sales_agent.usage import platform_settings
 
     platform = platform_settings()
-    fields = {"meta": ("meta_app_id", "meta_app_secret"), "linkedin": ("linkedin_client_id", "linkedin_client_secret")}
+    linkedin = ("linkedin_client_id", "linkedin_client_secret")
+    fields = {"meta": ("meta_app_id", "meta_app_secret"), "linkedin": linkedin, "linkedin_leads": linkedin}
     id_field, secret_field = fields[provider]
     client_id = platform.get(id_field)
     secret = platform.get_password(secret_field, raise_exception=False) if platform.get(secret_field) else None
@@ -145,7 +149,7 @@ def finish(state: str, code: str, user: str) -> tuple[str, list[str]]:
         frappe.throw(_("This sign-in link expired or belongs to someone else. Start again from Channels."),
                      frappe.PermissionError)
     company, provider = data["c"], data["p"]
-    accounts = _meta(code) if provider == "meta" else _linkedin(code)
+    accounts = _meta(code) if provider == "meta" else _linkedin(code, lead_gen=provider == "linkedin_leads")
     saved = [save_account(company, user, a) for a in accounts]
     from reckon_sales_agent.usage import log_activity
 
@@ -183,11 +187,12 @@ def _meta(code: str) -> list[dict]:
         if account["platform"] == "Facebook Page":
             # Messages and comments on the Page reach our webhook (and so Conversations).
             _get(f"{base}/{account['account_id']}/subscribed_apps", method="POST",
-                 params={"subscribed_fields": "messages,messaging_postbacks,feed", "access_token": account["token"]})
+                 params={"subscribed_fields": "messages,messaging_postbacks,feed,leadgen",
+                         "access_token": account["token"]})
     return accounts
 
 
-def _linkedin(code: str) -> list[dict]:
+def _linkedin(code: str, lead_gen: bool = False) -> list[dict]:
     from frappe.utils import add_to_date, now_datetime
 
     client_id, secret = _app("linkedin")
@@ -202,7 +207,8 @@ def _linkedin(code: str) -> list[dict]:
     out = []
     for org in linkedin_organizations(acls):
         info = _get(f"https://api.linkedin.com/rest/organizations/{org}", headers=headers)
-        out.append({"platform": "LinkedIn", "account_id": org, "account_name": info.get("localizedName") or org,
+        out.append({"platform": "LinkedIn Lead Gen" if lead_gen else "LinkedIn", "account_id": org,
+                    "account_name": info.get("localizedName") or org,
                     "token": token["access_token"], "refresh_token": token.get("refresh_token"),
                     "expires_on": expires, "linked_page_id": None})
     return out
@@ -237,7 +243,7 @@ def refresh_accounts() -> None:
                                                                                        "token_expires_on"]):
         account = frappe.get_doc("Sales Social Account", row.name)
         try:
-            if (row.platform == "LinkedIn" and row.token_expires_on
+            if (row.platform in ("LinkedIn", "LinkedIn Lead Gen") and row.token_expires_on
                     and getdate(row.token_expires_on) <= getdate(add_days(nowdate(), 7))):
                 _refresh_linkedin(account)
             check_account(account)

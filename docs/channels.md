@@ -106,3 +106,28 @@ WhatsApp uses the official WhatsApp Business Cloud API through the Frappe WhatsA
 - **Conversations:** every chat, with the AI's suggested reply on the same channel.
 - **Agent Studio, Conversations lane:** chats waiting for a reply and today's chats.
 - **Agent Studio, Social lane:** posts to approve and accounts that stopped working.
+
+## Inbound ad leads
+
+**Meta lead ads in real time.** The Page webhook's `leadgen` field brings each submission within seconds. The
+lead is fetched with the Page token and enters the speed-to-lead flow:
+- an approved lead;
+- a call task due now;
+- website research;
+- a first reply drafted for approval.
+
+When Frappe CRM's scheduled Lead Syncing later imports the same lead, it is linked to that lead, not duplicated.
+This needs the `leads_retrieval` and `pages_manage_ads` permissions, plus the `leadgen` webhook field.
+
+**LinkedIn Lead Gen forms.** On the Channels page, use **Connect lead forms**. It is a separate connection
+because LinkedIn grants `r_marketing_leadgen_automation` only after you apply for its Lead Sync API. New form
+answers are fetched every hour into the same speed-to-lead flow. Check the request shapes against LinkedIn's
+current Lead Sync API documentation once access is granted.
+
+## Call transcription (system provider)
+
+In Platform Settings → Call transcription, choose OpenAI or a local Whisper-compatible server and a model.
+- After each recorded office-phone call, the transcript and an AI summary are saved as a note on the CRM call log.
+- The note includes a suggested outcome, the next step and a coaching tip.
+- Callers must hear a recording notice.
+

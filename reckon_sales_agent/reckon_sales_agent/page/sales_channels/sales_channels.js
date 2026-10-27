@@ -77,9 +77,11 @@
 				<div class="sch-card">
 					<div class="sch-head"><div><h3>LinkedIn</h3>
 						<p class="sch-muted">${__("Sign in with LinkedIn to connect the company pages you administer, for approved posts.")}</p></div>
-						${d.can_manage && d.linkedin_ready ? `<button class="btn btn-primary btn-sm sch-connect" data-provider="linkedin">${__("Connect with LinkedIn")}</button>` : ""}</div>
+						${d.can_manage && d.linkedin_ready ? `<div class="sch-buttons"><button class="btn btn-primary btn-sm sch-connect" data-provider="linkedin">${__("Connect with LinkedIn")}</button>
+							<button class="btn btn-default btn-sm sch-connect" data-provider="linkedin_leads">${__("Connect lead forms")}</button></div>` : ""}</div>
 					${d.linkedin_ready ? "" : `<p class="sch-muted">${__("Your system provider has not set up the LinkedIn app yet.")}</p>`}
-					${this.accounts(social(["LinkedIn"]), false)}
+					<p class="sch-muted">${__("Lead forms: new LinkedIn Lead Gen form answers arrive every hour as approved leads with a call task (needs LinkedIn's Lead Sync approval).")}</p>
+					${this.accounts(social(["LinkedIn", "LinkedIn Lead Gen"]), false)}
 				</div>
 				<div class="sch-card sch-webchat">
 					<div class="sch-head"><div><h3>${__("Chat on your website")}</h3>

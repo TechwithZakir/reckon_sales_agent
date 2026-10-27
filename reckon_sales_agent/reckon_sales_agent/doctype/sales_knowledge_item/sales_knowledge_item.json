@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-26 07:00:00.000000",
- "modified": "2026-10-26 07:00:00.000000",
+ "modified": "2026-10-28 14:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -56,7 +56,7 @@
    "reqd": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "options": "Product\nService\nPricing\nOffer\nFAQ\nProof\nPolicy\nBrand",
+   "options": "Product\nService\nPricing\nOffer\nFAQ\nProof\nPolicy\nBrand\nCompetitor",
    "description": "Pricing and Offer items are the only source for prices, discounts and offers in messages."
   },
   {

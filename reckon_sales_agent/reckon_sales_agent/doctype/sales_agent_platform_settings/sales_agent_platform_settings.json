@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-27 18:00:00.000000",
+ "modified": "2026-10-28 14:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -42,6 +42,10 @@
   "linkedin_section",
   "linkedin_client_id",
   "linkedin_client_secret",
+  "transcription_section",
+  "transcription_enabled",
+  "transcription_provider",
+  "transcription_model",
   "places_section",
   "places_enabled",
   "google_places_api_key",
@@ -269,6 +273,32 @@
    "fieldname": "linkedin_client_secret",
    "fieldtype": "Password",
    "label": "LinkedIn client secret"
+  },
+  {
+   "fieldname": "transcription_section",
+   "fieldtype": "Section Break",
+   "label": "Call transcription",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "transcription_enabled",
+   "fieldtype": "Check",
+   "label": "Transcribe recorded calls",
+   "default": "0"
+  },
+  {
+   "fieldname": "transcription_provider",
+   "fieldtype": "Select",
+   "label": "Speech-to-text service",
+   "options": "OpenAI\nLocal (OpenAI-compatible)",
+   "default": "OpenAI",
+   "description": "Uses the OpenAI key, or the local AI server address, above."
+  },
+  {
+   "fieldname": "transcription_model",
+   "fieldtype": "Data",
+   "label": "Speech-to-text model",
+   "default": "whisper-1"
   },
   {
    "fieldname": "places_section",

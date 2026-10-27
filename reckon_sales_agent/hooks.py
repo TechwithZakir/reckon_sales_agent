@@ -147,6 +147,7 @@ scheduler_events = {
         "reckon_sales_agent.agents.social_agent.publish_due_posts",
         "reckon_sales_agent.agents.orchestrator.run_all",
         "reckon_sales_agent.agents.meetings.send_reminders",
+        "reckon_sales_agent.leads_bridge.sync_linkedin_leads",  # LinkedIn Lead Gen form responses
     ],
     "daily": [
         "reckon_sales_agent.jobs.purge_expired_source_data",

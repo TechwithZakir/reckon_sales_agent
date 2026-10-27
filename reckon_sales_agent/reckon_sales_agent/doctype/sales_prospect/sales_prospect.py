@@ -16,6 +16,7 @@ PROTECTED = (
     "crm_lead", "merged_into", "possible_duplicate_of", "source_connector", "source_type", "external_id",
     "source_url", "provenance_json", "retention_until", "first_seen", "last_seen",
     "ai_fit_score", "deal_probability", "identity_confidence", "search_confirmed", "sources_seen", "identity_notes", "auto_approved", "rating", "review_count", "social_profiles",
+    "previous_buying_score", "signal_checked_on", "signal_seen",
 )
 
 

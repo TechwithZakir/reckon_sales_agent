@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-28 10:00:00.000000",
+ "modified": "2026-10-28 14:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -44,6 +44,10 @@
   "chat_auto_answer",
   "chat_reply_sla_minutes",
   "comment_to_chat",
+  "agents_section",
+  "calling_hours",
+  "competitors",
+  "forecast_json",
   "max_results_per_job",
   "max_concurrent_jobs",
   "retention_days",
@@ -287,6 +291,32 @@
    "label": "Answer buying comments in a private message",
    "default": "0",
    "description": "A comment like \"price?\" or \"দাম কত?\" on your Facebook or Instagram posts gets one private reply (Meta allows one, within 7 days), drafted by the AI."
+  },
+  {
+   "fieldname": "agents_section",
+   "fieldtype": "Section Break",
+   "label": "More agents",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "calling_hours",
+   "fieldtype": "Data",
+   "label": "Calling hours (Bangladesh time)",
+   "default": "09:00-20:00",
+   "description": "Calls from the office phone and the power dialer only in these hours."
+  },
+  {
+   "fieldname": "competitors",
+   "fieldtype": "Small Text",
+   "label": "Competitors to watch",
+   "description": "One per line: Name | https://their-website. The Competitor agent drafts battlecard facts from their own websites for your approval."
+  },
+  {
+   "fieldname": "forecast_json",
+   "fieldtype": "Long Text",
+   "label": "Latest forecast",
+   "read_only": 1,
+   "hidden": 1
   },
   {
    "fieldname": "max_results_per_job",

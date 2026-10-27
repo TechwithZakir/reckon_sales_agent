@@ -17,8 +17,8 @@ from reckon_sales_agent.api_studio import _can_manage
 from reckon_sales_agent.tenant import current_company, get_tenant_doc
 from reckon_sales_agent.usage import assert_entitled, get_settings, log_activity
 
-AGENTS = ("Research", "Data Quality", "Content", "Governance", "Engagement", "Conversations", "Meetings", "Social",
-          "Analytics")
+AGENTS = ("Research", "Data Quality", "Content", "Governance", "Compliance", "Engagement", "Conversations",
+          "Meetings", "Deals", "Customers", "Social", "Analytics")
 LANE_TITLES = {
     "Research": "Finds and qualifies leads",
     "Data Quality": "Fixes phones, duplicates and bounced emails",
@@ -28,6 +28,9 @@ LANE_TITLES = {
     "Conversations": "Answers email, WhatsApp, Messenger and website chat",
     "Meetings": "Proposes times, books and reminds",
     "Social": "Writes and publishes posts on your pages",
+    "Compliance": "Keeps opt-outs and calling hours everywhere",
+    "Deals": "Pushes stuck deals and drafts proposals",
+    "Customers": "Finds late re-orders and growing customers",
     "Analytics": "Measures pilots and recommends",
 }
 
@@ -86,6 +89,13 @@ def state() -> dict:
         "Social": [(_("to approve"), snapshot.get("social_waiting", 0)),
                    (_("published"), count("Sales Social Post", status="Published")),
                    (_("accounts"), count("Sales Social Account", enabled=1))],
+        "Compliance": [(_("suppressed"), count("Sales Suppression Entry", active=1)),
+                       (_("do not contact"), count("Sales Prospect", do_not_contact=1))],
+        "Deals": [(_("open"), snapshot.get("open_deals", 0)), (_("need a push"), snapshot.get("deals_stuck", 0)),
+                  (_("90-day forecast"), _forecast_label(settings))],
+        "Customers": [(_("calls to make"), frappe.db.count("ToDo", {"status": "Open", "reference_type": "Customer",
+                                                                    "description": ["like", "%Customer check-in:%"],
+                                                                    "rsa_company": company}))],
         "Analytics": [(_("pilots"), count("Sales Campaign", pilot_mode=1, status="Active")),
                       (_("measured"), count("Sales Campaign", pilot_verdict=["is", "set"]))],
     }
@@ -150,6 +160,19 @@ def _detail(company: str, step) -> dict:
             "steps": [{"step_no": s.step_no, "channel": s.channel, "delay_days": s.delay_days,
                        "subject": s.subject_template, "body": s.body_template} for s in campaign.steps],
         }
+    elif step.key == "deals":
+        from frappe.utils import getdate, nowdate
+
+        from reckon_sales_agent.agents.deals import company_deals, deal_health
+
+        today = getdate(nowdate())
+        item["deals"] = [{"name": d["name"], "organization": d.get("organization") or d["name"], "status": d["status"],
+                          "owner": d.get("deal_owner"), **deal_health(d, today)}
+                         for d in company_deals(company) if deal_health(d, today)][:10]
+    elif step.key == "signals":
+        from reckon_sales_agent.agents.signals import new_signals
+
+        item["prospects"] = new_signals(company, 10)
     elif step.key == "approve_drafts":
         item["messages"] = frappe.get_list("Sales Outreach Message", filters={"company": company, "status": "Draft"},
                                            fields=["name", "channel", "recipient", "subject", "body", "is_reply",
@@ -304,6 +327,15 @@ def act(action: str, args=None):
         return api.pause_campaign(args.get("campaign"))
     if action == "approve_messages":
         return api.approve_messages(json.dumps([str(m) for m in args.get("messages") or []]))
+    if action == "draft_proposal":
+        from reckon_sales_agent.agents.deals import draft_proposal
+
+        _require_manager()
+        return draft_proposal(company, str(args.get("deal") or ""))
+    if action == "signals_seen":
+        from reckon_sales_agent.agents.signals import mark_seen
+
+        return mark_seen(company, [str(p) for p in args.get("prospects") or []][:50])
     if action == "send_digest":
         from reckon_sales_agent.agents.digest import send_company
 
@@ -389,3 +421,13 @@ def _reply_minutes(company: str) -> str:
 
     value = response_stats(company)["median_minutes"]
     return "–" if value is None else f"{value:g}"
+
+
+def _forecast_label(settings) -> str:
+    """The latest weekly forecast's expected value for the next 90 days ("–" before the first)."""
+    try:
+        d90 = json.loads(settings.get("forecast_json") or "{}").get("d90") or {}
+    except ValueError:
+        d90 = {}
+    return f"{d90['expected']:,.0f}" if d90.get("expected") is not None else "–"
+
