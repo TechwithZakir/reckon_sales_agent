@@ -52,7 +52,10 @@ class ClaudeProvider:
         except anthropic.APIStatusError as exc:
             # Live: every call failed with a bare "(400)"; the provider's reason (e.g. a low credit balance or an
             # unsupported option) is what the person needs to fix it. Keys never appear in these messages.
-            raise LLMError(f"AI request failed ({exc.status_code}): {provider_reason(exc)}") from exc
+            reason = provider_reason(exc)
+            if blocks_account(exc.status_code, reason):
+                _pause_ai(reason)
+            raise LLMError(f"AI request failed ({exc.status_code}): {reason}") from exc
         except anthropic.APIConnectionError as exc:
             raise LLMError("AI service unreachable.") from exc
         if response.stop_reason == "refusal":
@@ -67,6 +70,24 @@ class ClaudeProvider:
         if not isinstance(data, dict):
             raise LLMError("The AI returned an unexpected shape.")
         return data
+
+
+def blocks_account(status: int, reason: str) -> bool:
+    """A problem with the account itself (no credits, bad key, no permission), not with one request."""
+    text = (reason or "").lower()
+    return status in (401, 403) or (status == 400 and ("credit balance" in text or "billing" in text))
+
+
+def _pause_ai(reason: str) -> None:
+    """Pause AI for an hour site-wide so agents use their rules instead of failing every call."""
+    try:
+        import frappe
+
+        from reckon_sales_agent.providers.factory import AI_BLOCKED_KEY
+
+        frappe.cache.set_value(AI_BLOCKED_KEY, reason[:240], expires_in_sec=3600)
+    except Exception:
+        pass  # outside a site (tests): nothing to pause
 
 
 def provider_reason(exc) -> str:

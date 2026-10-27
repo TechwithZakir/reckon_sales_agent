@@ -41,6 +41,9 @@ def plan(state: dict) -> list[Step]:
     steps: list[Step] = []
     add = steps.append
 
+    if state.get("ai_blocked"):
+        add(Step("Governance", "ai_blocked", ASK, "AI is paused",
+                 f"The AI provider says: {state['ai_blocked']} The agents use their rules until this is fixed."))
     # Research: who we are, which market, which segments.
     brief = state.get("brief_status")
     if not state.get("has_profile"):
@@ -182,6 +185,7 @@ def collect_state(company: str, deep: bool = False) -> dict:
     import frappe
     from frappe.utils import add_to_date, date_diff, now_datetime, nowdate
 
+    from reckon_sales_agent.providers.factory import ai_blocked
     from reckon_sales_agent.providers.router import active
     from reckon_sales_agent.research.market import business_profile
     from reckon_sales_agent.usage import get_settings, platform_settings
@@ -194,7 +198,8 @@ def collect_state(company: str, deep: bool = False) -> dict:
         "auto_segments": bool(settings.get("autopilot_auto_segments")),
         "auto_approve": bool(settings.auto_approve_enabled),
         "campaign_min_prospects": settings.get("autopilot_campaign_min_prospects") or 5,
-        "ai": bool(platform.get("ai_enabled") and settings.ai_enabled),
+        "ai": bool(platform.get("ai_enabled") and settings.ai_enabled) and not ai_blocked(),
+        "ai_blocked": ai_blocked(),
         "has_profile": bool(profile and (profile.what_we_sell or profile.products or profile.target_industries)),
         "onboarding": bool(profile and profile.get("onboarding_status") == "Reading website"),
         "sources_ready": bool(active("places") or active("page_context")),

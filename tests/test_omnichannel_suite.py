@@ -173,6 +173,17 @@ class DeliverabilityTests(unittest.TestCase):
         self.assertEqual(provider_reason(Exc()), "Your credit balance is too low to access the API.")
         self.assertEqual(provider_reason(ValueError("boom")), "boom")
 
+    def test_account_problems_pause_ai(self):
+        from reckon_sales_agent.providers.llm import blocks_account
+
+        # Live: "Your credit balance is too low…" on every call, every hour.
+        self.assertTrue(blocks_account(400, "Your credit balance is too low to access the Anthropic API."))
+        self.assertTrue(blocks_account(401, "invalid x-api-key"))
+        self.assertFalse(blocks_account(400, "max_tokens: too large"))  # one bad request, not the account
+        steps = plan({**READY, "ai_blocked": "Your credit balance is too low."})
+        self.assertEqual((steps[0].key, steps[0].kind), ("ai_blocked", ASK))
+        self.assertIn("if ai_blocked():", read("providers", "factory.py").split("def get_llm(")[1])
+
     def test_send_path(self):
         send = read("campaigns", "engine.py").split("def send_message(")[1].split("\ndef ")[0]
         self.assertIn('settings.get("allowlist_only") and not allowed(', send)
