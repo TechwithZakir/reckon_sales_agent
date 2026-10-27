@@ -3,6 +3,7 @@ name: CI
 on:
   push:
   pull_request:
+  workflow_dispatch:  # re-run from the Actions tab, e.g. after a dependency app changed
 
 jobs:
   unit:
