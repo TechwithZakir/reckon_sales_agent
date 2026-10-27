@@ -66,7 +66,7 @@ def speed_to_lead(lead: str) -> str | None:
     if frappe.db.has_column("CRM Lead", "rsa_prospect"):
         frappe.db.set_value("CRM Lead", lead, "rsa_prospect", prospect.name, update_modified=False)
     log_activity(company, "meta_lead_received", prospect, f"Lead form {doc.get('facebook_form_id') or ''}",
-                 actor_type="agent", agent="Engagement", policy_outcome="automatic (inbound lead asked for contact)")
+                 actor_type="agent", agent="Conversations", policy_outcome="automatic (inbound lead asked for contact)")
     settings = get_settings(company)
     if prospect.phone or prospect.email:
         from reckon_sales_agent.providers.channels import create_task

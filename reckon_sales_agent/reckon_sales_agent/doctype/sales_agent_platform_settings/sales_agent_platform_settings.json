@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-27 15:00:00.000000",
+ "modified": "2026-10-27 18:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -35,6 +35,13 @@
   "company_ai_section",
   "allow_company_ai_override",
   "allow_company_ai_endpoints",
+  "meta_section",
+  "meta_app_id",
+  "meta_app_secret",
+  "meta_verify_token",
+  "linkedin_section",
+  "linkedin_client_id",
+  "linkedin_client_secret",
   "places_section",
   "places_enabled",
   "google_places_api_key",
@@ -136,7 +143,7 @@
    "label": "Default AI provider",
    "options": "Anthropic (Claude)\nOpenAI\nLocal (OpenAI-compatible)",
    "default": "Anthropic (Claude)",
-   "description": "Used by every Company unless it overrides it (when allowed below)."
+   "description": "Managed by the system provider; used by every Company."
   },
   {
    "fieldname": "anthropic_api_key",
@@ -212,17 +219,56 @@
   {
    "fieldname": "allow_company_ai_override",
    "fieldtype": "Check",
-   "label": "Companies may choose their own AI provider",
+   "label": "Use the AI set for each Company",
    "default": "0",
-   "description": "A Company can pick another provider or model, and bring its own API key."
+   "description": "Apply the per-Company AI provider, model and key that you set in that Company's Sales Agent Settings. Companies cannot change these themselves."
   },
   {
    "fieldname": "allow_company_ai_endpoints",
    "fieldtype": "Check",
-   "label": "Companies may use their own AI server address",
+   "label": "Allow a Company's own AI server address",
    "default": "0",
    "depends_on": "allow_company_ai_override",
    "description": "HTTPS and public addresses only: a tenant's address is reached from the shared server."
+  },
+  {
+   "fieldname": "meta_section",
+   "fieldtype": "Section Break",
+   "label": "Meta app (Facebook, Instagram, Messenger)",
+   "collapsible": 1,
+   "description": "One Meta app for all Companies: each Company connects its own Pages with Facebook Login."
+  },
+  {
+   "fieldname": "meta_app_id",
+   "fieldtype": "Data",
+   "label": "Meta app ID"
+  },
+  {
+   "fieldname": "meta_app_secret",
+   "fieldtype": "Password",
+   "label": "Meta app secret"
+  },
+  {
+   "fieldname": "meta_verify_token",
+   "fieldtype": "Password",
+   "label": "Webhook verify token",
+   "description": "Any long random text; enter the same in the Meta app's Webhooks settings."
+  },
+  {
+   "fieldname": "linkedin_section",
+   "fieldtype": "Section Break",
+   "label": "LinkedIn app",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "linkedin_client_id",
+   "fieldtype": "Data",
+   "label": "LinkedIn client ID"
+  },
+  {
+   "fieldname": "linkedin_client_secret",
+   "fieldtype": "Password",
+   "label": "LinkedIn client secret"
   },
   {
    "fieldname": "places_section",

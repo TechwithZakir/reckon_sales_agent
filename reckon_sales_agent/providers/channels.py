@@ -1,4 +1,5 @@
-"""Outreach channel adapters: Email, SMS, WhatsApp, and CRM tasks for human steps.
+"""Outreach channel adapters: Email, SMS, WhatsApp, chat replies (Messenger, Instagram, website chat), and CRM
+tasks for human steps.
 
 The campaign engine decides *whether* to send (approval, suppression,
 limits); a channel only knows *how*. Each channel also decides whether a
@@ -16,7 +17,7 @@ from dataclasses import dataclass
 import frappe
 from frappe.utils import add_days, nowdate
 
-from reckon_sales_agent.constants import TASK_CHANNELS
+from reckon_sales_agent.constants import CHAT_CHANNELS, TASK_CHANNELS
 from reckon_sales_agent.discovery.normalize import normalize_phone
 
 SMS_MAX_CHARS = 459  # three concatenated GSM segments
@@ -57,6 +58,10 @@ def reachability(channel: str, prospect, settings) -> tuple[bool, str, str | Non
             if not prospect.whatsapp_consent:
                 return False, "No recorded WhatsApp opt-in.", None
         return True, f"{channel} consent recorded.", phone
+    if channel in CHAT_CHANNELS:
+        from reckon_sales_agent.agents.chat import reachable
+
+        return reachable(channel, prospect.name)
     if channel == "Call Task":
         # Live test: approved phone-only leads from Brave Places cannot enter the CRM until their name is confirmed
         # (source retention), so a call goes to a ToDo on the prospect; the call itself confirms the business.
@@ -77,6 +82,10 @@ def send(channel: str, message, settings) -> SendResult:
         return _sms(message)
     if channel == "WhatsApp":
         return _whatsapp(message)
+    if channel in CHAT_CHANNELS:
+        from reckon_sales_agent.agents.chat import deliver
+
+        return SendResult(provider_message_id=deliver(message))
     if channel in TASK_CHANNELS:
         return create_task(message.prospect, f"{channel.replace(' Task', '')}: {message.subject}",
                            html_to_text(message.body), settings)

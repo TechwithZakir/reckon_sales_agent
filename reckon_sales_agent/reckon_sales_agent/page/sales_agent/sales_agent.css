@@ -14,6 +14,10 @@
 	--Governance: #0f766e;
 	--Engagement: #ea580c;
 	--Analytics: #ca8a04;
+	--Data-Quality: #0891b2;
+	--Conversations: #db2777;
+	--Meetings: #4f46e5;
+	--Social: #65a30d;
 	color: var(--ags-text);
 	max-width: 1180px;
 	margin: 0 auto;
@@ -52,17 +56,12 @@
 .ags-check { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; margin-top: 10px; color: var(--ags-text); }
 .ags-check input { margin-top: 3px; }
 
-.ags-lanes { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+.ags-lanes { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; margin-bottom: 14px; }
 .ags-lane { background: var(--ags-card); border: 1px solid var(--ags-line); border-radius: 14px; padding: 14px;
 	display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 .ags-lane.needs_you { border-color: var(--ags-warn); }
 .ags-lane-head { display: flex; gap: 10px; align-items: flex-start; }
 .ags-lane-icon { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; flex: none; color: #fff; }
-.ags-lane:nth-child(1) .ags-lane-icon { background: var(--Research); }
-.ags-lane:nth-child(2) .ags-lane-icon { background: var(--Content); }
-.ags-lane:nth-child(3) .ags-lane-icon { background: var(--Governance); }
-.ags-lane:nth-child(4) .ags-lane-icon { background: var(--Engagement); }
-.ags-lane:nth-child(5) .ags-lane-icon { background: var(--Analytics); }
 .ags-status { font-size: 11px; padding: 2px 8px; border-radius: 999px; white-space: nowrap; background: var(--ags-soft); color: var(--ags-muted); }
 .ags-status.working { background: color-mix(in srgb, var(--ags-ok) 15%, transparent); color: var(--ags-ok); }
 .ags-status.needs_you { background: color-mix(in srgb, var(--ags-warn) 15%, transparent); color: var(--ags-warn); }
@@ -93,10 +92,6 @@
 .ags-event:last-child { border-bottom: 0; }
 .ags-when { white-space: nowrap; }
 .ags-dot { flex: none; width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; color: #fff; background: var(--Governance); }
-.ags-dot.Research { background: var(--Research); }
-.ags-dot.Content { background: var(--Content); }
-.ags-dot.Engagement { background: var(--Engagement); }
-.ags-dot.Analytics { background: var(--Analytics); }
 
 .ags-seg, .ags-draft { display: flex; gap: 10px; align-items: flex-start; padding: 8px; border: 1px solid var(--ags-line); border-radius: 10px; font-weight: normal; }
 .ags-seg input, .ags-draft input { margin-top: 3px; }
@@ -121,7 +116,6 @@
 .ags-ai.reject { background: color-mix(in srgb, var(--ags-bad) 10%, transparent); }
 .ags-score { font-size: 12px; color: var(--ags-muted); white-space: nowrap; }
 
-@media (max-width: 1100px) { .ags-lanes { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 860px) {
 	.ags-cols { grid-template-columns: 1fr; }
 	.ags-funnel { grid-template-columns: repeat(4, minmax(0, 1fr)); }

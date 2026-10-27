@@ -1,0 +1,261 @@
+"""Channels: the Meta webhook (Messenger, Instagram), the website chat's public endpoints, social sign-in, and the
+Channels page where a Company connects them."""
+
+from __future__ import annotations
+
+import json
+import re
+
+import frappe
+from frappe import _
+from frappe.rate_limiter import rate_limit
+from werkzeug.wrappers import Response
+
+from reckon_sales_agent.tenant import current_company, get_tenant_doc
+from reckon_sales_agent.usage import get_settings, platform_settings
+
+VISITOR = re.compile(r"^[A-Za-z0-9]{24,40}$")
+
+
+def _require_manager() -> None:
+    from reckon_sales_agent.api_studio import _can_manage
+
+    if not _can_manage():
+        frappe.throw(_("Ask a Sales Agent admin or manager to do this."), frappe.PermissionError)
+
+
+# --------------------------------------------------------------------------- Meta webhook
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
+def meta_webhook(**kwargs):
+    """Meta's webhook: GET answers the subscription check; POST carries messages, signed with the app secret."""
+    platform = platform_settings()
+    if frappe.request.method == "GET":
+        token = platform.get_password("meta_verify_token", raise_exception=False) if platform.get("meta_verify_token") else ""
+        if token and frappe.form_dict.get("hub.mode") == "subscribe" and frappe.form_dict.get("hub.verify_token") == token:
+            return Response(str(frappe.form_dict.get("hub.challenge") or ""), mimetype="text/plain")
+        return Response("forbidden", status=403, mimetype="text/plain")
+    from reckon_sales_agent.agents.chat import (
+        account_company,
+        meta_events,
+        receive_chat,
+        verify_meta_signature,
+    )
+
+    body = frappe.request.get_data() or b""
+    secret = platform.get_password("meta_app_secret", raise_exception=False) if platform.get("meta_app_secret") else ""
+    if not verify_meta_signature(secret, body, frappe.get_request_header("X-Hub-Signature-256")):
+        return Response("invalid signature", status=401, mimetype="text/plain")
+    try:
+        payload = json.loads(body or b"{}")
+    except ValueError:
+        return Response("invalid JSON", status=400, mimetype="text/plain")
+    frappe.set_user("Administrator")  # a verified Meta event: act as the system
+    for event in meta_events(payload)[:100]:
+        owner = account_company(event["channel"], event["account_id"])
+        if not owner:
+            continue  # a Page no Company has connected (or it switched messages off)
+        try:
+            name = receive_chat(owner[0], event["channel"], event["account_id"], event["contact_id"], event["text"],
+                                event["external_id"], event["at"])
+            frappe.db.commit()
+            if name:
+                _queue_draft(name)
+        except Exception:
+            frappe.db.rollback()
+            frappe.log_error(title="Sales Agent chat message failed")
+    return Response("EVENT_RECEIVED", mimetype="text/plain")  # Meta retries anything but a quick 200
+
+
+def _queue_draft(chat_message: str) -> None:
+    prospect = frappe.db.get_value("Sales Chat Message", chat_message, "prospect")
+    if prospect:
+        frappe.enqueue("reckon_sales_agent.agents.chat.auto_draft", queue="short", prospect=prospect,
+                       job_id=f"chat-draft:{prospect}", deduplicate=True)
+
+
+# --------------------------------------------------------------------------- website chat (public)
+
+
+def _json(data: dict, status: int = 200, origin: str | None = None) -> Response:
+    response = Response(json.dumps(data, default=str), status=status, mimetype="application/json")
+    if origin:
+        # The widget runs on the Company's own website; it never sends cookies (credentials: "omit").
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Vary"] = "Origin"
+    return response
+
+
+def _chat_company(key: str | None) -> tuple[str | None, object | None]:
+    if not key or not re.fullmatch(r"[A-Za-z0-9]{16,40}", key):
+        return None, None
+    company = frappe.db.get_value("Sales Agent Settings", {"webchat_key": key, "webchat_enabled": 1}, "name")
+    return (company, get_settings(company)) if company else (None, None)
+
+
+def _visitor_messages(company: str, visitor: str) -> list[dict]:
+    rows = frappe.get_all("Sales Chat Message", filters={"company": company, "channel": "Web Chat",
+                                                         "contact_id": visitor},
+                          fields=["direction", "text", "sent_at"], order_by="sent_at asc", limit=60)
+    return [{"from": "you" if r.direction == "In" else "us", "text": r.text, "at": r.sent_at} for r in rows]
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=120, seconds=60)
+def webchat_messages(key: str | None = None, visitor: str | None = None):
+    """The widget's settings and, for a returning visitor, their conversation."""
+    from reckon_sales_agent.agents.chat import origin_allowed
+
+    origin = frappe.get_request_header("Origin")
+    company, settings = _chat_company(key)
+    if not company or not origin_allowed(origin, settings.get("webchat_allowed_origins")):
+        return _json({"ok": False}, 404, origin)
+    messages = _visitor_messages(company, visitor) if visitor and VISITOR.match(visitor) else []
+    return _json({"ok": True, "title": settings.get("webchat_title") or _("Chat with us"),
+                  "welcome": settings.get("webchat_welcome") or "", "messages": messages}, origin=origin)
+
+
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+@rate_limit(limit=20, seconds=300)
+def webchat_send():
+    """A website visitor's message. Sent as text/plain JSON so browsers make no pre-flight request."""
+    from reckon_sales_agent.agents.chat import origin_allowed, receive_chat, visitor_fields
+
+    origin = frappe.get_request_header("Origin")
+    try:
+        data = json.loads(frappe.request.get_data() or b"{}")
+    except ValueError:
+        return _json({"ok": False, "error": _("Invalid message.")}, 400, origin)
+    company, settings = _chat_company(str(data.get("key") or ""))
+    if not company or not origin_allowed(origin, settings.get("webchat_allowed_origins")):
+        return _json({"ok": False}, 404, origin)
+    fields, error = visitor_fields(data)
+    if error:
+        return _json({"ok": False, "error": _(error)}, 400, origin)
+    visitor = str(data.get("visitor") or "")
+    if not VISITOR.match(visitor):
+        visitor = frappe.generate_hash(length=32)
+    frappe.set_user("Administrator")  # a public visitor: the system records it for the Company
+    name = receive_chat(company, "Web Chat", "web", visitor, fields["text"],
+                        f"web:{visitor}:{frappe.generate_hash(length=12)}",
+                        contact_name=fields["name"] or None, email=fields["email"] or None, phone=fields["phone"] or None)
+    frappe.db.commit()
+    if name:
+        _queue_draft(name)
+    return _json({"ok": True, "visitor": visitor, "messages": _visitor_messages(company, visitor)}, origin=origin)
+
+
+# --------------------------------------------------------------------------- social sign-in
+
+
+@frappe.whitelist()
+def social_connect(provider: str) -> str:
+    """The URL that starts Facebook / LinkedIn sign-in for this Company."""
+    from reckon_sales_agent.agents.social_connect import PROVIDERS, start
+
+    _require_manager()
+    if provider not in PROVIDERS:
+        frappe.throw(_("Unknown provider."))
+    return start(current_company(), frappe.session.user, provider)
+
+
+@frappe.whitelist(methods=["GET"])
+def social_callback(code: str | None = None, state: str | None = None, error: str | None = None, **kwargs):
+    """Where Facebook / LinkedIn send the person back after they approve access."""
+    from urllib.parse import quote
+
+    from reckon_sales_agent.agents.social_connect import finish
+
+    if error or not code:
+        message = kwargs.get("error_description") or error or "cancelled"
+        return _redirect(f"/desk/sales-channels?connect_error={quote(str(message)[:200])}")
+    try:
+        _company, saved = finish(state or "", code, frappe.session.user)
+    except frappe.ValidationError as exc:
+        frappe.db.rollback()
+        return _redirect(f"/desk/sales-channels?connect_error={quote(str(exc)[:200])}")
+    frappe.db.commit()
+    return _redirect(f"/desk/sales-channels?connected={len(saved)}")
+
+
+def _redirect(location: str) -> Response:
+    return Response("", status=302, headers={"Location": location})
+
+
+# --------------------------------------------------------------------------- the Channels page
+
+
+@frappe.whitelist()
+def overview() -> dict:
+    from reckon_sales_agent.api_studio import _can_manage
+
+    company = current_company()
+    settings = get_settings(company)
+    platform = platform_settings()
+    accounts = frappe.get_all("Sales Social Account", filters={"company": company},
+                              fields=["name", "platform", "account_name", "enabled", "receive_messages",
+                                      "token_expires_on", "last_check", "last_error", "connected_by"],
+                              order_by="platform asc, account_name asc")
+    count = lambda channel: frappe.db.count("Sales Chat Message", {"company": company, "channel": channel,  # noqa: E731
+                                                                   "direction": "In"})
+    return {
+        "can_manage": _can_manage(),
+        "accounts": accounts,
+        "meta_ready": bool(platform.get("meta_app_id") and platform.get("meta_app_secret")),
+        "linkedin_ready": bool(platform.get("linkedin_client_id") and platform.get("linkedin_client_secret")),
+        "whatsapp": {"installed": "frappe_whatsapp" in frappe.get_installed_apps(),
+                     "enabled": bool(settings.get("whatsapp_enabled"))},
+        "email": {"account": frappe.db.get_value("Email Account", {"enable_outgoing": 1, "default_outgoing": 1},
+                                                 "email_id")},
+        "webchat": {"enabled": bool(settings.get("webchat_enabled")), "key": settings.get("webchat_key") or "",
+                    "title": settings.get("webchat_title") or "", "welcome": settings.get("webchat_welcome") or "",
+                    "origins": settings.get("webchat_allowed_origins") or "",
+                    "script": frappe.utils.get_url("/assets/reckon_sales_agent/js/reckon_webchat.js"),
+                    "site": frappe.utils.get_url()},
+        "counts": {c: count(c) for c in ("Messenger", "Instagram", "Web Chat")},
+        "outbound_enabled": bool(settings.outbound_enabled),
+    }
+
+
+@frappe.whitelist(methods=["POST"])
+def set_webchat(data: str | dict) -> dict:
+    _require_manager()
+    data = json.loads(data) if isinstance(data, str) else data
+    company = current_company()
+    doc = get_tenant_doc("Sales Agent Settings", company, "write")
+    doc.webchat_enabled = 1 if data.get("enabled") else 0
+    if doc.webchat_enabled and not doc.get("webchat_key"):
+        doc.webchat_key = frappe.generate_hash(length=24)
+    for field, key, limit in (("webchat_title", "title", 80), ("webchat_welcome", "welcome", 500),
+                              ("webchat_allowed_origins", "origins", 1000)):
+        if key in data:
+            setattr(doc, field, str(data.get(key) or "")[:limit])
+    doc.save()
+    return overview()
+
+
+@frappe.whitelist(methods=["POST"])
+def set_account(account: str, enabled: int | None = None, receive_messages: int | None = None) -> dict:
+    _require_manager()
+    doc = get_tenant_doc("Sales Social Account", account, "write")
+    if enabled is not None:
+        doc.enabled = 1 if int(enabled) else 0
+    if receive_messages is not None:
+        doc.receive_messages = 1 if int(receive_messages) else 0
+    doc.save()
+    return overview()
+
+
+@frappe.whitelist(methods=["POST"])
+def check_account(account: str) -> dict:
+    from reckon_sales_agent.agents.social_agent import check_account as check
+
+    _require_manager()
+    doc = get_tenant_doc("Sales Social Account", account, "write")
+    try:
+        check(doc)
+    except frappe.ValidationError:
+        frappe.clear_messages()
+    frappe.db.commit()
+    return overview()

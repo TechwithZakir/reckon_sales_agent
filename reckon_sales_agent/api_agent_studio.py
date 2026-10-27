@@ -17,12 +17,17 @@ from reckon_sales_agent.api_studio import _can_manage
 from reckon_sales_agent.tenant import current_company, get_tenant_doc
 from reckon_sales_agent.usage import assert_entitled, get_settings, log_activity
 
-AGENTS = ("Research", "Content", "Governance", "Engagement", "Analytics")
+AGENTS = ("Research", "Data Quality", "Content", "Governance", "Engagement", "Conversations", "Meetings", "Social",
+          "Analytics")
 LANE_TITLES = {
     "Research": "Finds and qualifies leads",
+    "Data Quality": "Fixes phones, duplicates and bounced emails",
     "Content": "Writes campaigns from approved facts",
     "Governance": "Keeps launches and sending with a person",
-    "Engagement": "Handles replies and follow-ups",
+    "Engagement": "Runs sequences, calls and follow-ups",
+    "Conversations": "Answers email, WhatsApp, Messenger and website chat",
+    "Meetings": "Proposes times, books and reminds",
+    "Social": "Writes and publishes posts on your pages",
     "Analytics": "Measures pilots and recommends",
 }
 
@@ -66,6 +71,20 @@ def state() -> dict:
                        (_("live"), count("Sales Campaign", status="Active"))],
         "Engagement": [(_("drafts"), snapshot.get("drafts_waiting", 0)), (_("replies"), funnel[6][1]),
                        (_("follow-ups"), snapshot.get("open_followups", 0))],
+        "Data Quality": [(_("duplicates marked"), count("Sales Prospect", possible_duplicate_of=["is", "set"])),
+                         (_("do not contact"), count("Sales Prospect", do_not_contact=1))],
+        "Conversations": [(_("waiting"), snapshot.get("conversations_waiting", 0)),
+                          (_("chats today"), count("Sales Chat Message", direction="In",
+                                                   sent_at=[">=", frappe.utils.nowdate()])),
+                          (_("channels"), count("Sales Social Account", enabled=1, receive_messages=1)
+                           + (1 if settings.get("webchat_enabled") else 0)
+                           + (1 if settings.get("whatsapp_enabled") else 0))],
+        "Meetings": [(_("to book"), snapshot.get("meetings_to_book", 0)),
+                     (_("booked"), count("Sales Meeting", status="Booked")),
+                     (_("held"), count("Sales Meeting", status="Held"))],
+        "Social": [(_("to approve"), snapshot.get("social_waiting", 0)),
+                   (_("published"), count("Sales Social Post", status="Published")),
+                   (_("accounts"), count("Sales Social Account", enabled=1))],
         "Analytics": [(_("pilots"), count("Sales Campaign", pilot_mode=1, status="Active")),
                       (_("measured"), count("Sales Campaign", pilot_verdict=["is", "set"]))],
     }

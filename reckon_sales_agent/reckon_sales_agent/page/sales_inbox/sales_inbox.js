@@ -4,6 +4,7 @@
 	frappe.pages["sales-inbox"].on_page_load = function (wrapper) {
 		const page = frappe.ui.make_app_page({ parent: wrapper, title: __("Conversations"), single_column: true });
 		page.add_inner_button(__("Agent Studio"), () => frappe.set_route("sales-agent"));
+		page.add_inner_button(__("Channels"), () => frappe.set_route("sales-channels"));
 		wrapper.inbox = new Inbox(page);
 	};
 	frappe.pages["sales-inbox"].on_page_show = (wrapper) => wrapper.inbox && wrapper.inbox.load();
@@ -11,7 +12,7 @@
 	const API = "reckon_sales_agent.api_conversations.";
 	const e = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
 	const when = (v) => (v ? frappe.datetime.prettyDate(v) : "");
-	const SOURCES = { meta_lead_ads: __("Meta lead form") };
+	const SOURCES = { meta_lead_ads: __("Meta lead form"), messenger: __("Messenger"), instagram: __("Instagram"), web_chat: __("Website chat") };
 
 	class Inbox {
 		constructor(page) {
@@ -30,7 +31,7 @@
 				if (!this.current && rows.length) this.current = (rows.find((r) => r.needs_reply) || rows[0]).prospect;
 				this.render_list();
 				if (this.current) this.open(this.current);
-				else this.$root.find(".sin-thread").html(`<div class="sin-empty">${__("No conversations yet. Replies, calls and lead forms appear here.")}</div>`);
+				else this.$root.find(".sin-thread").html(`<div class="sin-empty">${__("No conversations yet. Replies, chats, calls and lead forms appear here.")}</div>`);
 			});
 		}
 

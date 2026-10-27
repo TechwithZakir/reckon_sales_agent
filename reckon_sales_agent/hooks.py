@@ -150,6 +150,7 @@ scheduler_events = {
     ],
     "daily": [
         "reckon_sales_agent.jobs.purge_expired_source_data",
+        "reckon_sales_agent.agents.social_connect.refresh_accounts",  # LinkedIn tokens, account health
     ],
     "cron": {
         "0 8 * * *": ["reckon_sales_agent.agents.digest.send_all"],  # the morning digest (server time)

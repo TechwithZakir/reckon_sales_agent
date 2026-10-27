@@ -109,7 +109,7 @@ def write_post(post) -> int:
         post.alt_text = " ".join(str(data["alt_text"]).split())[:500]
     post.save()
     log_activity(post.company, "content_social_written", post, f"{count} platform captions", actor_type="agent",
-                 agent="Content", policy_outcome="automatic (draft only)")
+                 agent="Social", policy_outcome="automatic (draft only)")
     return count
 
 
@@ -195,7 +195,7 @@ def publish(post) -> str:
               else "Partly Published" if "Published" in states else "Failed")
     post.db_set({"status": status, "published_on": now_datetime() if "Published" in states else None})
     log_activity(post.company, "social_published", post, f"{status}: {states.count('Published')}/{len(states)}",
-                 actor_type="agent", agent="Content", policy_outcome=decision.outcome)
+                 actor_type="agent", agent="Social", policy_outcome=decision.outcome)
     return status
 
 

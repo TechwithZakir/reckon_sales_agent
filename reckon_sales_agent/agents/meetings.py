@@ -108,7 +108,7 @@ def start_meeting(prospect_name: str, source: str, member: str | None = None) ->
         meeting.db_set("invite_message", message)
     log_activity(prospect.company, "meeting_proposed", meeting,
                  f"{len(slots)} slot(s): " + "; ".join(slot_label(s) for s in slots), actor_type="agent",
-                 agent="Engagement", policy_outcome="invitation drafted: a person approves")
+                 agent="Meetings", policy_outcome="invitation drafted: a person approves")
     return meeting.name
 
 
@@ -183,7 +183,7 @@ def book(meeting_name: str, starts_on: str) -> str:
                 f"{meeting.mode} {meeting.location or ''}".strip(),
                 frappe._dict({**settings.as_dict(), "task_due_days": days, "task_assignee": meeting.assigned_to}),
                 priority="High")
-    log_activity(meeting.company, "meeting_booked", meeting, f"{start:%Y-%m-%d %H:%M}", agent="Engagement")
+    log_activity(meeting.company, "meeting_booked", meeting, f"{start:%Y-%m-%d %H:%M}", agent="Meetings")
     return event.name
 
 
@@ -200,7 +200,7 @@ def record_outcome(meeting_name: str, outcome: str, notes: str = "") -> None:
     if meeting.event and frappe.db.exists("Event", meeting.event):
         frappe.db.set_value("Event", meeting.event, "status", "Completed" if outcome == "Held" else "Cancelled")
     log_activity(meeting.company, f"meeting_{outcome.lower().replace('-', '_')}", meeting, notes or outcome,
-                 agent="Engagement")
+                 agent="Meetings")
     if outcome == "Held":
         from reckon_sales_agent.qualification.service import qualify_prospect
 

@@ -476,11 +476,30 @@ def handle_whatsapp(doc, method=None) -> None:
     member = frappe.db.get_value("Sales Campaign Member", {"phone": ["in", [phone, phone.lstrip("+")]],
                                                            "status": "Active"}, "name", order_by="modified desc")
     if not member:
+        _whatsapp_conversation(phone, doc)  # not in a running sequence: it still opens a conversation
         return
     message = frappe.db.get_value("Sales Outreach Message", {"member": member, "channel": "WhatsApp"},
                                   "name", order_by="creation desc")
     if message:
         receive_reply(message, doc.get("message") or "", f"whatsapp:{doc.name}", "WhatsApp")
+
+
+def _whatsapp_conversation(phone: str, doc) -> None:
+    """A WhatsApp message from a known lead outside any sequence becomes a thread in Conversations."""
+    prospect = frappe.db.get_value("Sales Prospect", {"phone": ["in", [phone, phone.lstrip("+")]],
+                                                      "merged_into": ["is", "not set"]},
+                                   ["name", "company"], as_dict=True, order_by="modified desc")
+    if not prospect:
+        return
+    from reckon_sales_agent.agents.omni import conversations_campaign, member_for
+
+    campaign = conversations_campaign(prospect.company)
+    frappe.get_doc({
+        "doctype": "Sales Communication Event", "company": prospect.company, "event_type": "received",
+        "campaign": campaign, "member": member_for(prospect.company, campaign, frappe.get_doc("Sales Prospect", prospect.name)),
+        "channel": "WhatsApp", "event_time": now_datetime(), "idempotency_key": f"received:whatsapp:{doc.name}"[:140],
+        "detail": (doc.get("message") or "")[:500],
+    }).insert(ignore_permissions=True)
 
 
 def receive_reply(message_name: str, text: str, source_key: str, channel: str) -> None:

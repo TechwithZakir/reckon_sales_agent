@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-27 15:00:00.000000",
+ "modified": "2026-10-27 18:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -34,6 +34,12 @@
   "ai_model_override",
   "ai_api_key_override",
   "ai_base_url_override",
+  "webchat_section",
+  "webchat_enabled",
+  "webchat_key",
+  "webchat_title",
+  "webchat_welcome",
+  "webchat_allowed_origins",
   "max_results_per_job",
   "max_concurrent_jobs",
   "retention_days",
@@ -189,26 +195,67 @@
    "fieldtype": "Select",
    "label": "AI provider",
    "options": "\nAnthropic (Claude)\nOpenAI\nLocal (OpenAI-compatible)",
-   "description": "Empty: use the platform's default. Takes effect only if your provider allows Company overrides."
+   "description": "Set by the system provider only. Empty: the platform's default AI.",
+   "permlevel": 1
   },
   {
    "fieldname": "ai_model_override",
    "fieldtype": "Data",
    "label": "AI model",
-   "depends_on": "ai_provider_override"
+   "depends_on": "ai_provider_override",
+   "permlevel": 1
   },
   {
    "fieldname": "ai_api_key_override",
    "fieldtype": "Password",
    "label": "Your own AI API key",
    "depends_on": "ai_provider_override",
-   "description": "Optional: use your own account and quota."
+   "description": "Set by the system provider: this Company's own AI account.",
+   "permlevel": 1
   },
   {
    "fieldname": "ai_base_url_override",
    "fieldtype": "Data",
    "label": "Your own AI server address (HTTPS)",
-   "depends_on": "eval:doc.ai_provider_override && doc.ai_provider_override != 'Anthropic (Claude)'"
+   "depends_on": "eval:doc.ai_provider_override && doc.ai_provider_override != 'Anthropic (Claude)'",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "webchat_section",
+   "fieldtype": "Section Break",
+   "label": "Website chat",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "webchat_enabled",
+   "fieldtype": "Check",
+   "label": "Chat on our website",
+   "default": "0"
+  },
+  {
+   "fieldname": "webchat_key",
+   "fieldtype": "Data",
+   "label": "Chat widget key",
+   "read_only": 1,
+   "description": "Public: it only identifies your Company's chat. Set on the Channels page."
+  },
+  {
+   "fieldname": "webchat_title",
+   "fieldtype": "Data",
+   "label": "Chat title",
+   "default": "Chat with us"
+  },
+  {
+   "fieldname": "webchat_welcome",
+   "fieldtype": "Small Text",
+   "label": "Welcome message",
+   "default": "Hi! Leave your question and how to reach you; we reply here and by email."
+  },
+  {
+   "fieldname": "webchat_allowed_origins",
+   "fieldtype": "Small Text",
+   "label": "Websites allowed to show the chat",
+   "description": "One per line, e.g. https://www.example.com. Empty: any website."
   },
   {
    "fieldname": "max_results_per_job",
@@ -644,6 +691,18 @@
    "report": 1,
    "export": 1,
    "print": 1
+  },
+  {
+   "role": "System Manager",
+   "permlevel": 1,
+   "read": 1,
+   "write": 1
+  },
+  {
+   "role": "Reckon Vendor Superuser",
+   "permlevel": 1,
+   "read": 1,
+   "write": 1
   }
  ],
  "autoname": "field:company",

@@ -1,0 +1,163 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Chat Message",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-10-27 18:00:00.000000",
+ "modified": "2026-10-27 18:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 0,
+ "issingle": 0,
+ "editable_grid": 0,
+ "track_changes": 0,
+ "sort_field": "sent_at",
+ "sort_order": "DESC",
+ "states": [],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "Reckon Vendor Superuser",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "Reckon Sales Agent Admin",
+   "read": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "Reckon Sales Agent Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "Reckon Sales Agent User",
+   "read": 1,
+   "report": 1
+  }
+ ],
+ "autoname": "hash",
+ "naming_rule": "Random",
+ "title_field": "contact_name",
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "options": "Company",
+   "label": "Company",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "prospect",
+   "fieldtype": "Link",
+   "options": "Sales Prospect",
+   "label": "Lead",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "channel",
+   "fieldtype": "Select",
+   "options": "Messenger\nInstagram\nWeb Chat",
+   "label": "Channel",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "direction",
+   "fieldtype": "Select",
+   "options": "In\nOut",
+   "label": "Direction",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "col1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sent_at",
+   "fieldtype": "Datetime",
+   "label": "At",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "contact_id",
+   "fieldtype": "Data",
+   "label": "Contact ID",
+   "read_only": 1,
+   "description": "The platform's ID for this person (Messenger PSID, Instagram ID, chat visitor)."
+  },
+  {
+   "fieldname": "account_id",
+   "fieldtype": "Data",
+   "label": "Our account ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "external_id",
+   "fieldtype": "Data",
+   "label": "Platform message ID",
+   "read_only": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "outreach_message",
+   "fieldtype": "Link",
+   "options": "Sales Outreach Message",
+   "label": "Reply message",
+   "read_only": 1
+  },
+  {
+   "fieldname": "body_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "contact_name",
+   "fieldtype": "Data",
+   "label": "Name they gave",
+   "read_only": 1
+  },
+  {
+   "fieldname": "text",
+   "fieldtype": "Small Text",
+   "label": "Text",
+   "read_only": 1
+  }
+ ],
+ "field_order": [
+  "company",
+  "prospect",
+  "channel",
+  "direction",
+  "col1",
+  "sent_at",
+  "contact_id",
+  "account_id",
+  "external_id",
+  "outreach_message",
+  "body_section",
+  "contact_name",
+  "text"
+ ]
+}

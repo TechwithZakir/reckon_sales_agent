@@ -86,6 +86,6 @@ def clean(company: str) -> str:
         frappe.db.set_value("Sales Prospect", name, "email", None, update_modified=False)
     summary = (f"{len(found['phones'])} phone(s) normalised, {len(found['duplicates'])} duplicate(s) marked, "
                f"{len(found['bounced'])} bounced email(s) removed")
-    log_activity(company, "data_quality_cleaned", None, summary, actor_type="agent", agent="Research",
+    log_activity(company, "data_quality_cleaned", None, summary, actor_type="agent", agent="Data Quality",
                  policy_outcome="automatic (reversible)")
     return summary

@@ -1,9 +1,10 @@
-"""Omni-channel conversations agent: one thread per lead across email, WhatsApp, calls and forms, and an AI
-reply on the right channel, waiting for a person's approval.
+"""Omni-channel conversations agent: one thread per lead across email, WhatsApp, Messenger, Instagram, website
+chat, calls and forms, and an AI reply on the right channel, waiting for a person's approval.
 
 - ``threads`` lists the Company's conversations, newest first, flagging those where the lead spoke last.
 - ``timeline`` gives one lead's whole history: messages sent, replies received, call outcomes, meetings.
-- ``draft_reply`` picks the channel (WhatsApp inside the 24-hour window with consent, else email, else a call)
+- ``draft_reply`` picks the channel (the chat they last wrote on, WhatsApp inside the 24-hour window with
+  consent, else email, else a call)
   and has Claude write from the history and the approved knowledge only; the content check runs on it and it
   is saved as a Draft for approval, like every outbound message.
 
@@ -34,13 +35,23 @@ REPLY_SYSTEM = (
     "Answer what they asked or said, using ONLY facts in the approved knowledge; never invent prices, discounts, "
     "clients or numbers. If they asked for something the knowledge does not cover, say a colleague will confirm. "
     "Propose one simple next step (a call or a short demo). Match their language (English or Bangla). Email: "
-    "subject under 60 characters, body under 120 words. WhatsApp: under 60 words, no subject (use empty). "
+    "subject under 60 characters, body under 120 words. WhatsApp, Messenger, Instagram and website chat: under 60 "
+    "words, conversational, no subject (use empty). "
     "why: one sentence for the salesperson on why this reply. Do not add an unsubscribe line; it is added."
 )
 
 
-def choose_channel(prospect: dict, last_whatsapp_inbound: datetime | None, now: datetime) -> tuple[str | None, str]:
-    """(channel, reason) for the next written reply, or (None, reason) when only a call is possible."""
+def choose_channel(prospect: dict, last_whatsapp_inbound: datetime | None, now: datetime,
+                   last_chat: dict | None = None) -> tuple[str | None, str]:
+    """(channel, reason) for the next written reply, or (None, reason) when only a call is possible.
+
+    ``last_chat`` is the lead's latest Messenger / Instagram / website chat message ({channel, at}): answer where
+    they wrote, while the platform allows it (Meta: 24 hours; the website chat keeps the thread).
+    """
+    if last_chat and last_chat.get("at") and (
+            last_chat["channel"] == "Web Chat" or now - last_chat["at"] < WINDOW) and (
+            not last_whatsapp_inbound or last_chat["at"] >= last_whatsapp_inbound):
+        return last_chat["channel"], f"They wrote on {last_chat['channel']}; answer there."
     if (prospect.get("whatsapp_consent") and prospect.get("phone") and last_whatsapp_inbound
             and now - last_whatsapp_inbound < WINDOW):
         return "WhatsApp", "They wrote on WhatsApp in the last 24 hours."
@@ -120,6 +131,10 @@ def timeline(prospect_name: str, limit: int = 40) -> list[dict]:
                                     fields=["name", "message", "creation"], limit=100):
                 items.append({"at": w.creation, "direction": "in", "channel": "WhatsApp", "status": "Received",
                               "subject": "", "text": (w.message or "")[:1500], "ref": w.name})
+    for c in frappe.get_all("Sales Chat Message", filters={"prospect": prospect_name, "direction": "In"},
+                            fields=["name", "channel", "text", "sent_at"], limit=200):
+        items.append({"at": c.sent_at, "direction": "in", "channel": c.channel, "status": "Received", "subject": "",
+                      "text": (c.text or "")[:1500], "ref": c.name})
     if frappe.db.exists("DocType", "Sales Meeting"):
         for m in frappe.get_all("Sales Meeting", filters={"prospect": prospect_name},
                                 fields=["name", "status", "starts_on", "creation", "outcome_notes"], limit=50):
@@ -135,12 +150,16 @@ def threads(company: str, limit: int = 40) -> list[dict]:
 
     rows = frappe.get_all("Sales Communication Event", filters={
         "company": company, "event_type": ["in", list(INBOUND + OUTBOUND)]},
-        fields=["message", "event_type", "event_time"], order_by="event_time desc", limit=5000)
+        fields=["message", "member", "event_type", "event_time"], order_by="event_time desc", limit=5000)
     prospects = {m.name: m.prospect for m in frappe.get_all("Sales Outreach Message", filters={
         "name": ["in", list({r.message for r in rows if r.message}) or [""]]}, fields=["name", "prospect"])}
+    # Messages that arrived outside a sequence (WhatsApp, chats) carry only the lead's Conversations member.
+    members = {m.name: m.prospect for m in frappe.get_all("Sales Campaign Member", filters={
+        "name": ["in", list({r.member for r in rows if r.member and not r.message}) or [""]]},
+        fields=["name", "prospect"])}
     by: dict[str, dict] = {}
     for row in rows:
-        prospect = prospects.get(row.message)
+        prospect = prospects.get(row.message) or members.get(row.member)
         if not prospect:
             continue
         t = by.setdefault(prospect, {"prospect": prospect, "last_in": None, "last_out": None, "last": row.event_time})
@@ -148,6 +167,18 @@ def threads(company: str, limit: int = 40) -> list[dict]:
             t["last_in"] = row.event_time
         if row.event_type in OUTBOUND and not t["last_out"]:
             t["last_out"] = row.event_time
+    chats: dict[str, str] = {}
+    for c in frappe.get_all("Sales Chat Message", filters={"company": company},
+                            fields=["prospect", "direction", "sent_at", "channel"], order_by="sent_at desc", limit=5000):
+        if not c.prospect:
+            continue
+        t = by.setdefault(c.prospect, {"prospect": c.prospect, "last_in": None, "last_out": None, "last": c.sent_at})
+        if str(c.sent_at) > str(t["last"]):
+            t["last"] = c.sent_at
+        if c.direction == "In":
+            chats.setdefault(c.prospect, c.channel)
+            if not t["last_in"] or str(c.sent_at) > str(t["last_in"]):
+                t["last_in"] = c.sent_at
     for meta_lead in frappe.get_all("Sales Prospect", filters={"company": company, "source_type": "meta_lead_ads"},
                                     fields=["name", "creation"], order_by="creation desc", limit=200):
         by.setdefault(meta_lead.name, {"prospect": meta_lead.name, "last_in": meta_lead.creation, "last_out": None,
@@ -161,7 +192,7 @@ def threads(company: str, limit: int = 40) -> list[dict]:
         p = info.get(t["prospect"]) or {}
         out.append({**t, "business": p.get("business_name"), "email": p.get("email"), "phone": p.get("phone"),
                     "source": p.get("source_type"), "needs_reply": needs_reply(t["last_in"], t["last_out"]),
-                    "draft_waiting": t["prospect"] in drafts})
+                    "draft_waiting": t["prospect"] in drafts, "chat": chats.get(t["prospect"])})
     return out
 
 
@@ -183,9 +214,14 @@ def draft_reply(prospect_name: str, reason: str = "", instruction: str = "") -> 
     prospect = frappe.get_doc("Sales Prospect", prospect_name)
     company = prospect.company
     settings = get_settings(company)
+    from reckon_sales_agent.agents.chat import last_chat
+
     last_wa = prospect.get("whatsapp_last_inbound")
+    chat = last_chat(prospect.name)
+    if chat:
+        chat["at"] = get_datetime(chat["at"])
     channel, why_channel = choose_channel(prospect.as_dict(), get_datetime(last_wa) if last_wa else None,
-                                          now_datetime())
+                                          now_datetime(), chat)
     if not channel:
         frappe.throw(_("No written channel for this lead: {0}").format(why_channel))
     if prospect.do_not_contact:
@@ -228,7 +264,8 @@ def draft_reply(prospect_name: str, reason: str = "", instruction: str = "") -> 
     message = frappe.get_doc({
         "doctype": "Sales Outreach Message", "company": company, "campaign": campaign, "member": member,
         "prospect": prospect.name, "step_no": 0, "channel": channel,
-        "recipient": prospect.email if channel == "Email" else prospect.phone,
+        "recipient": prospect.email if channel == "Email" else chat["contact_id"] if chat and channel == chat["channel"]
+        else prospect.phone,
         "subject": subject or f"Reply: {prospect.business_name}"[:140], "body": html, "ai_generated": 1,
         "is_reply": 1, "status": "Draft",
         "error": ("Content check: " + "; ".join(issues))[:500] if issues else None,
@@ -236,6 +273,6 @@ def draft_reply(prospect_name: str, reason: str = "", instruction: str = "") -> 
     }).insert(ignore_permissions=True)
     record_event(message, "drafted", f"draft:{message.name}", detail=str(data.get("why") or "")[:500])
     log_activity(company, "reply_drafted_omni", message, f"{channel}: {data.get('why') or why_channel}"[:500],
-                 actor_type="agent", agent="Engagement", policy_outcome="draft only: a person approves")
+                 actor_type="agent", agent="Conversations", policy_outcome="draft only: a person approves")
     frappe.db.commit()
     return message.name

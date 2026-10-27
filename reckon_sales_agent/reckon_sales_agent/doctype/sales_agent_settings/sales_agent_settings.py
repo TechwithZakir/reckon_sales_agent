@@ -5,6 +5,8 @@ from frappe.model.document import Document
 from reckon_sales_agent.tenant import is_system_actor
 
 PLAN_FIELDS = ("monthly_discovery_limit", "monthly_research_limit", "monthly_ai_limit", "monthly_message_limit")
+# The AI a Company uses is the system provider's choice (also permlevel 1 in the form).
+AI_FIELDS = ("ai_provider_override", "ai_model_override", "ai_api_key_override", "ai_base_url_override")
 BOUNDS = {"daily_message_limit": (0, 1000), "max_results_per_job": (1, 1000), "max_concurrent_jobs": (1, 5),
           "retention_days": (30, 3650)}
 
@@ -12,8 +14,8 @@ BOUNDS = {"daily_message_limit": (0, 1000), "max_results_per_job": (1, 1000), "m
 class SalesAgentSettings(Document):
     def validate(self):
         if not is_system_actor():
-            # Plan limits are set by the vendor, never by the tenant.
-            for field in PLAN_FIELDS:
+            # Plan limits and the AI provider are set by the vendor, never by the tenant.
+            for field in PLAN_FIELDS + AI_FIELDS:
                 self.set(field, None if self.is_new() else self.get_db_value(field))
         for field, (low, high) in BOUNDS.items():
             value = self.get(field)

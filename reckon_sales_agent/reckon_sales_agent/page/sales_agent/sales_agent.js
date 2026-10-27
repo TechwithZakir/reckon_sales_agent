@@ -6,6 +6,7 @@
 		page.add_inner_button(__("Lead Finder (advanced)"), () => frappe.set_route("lead-finder"));
 		page.add_inner_button(__("Prospect Review"), () => frappe.set_route("sales-review"));
 		page.add_inner_button(__("Analytics"), () => frappe.set_route("sales-analytics"));
+		page.add_inner_button(__("Channels"), () => frappe.set_route("sales-channels"));
 		page.add_inner_button(__("Open CRM"), () => (window.location.href = "/crm"));
 		wrapper.studio = new AgentStudio(page);
 	};
@@ -21,6 +22,10 @@
 		Governance: '<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/>',
 		Engagement: '<path d="M4 5h16v11H8l-4 4z"/><path d="M8 9h8M8 12h5"/>',
 		Analytics: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+		"Data Quality": '<path d="M4 6h16M4 12h10M4 18h6"/><path d="m15 17 2 2 4-4"/>',
+		Conversations: '<path d="M3 5h12v8H7l-4 3z"/><path d="M9 16v1h8l4 3V9h-4"/>',
+		Meetings: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+		Social: '<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="m8.2 10.8 7.6-3.6M8.2 13.2l7.6 3.6"/>',
 		spark: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>',
 	};
 	const icon = (name, size = 18) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -45,10 +50,13 @@
 		call_task_done: __("Call done"), call_interested: __("Call: interested"), call_callback: __("Call: call back"),
 		call_not_interested: __("Call: not interested"), call_wrong_number: __("Call: wrong number"),
 		call_no_answer: __("Call: no answer"), digest_manager: __("Sent the daily digest"),
-		digest_caller: __("Sent today's calls"),
+		digest_caller: __("Sent today's calls"), chat_received: __("A lead wrote in a chat"),
+		social_connected: __("Connected social accounts"), reply_drafted_omni: __("Drafted a reply"),
 	};
 	const label = (a) => ACTIONS[a] || (a || "").replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
 	const plain = (html) => $("<div>").html(html || "").text();
+	// Each agent's colour, from the CSS variable named after it ("Data Quality" -> --Data-Quality).
+	const tint = (agent) => `style="background: var(--${String(agent || "Governance").replace(/[^A-Za-z]+/g, "-")}, var(--Governance))"`;
 
 	class AgentStudio {
 		constructor(page) {
@@ -114,7 +122,7 @@
 			const pill = (cls, text) => `<span class="ags-pill ${cls}"><span class="dot"></span>${e(text)}</span>`;
 			this.$root.find(".ags-hero").html(`
 				<div><h2>${__("Your AI sales team")}</h2>
-					<p>${__("Five agents find, research, write and follow up. You only approve what goes out.")}</p></div>
+					<p>${__("{0} agents find, research, write, talk to leads and follow up. You only approve what goes out.", [s.lanes.length])}</p></div>
 				<div class="ags-pills">
 					${pill(ap.enabled ? "ok" : "", ap.enabled ? __("Autopilot on") : __("Autopilot off"))}
 					${pill(s.ai ? "ok" : "warn", (s.ai ? __("AI on") : __("AI off")) + (s.ai_label ? ` · ${s.ai_label}` : ""))}
@@ -213,7 +221,7 @@
 		render_lanes(s) {
 			this.$root.find(".ags-lanes").html(s.lanes.map((l) => `
 				<div class="ags-lane ${e(l.status)}">
-					<div class="ags-lane-head"><span class="ags-lane-icon">${icon(l.agent)}</span>
+					<div class="ags-lane-head"><span class="ags-lane-icon" ${tint(l.agent)}>${icon(l.agent)}</span>
 						<div class="grow"><b>${e(__(l.agent))}</b><div class="ags-muted">${e(l.title)}</div></div>
 						<span class="ags-status ${e(l.status)}">${e(STATUS[l.status])}</span></div>
 					<div class="ags-lane-now">${l.now.length ? l.now.map((n) => `<div>${l.status === "working" ? '<span class="ags-spin"></span>' : ""}${e(__(n))}</div>`).join("")
@@ -231,7 +239,7 @@
 
 		render_feed(s) {
 			this.$root.find(".ags-feed").html(s.feed.map((a) => `<div class="ags-event">
-				<span class="ags-dot ${e(a.agent || "Governance")}" title="${e(__(a.agent || "Governance"))}">${icon(a.agent || "Governance", 13)}</span>
+				<span class="ags-dot" ${tint(a.agent)} title="${e(__(a.agent || "Governance"))}">${icon(a.agent || "Governance", 13)}</span>
 				<div class="grow"><div><b>${e(label(a.action))}</b>${a.reference_name ? ` · <a href="/desk/${frappe.router.slug(a.reference_doctype || "")}/${encodeURIComponent(a.reference_name)}">${e(a.reference_name)}</a>` : ""}</div>
 					${a.summary ? `<div class="ags-muted ags-clip">${e(a.summary)}</div>` : ""}</div>
 				<span class="ags-muted ags-when">${e(frappe.datetime.prettyDate(a.creation))}</span></div>`).join("")
@@ -247,7 +255,7 @@
 				return;
 			}
 			asks.forEach((a) => {
-				const $c = $(`<div class="ags-ask"><div class="ags-ask-head"><span class="ags-dot ${e(a.agent)}">${icon(a.agent, 13)}</span>
+				const $c = $(`<div class="ags-ask"><div class="ags-ask-head"><span class="ags-dot" ${tint(a.agent)}>${icon(a.agent, 13)}</span>
 					<div class="grow"><b>${e(__(a.title))}</b><div class="ags-muted">${e(__(a.detail || ""))}</div></div></div>
 					<div class="ags-ask-body"></div></div>`).appendTo(el);
 				const body = $c.find(".ags-ask-body");
@@ -417,6 +425,15 @@
 		ask_meetings(body, a) {
 			$(`<button class="btn btn-primary btn-xs">${__("Open Meetings")}</button>`).appendTo(body)
 				.on("click", () => frappe.set_route("sales-meetings"));
+		}
+
+		ask_approve_social(body) {
+			$(`<a class="btn btn-primary btn-xs" href="/desk/sales-social-post?status=Pending%20Approval">${__("Review the posts")}</a>`).appendTo(body);
+		}
+
+		ask_channels(body) {
+			$(`<button class="btn btn-primary btn-xs">${__("Open Channels")}</button>`).appendTo(body)
+				.on("click", () => frappe.set_route("sales-channels"));
 		}
 
 		ask_pause_campaign(body, a) {
