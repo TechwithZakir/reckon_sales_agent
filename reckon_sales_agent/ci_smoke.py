@@ -14,6 +14,12 @@ COMPANY = "CI Smoke Ltd"
 
 
 def _company() -> str:
+    # A CI site skips ERPNext's setup wizard, whose fixtures a Company needs (e.g. Warehouse Type "Transit").
+    if not frappe.db.exists("Warehouse Type", "Transit"):
+        from erpnext.setup.setup_wizard.operations.install_fixtures import install
+
+        install("Bangladesh")
+        frappe.db.commit()
     if not frappe.db.exists("Company", COMPANY):
         frappe.get_doc({"doctype": "Company", "company_name": COMPANY, "abbr": "CIS", "default_currency": "BDT",
                         "country": "Bangladesh"}).insert(ignore_permissions=True)
