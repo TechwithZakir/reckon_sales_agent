@@ -89,6 +89,30 @@
 	];
 
 	// The system provider's tiles: shown and saved only to vendor roles (the server checks too).
+// Reference: the official help for each integration, shown at the foot of its panel.
+const GUIDES = {
+	whatsapp: [["frappe_whatsapp configuration", "https://shridarpatil.github.io/frappe_whatsapp/#configuration"], ["WhatsApp Cloud API", "https://developers.facebook.com/docs/whatsapp/cloud-api/get-started"]],
+	facebook: [["Messenger platform", "https://developers.facebook.com/docs/messenger-platform/overview"], ["Webhooks", "https://developers.facebook.com/docs/graph-api/webhooks"]],
+	instagram: [["Instagram platform", "https://developers.facebook.com/docs/instagram-platform"]],
+	meta_leads: [["Lead ads", "https://developers.facebook.com/docs/marketing-api/guides/lead-ads"]],
+	linkedin: [["LinkedIn developer docs", "https://learn.microsoft.com/en-us/linkedin/"]],
+	linkedin_leads: [["LinkedIn developer docs", "https://learn.microsoft.com/en-us/linkedin/"]],
+	twilio: [["Twilio docs", "https://www.twilio.com/docs"], ["Messaging services", "https://www.twilio.com/docs/messaging/services"]],
+	voice_ai: [["Twilio Voice", "https://www.twilio.com/docs/voice"]],
+	sms: [["Twilio SMS and RCS", "https://www.twilio.com/docs/sms"], ["BulkSMSBD", "https://www.bulksmsbd.net"], ["SSL Wireless", "https://sslwireless.com"]],
+	asterisk: [["Asterisk ARI", "https://docs.asterisk.org/Configuration/Interfaces/Asterisk-REST-Interface-ARI/"]],
+	email: [["Frappe documentation", "https://frappeframework.com/docs"]],
+	sendgrid: [["SendGrid docs", "https://www.twilio.com/docs/sendgrid"]],
+	ai: [["Anthropic docs", "https://docs.anthropic.com"], ["OpenAI docs", "https://platform.openai.com/docs"]],
+	platform_ai: [["Anthropic docs", "https://docs.anthropic.com"], ["OpenAI docs", "https://platform.openai.com/docs"], ["Ollama", "https://github.com/ollama/ollama"], ["vLLM", "https://docs.vllm.ai"]],
+	platform_meta: [["Messenger platform", "https://developers.facebook.com/docs/messenger-platform/overview"], ["Facebook Login", "https://developers.facebook.com/docs/facebook-login"], ["App review", "https://developers.facebook.com/docs/app-review"], ["Business verification", "https://www.facebook.com/business/help/2058515294227817"]],
+	platform_linkedin: [["LinkedIn developer docs", "https://learn.microsoft.com/en-us/linkedin/"]],
+	platform_transcription: [["Speech to text (OpenAI)", "https://platform.openai.com/docs/guides/speech-to-text"]],
+	platform_lead_sources: [["Brave Search API", "https://api-dashboard.search.brave.com/app/documentation"], ["Google Places API", "https://developers.google.com/maps/documentation/places/web-service/overview"], ["SerpAPI", "https://serpapi.com/search-api"], ["Apify", "https://docs.apify.com"], ["Scrapingdog", "https://docs.scrapingdog.com"], ["ScrapingBee", "https://www.scrapingbee.com/documentation/"]],
+	platform_social: [["Graph API", "https://developers.facebook.com/docs/graph-api"], ["LinkedIn developer docs", "https://learn.microsoft.com/en-us/linkedin/"]],
+	platform_email_events: [["SendGrid event webhook", "https://www.twilio.com/docs/sendgrid"]],
+};
+
 const PLATFORM_TILES = [
     { key: "platform_ai", cat: "platform", platform: true, name: __("AI provider and model"), glyph: "cpu", color: "#0f766e",
         desc: __("The AI for every customer; customers may bring their own if you allow it"),
@@ -218,6 +242,13 @@ function social(d, platforms, onText) {
 		}
 
 		// ------------------------------------------------------------ panel
+		guides(key) {
+			const links = GUIDES[key];
+			if (!links) return "";
+			return `<section><h4>${__("Reference")}</h4><div class="sch-guides">${links.map(([label, url]) =>
+				`<a class="btn btn-default btn-sm" href="${e(url)}" target="_blank" rel="noopener">${e(label)} ↗</a>`).join("")}</div></section>`;
+		}
+
 		open(key) {
 			const d = this.data;
 			const item = key === "vendor" ? { key, name: __("System provider setup"), glyph: "shield", color: "#334155",
@@ -230,7 +261,7 @@ function social(d, platforms, onText) {
 					<div class="grow"><h3>${e(item.name)}</h3><div class="sch-desc">${e(item.desc)}</div></div>
 					${key === "vendor" ? "" : `<span class="sch-state ${state}"><i></i>${e(STATE_LABEL[state])}</span>`}
 					<button class="btn btn-default btn-xs sch-close" aria-label="${__("Close")}">${icon("close", 14)}</button></header>
-				<div class="sch-panel-body">${this.body(key, d)}</div>`);
+				<div class="sch-panel-body">${this.body(key, d)}${this.guides(key)}</div>`);
 			this.$root.find(".sch-drawer").addClass("open").attr("aria-hidden", "false");
 			panel.find(".sch-close").on("click", () => this.close());
 			this.bind(panel, key, d);
@@ -465,7 +496,7 @@ function social(d, platforms, onText) {
 						[false, __("Choose it above and save. Tick Is Default Outgoing only if it is your only account; this setting takes priority over the default.")],
 						[false, __("Paste the callback address above into Meta, with the verify token, and subscribe to messages and message_template_status_update.")],
 						[false, __("Serve the site over HTTPS, in production mode: Meta refuses webhooks otherwise.")],
-					]) + `<a class="btn btn-default btn-sm" href="https://shridarpatil.github.io/frappe_whatsapp/configuration" target="_blank" rel="noopener">${__("Full configuration guide")}</a>`)
+					]))
 					+ `<div class="sch-note small">${__("After a customer writes, you can reply freely for 24 hours; after that only an approved template can be sent.")}</div>`;
 			case "facebook":
 			case "instagram":

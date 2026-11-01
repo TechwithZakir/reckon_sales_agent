@@ -79,8 +79,15 @@ class IntegrationsPageTests(unittest.TestCase):
 
     def test_setup_guide_links_the_app_docs(self):
         js = read("reckon_sales_agent", "page", "sales_channels", "sales_channels.js")
-        self.assertIn("shridarpatil.github.io/frappe_whatsapp/configuration", js)
+        self.assertIn("shridarpatil.github.io/frappe_whatsapp/#configuration", js)
         self.assertIn("message_template_status_update", js)
+
+    def test_every_integration_panel_links_its_reference(self):
+        js = read("reckon_sales_agent", "page", "sales_channels", "sales_channels.js")
+        self.assertIn("const GUIDES = {", js)
+        for key in ("whatsapp", "facebook", "twilio", "sms", "sendgrid", "platform_meta", "platform_lead_sources"):
+            self.assertIn(f"	{key}: [[", js, key)
+        self.assertIn("${this.guides(key)}", js)
 
     def test_settings_field_exists(self):
         doc = json.loads(read("reckon_sales_agent", "doctype", "sales_agent_settings", "sales_agent_settings.json"))
