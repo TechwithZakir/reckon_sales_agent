@@ -55,6 +55,13 @@ class DockLayoutTests(unittest.TestCase):
         self.assertIn(".sin.max", css)
         self.assertIn(".sin.no-left .sin-left", css)
 
+    def test_bottom_left_dock_is_the_default(self):
+        js = (PAGE / "sales_inbox.js").read_text(encoding="utf-8")
+        self.assertIn("bl: true, folded: false", js)
+        self.assertIn('toggleClass("dock-bl", !!p.bl)', js)
+        css = (PAGE / "sales_inbox.css").read_text(encoding="utf-8")
+        self.assertIn("position: fixed; left: 16px; bottom: 16px;", css)
+
     def test_layout_is_remembered_safely(self):
         js = (PAGE / "sales_inbox.js").read_text(encoding="utf-8")
         self.assertIn("localStorage.getItem(PREFS)", js)

@@ -84,3 +84,16 @@
 	.sin.max { width: auto; margin-left: 0; }
 	.sin-msg { max-width: 92%; }
 }
+
+/* Bottom-left dock (Omni-Channel style): the conversation list floats over the bottom-left corner. */
+.sin.dock-bl { grid-template-columns: minmax(0, 1fr) var(--sin-right); }
+.sin.dock-bl.no-right { grid-template-columns: minmax(0, 1fr); }
+.sin.dock-bl .sin-left { position: fixed; left: 16px; bottom: 16px; width: 340px; max-height: 62vh; z-index: 1020;
+	box-shadow: 0 10px 30px rgba(15, 23, 42, .18); }
+.sin.dock-bl.folded .sin-left { width: 280px; max-height: none; }
+.sin.folded .sin-list > *:not(.sin-dock-head) { display: none; }
+.sin-dock-head { display: flex; align-items: center; gap: 8px; padding: 4px 6px 8px; border-bottom: 1px solid var(--sin-line); margin-bottom: 8px; }
+.sin-dock-head b { font-size: 13px; }
+.sin-dock-count { font-size: 11px; color: var(--sin-muted); margin-left: auto; }
+.sin-fold { min-width: 26px; }
+

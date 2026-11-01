@@ -27,8 +27,8 @@
 		["needs", __("Needs a person")], ["open", __("Open")], ["resolved", __("Resolved")]];
 
 	const loadPrefs = () => {
-		try { return { left: true, right: true, max: false, ...JSON.parse(localStorage.getItem(PREFS) || "{}") }; }
-		catch (err) { return { left: true, right: true, max: false }; }
+		try { return { left: true, right: true, max: false, bl: true, folded: false, ...JSON.parse(localStorage.getItem(PREFS) || "{}") }; }
+		catch (err) { return { left: true, right: true, max: false, bl: true, folded: false }; }
 	};
 
 	class Inbox {
@@ -48,6 +48,7 @@
 						<div class="sin-tools">
 							<button class="btn btn-default btn-xs" data-t="left"></button>
 							<button class="btn btn-default btn-xs" data-t="right"></button>
+							<button class="btn btn-default btn-xs" data-t="bl"></button>
 							<button class="btn btn-default btn-xs" data-t="max"></button>
 						</div>
 					</div>
@@ -74,7 +75,9 @@
 
 		apply_layout() {
 			const p = this.prefs;
-			this.$root.toggleClass("no-left", !p.left).toggleClass("no-right", !p.right).toggleClass("max", !!p.max);
+			this.$root.toggleClass("no-left", !p.left).toggleClass("no-right", !p.right).toggleClass("max", !!p.max)
+				.toggleClass("dock-bl", !!p.bl).toggleClass("folded", !!p.folded);
+			this.$root.find('[data-t="bl"]').text(p.bl ? __("Side column") : __("Dock bottom left"));
 			this.$root.find('[data-t="left"]').text(p.left ? __("Hide list") : __("Show list"));
 			this.$root.find('[data-t="right"]').text(p.right ? __("Hide details") : __("Show details"));
 			this.$root.find('[data-t="max"]').text(p.max ? __("Standard width") : __("Full width"));
@@ -136,6 +139,7 @@
 			const list = this.$root.find(".sin-list");
 			const searching = list.find(".sin-search").is(":focus");
 			list.html(`
+				<div class="sin-dock-head"><b>${__("Conversations")}</b><span class="sin-dock-count">${this.rows.filter((r) => this.matches(r, "waiting")).length} ${__("waiting")}</span><button class="btn btn-default btn-xs sin-fold" title="${this.prefs.folded ? __("Expand") : __("Fold")}">${this.prefs.folded ? "+" : "–"}</button></div>
 				<input class="form-control sin-search" placeholder="${__("Search name, phone, tag")}" value="${e(this.search)}">
 				<div class="sin-tabs">${FILTERS.map(([k, l]) => `<button data-f="${k}" class="${this.filter === k ? "on" : ""}">${e(l)} <b>${this.rows.filter((r) => this.matches(r, k)).length}</b></button>`).join("")}</div>
 				${rows.map((r) => {
@@ -152,6 +156,7 @@
 			if (searching) list.find(".sin-search").trigger("focus").get(0).setSelectionRange(this.search.length, this.search.length);
 			list.find(".sin-search").on("input", frappe.utils.debounce((ev) => { this.search = ev.target.value; this.render_list(); }, 250));
 			list.find(".sin-tabs button").on("click", (ev) => { this.filter = ev.currentTarget.dataset.f; this.render_list(); });
+			list.find(".sin-fold").on("click", () => { this.prefs.folded = !this.prefs.folded; this.save_prefs(); this.apply_layout(); this.render_list(); });
 			list.find(".sin-item").on("click", (ev) => { this.current = ev.currentTarget.dataset.p; this.render_list(); this.open(this.current); });
 		}
 
