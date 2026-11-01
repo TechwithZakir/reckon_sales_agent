@@ -127,3 +127,12 @@
 .sch-company { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--sch-muted); margin-right: 10px; }
 .sch-company select { width: auto; min-width: 180px; height: 30px; font-size: 12.5px; }
 .sch-guides { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.sch-help-box:empty { display: none; }
+.sch-help-card { margin: 0 18px; padding: 12px 14px; border-radius: 12px; background: var(--sch-soft); border: 1px solid var(--sch-line); }
+.sch-help-head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; margin-bottom: 8px; }
+.sch-help-head b { font-size: 13px; }
+.sch-help-tools { margin-left: auto; display: flex; gap: 6px; }
+.sch-spin { display: inline-block; width: 10px; height: 10px; border: 2px solid var(--sch-accent); border-right-color: transparent; border-radius: 50%; animation: sch-spin 0.8s linear infinite; vertical-align: -1px; }
+@keyframes sch-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .sch-spin { animation: none; } }

@@ -218,6 +218,7 @@ def overview() -> dict:
     return {
         "company": company,
         "is_vendor": vendor,
+        "references": _references(),
         # Vendors only: the platform's own values (secrets say whether they are set) and every Company to switch to.
         "platform": _platform_values(platform) if vendor else None,
         "companies": frappe.get_all("Sales Agent Settings", pluck="name", order_by="name asc") if vendor else [],
@@ -488,4 +489,20 @@ def _wa_accounts(company: str) -> list[dict]:
                            pluck="whatsapp_account")
     return frappe.get_all("WhatsApp Account", filters={"name": ["not in", taken or [""]]},
                           fields=["name", "account_name", "status"], order_by="name asc", limit=50)
+
+
+def _references() -> dict:
+    from reckon_sales_agent.agents.channel_guide import REFERENCES
+
+    return REFERENCES
+
+
+@frappe.whitelist()
+def guide(key: str, refresh: int = 0) -> dict:
+    """AI-guided setup help for one integration. Platform integrations are for the system provider only."""
+    from reckon_sales_agent.agents.channel_guide import PLATFORM_KEYS, build_guide
+
+    if key in PLATFORM_KEYS and not _is_vendor():
+        frappe.throw(_("Only the system provider can open this guide."), frappe.PermissionError)
+    return build_guide(current_company(), key, bool(int(refresh or 0)))
 

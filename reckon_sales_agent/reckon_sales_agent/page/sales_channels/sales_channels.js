@@ -89,30 +89,6 @@
 	];
 
 	// The system provider's tiles: shown and saved only to vendor roles (the server checks too).
-// Reference: the official help for each integration, shown at the foot of its panel.
-const GUIDES = {
-	whatsapp: [["frappe_whatsapp configuration", "https://shridarpatil.github.io/frappe_whatsapp/#configuration"], ["WhatsApp Cloud API", "https://developers.facebook.com/docs/whatsapp/cloud-api/get-started"]],
-	facebook: [["Messenger platform", "https://developers.facebook.com/docs/messenger-platform/overview"], ["Webhooks", "https://developers.facebook.com/docs/graph-api/webhooks"]],
-	instagram: [["Instagram platform", "https://developers.facebook.com/docs/instagram-platform"]],
-	meta_leads: [["Lead ads", "https://developers.facebook.com/docs/marketing-api/guides/lead-ads"]],
-	linkedin: [["LinkedIn developer docs", "https://learn.microsoft.com/en-us/linkedin/"]],
-	linkedin_leads: [["LinkedIn developer docs", "https://learn.microsoft.com/en-us/linkedin/"]],
-	twilio: [["Twilio docs", "https://www.twilio.com/docs"], ["Messaging services", "https://www.twilio.com/docs/messaging/services"]],
-	voice_ai: [["Twilio Voice", "https://www.twilio.com/docs/voice"]],
-	sms: [["Twilio SMS and RCS", "https://www.twilio.com/docs/sms"], ["BulkSMSBD", "https://www.bulksmsbd.net"], ["SSL Wireless", "https://sslwireless.com"]],
-	asterisk: [["Asterisk ARI", "https://docs.asterisk.org/Configuration/Interfaces/Asterisk-REST-Interface-ARI/"]],
-	email: [["Frappe documentation", "https://frappeframework.com/docs"]],
-	sendgrid: [["SendGrid docs", "https://www.twilio.com/docs/sendgrid"]],
-	ai: [["Anthropic docs", "https://docs.anthropic.com"], ["OpenAI docs", "https://platform.openai.com/docs"]],
-	platform_ai: [["Anthropic docs", "https://docs.anthropic.com"], ["OpenAI docs", "https://platform.openai.com/docs"], ["Ollama", "https://github.com/ollama/ollama"], ["vLLM", "https://docs.vllm.ai"]],
-	platform_meta: [["Messenger platform", "https://developers.facebook.com/docs/messenger-platform/overview"], ["Facebook Login", "https://developers.facebook.com/docs/facebook-login"], ["App review", "https://developers.facebook.com/docs/app-review"], ["Business verification", "https://www.facebook.com/business/help/2058515294227817"]],
-	platform_linkedin: [["LinkedIn developer docs", "https://learn.microsoft.com/en-us/linkedin/"]],
-	platform_transcription: [["Speech to text (OpenAI)", "https://platform.openai.com/docs/guides/speech-to-text"]],
-	platform_lead_sources: [["Brave Search API", "https://api-dashboard.search.brave.com/app/documentation"], ["Google Places API", "https://developers.google.com/maps/documentation/places/web-service/overview"], ["SerpAPI", "https://serpapi.com/search-api"], ["Apify", "https://docs.apify.com"], ["Scrapingdog", "https://docs.scrapingdog.com"], ["ScrapingBee", "https://www.scrapingbee.com/documentation/"]],
-	platform_social: [["Graph API", "https://developers.facebook.com/docs/graph-api"], ["LinkedIn developer docs", "https://learn.microsoft.com/en-us/linkedin/"]],
-	platform_email_events: [["SendGrid event webhook", "https://www.twilio.com/docs/sendgrid"]],
-};
-
 const PLATFORM_TILES = [
     { key: "platform_ai", cat: "platform", platform: true, name: __("AI provider and model"), glyph: "cpu", color: "#0f766e",
         desc: __("The AI for every customer; customers may bring their own if you allow it"),
@@ -242,8 +218,28 @@ function social(d, platforms, onText) {
 		}
 
 		// ------------------------------------------------------------ panel
+		help(p, key, refresh) {
+			const box = p.find(".sch-help-box").html(`<div class="sch-help-card"><span class="sch-spin"></span> ${__("Reading your setup…")}</div>`);
+			return this.call("guide", { key, refresh: refresh ? 1 : 0 })
+				.then((g) => this.render_help(box, g, () => this.help(p, key, true)))
+				.catch(() => box.html(`<div class="sch-help-card">${__("The guide is unavailable right now. Use the Reference links below.")}</div>`));
+		}
+
+		render_help(box, g, refresh) {
+			const title = g.source === "ai" ? __("AI guide") : __("Setup checklist");
+			box.html(`<div class="sch-help-card">
+				<div class="sch-help-head"><b>${e(title)}</b><span class="sch-muted">${e(g.summary)}</span>
+					<span class="sch-help-tools"><button class="btn btn-default btn-xs sch-help-refresh">${__("Refresh")}</button>
+					<button class="btn btn-default btn-xs sch-help-close" aria-label="${__("Close")}">×</button></span></div>
+				${this.steps(g.steps.map((st) => [st.done, `<b>${e(st.title)}</b> ${e(st.detail)}`]))}
+				${(g.watch_out || []).length ? `<div class="sch-note small">${g.watch_out.map((w) => `<div>${e(w)}</div>`).join("")}</div>` : ""}
+			</div>`);
+			box.find(".sch-help-close").on("click", () => box.empty());
+			box.find(".sch-help-refresh").on("click", refresh);
+		}
+
 		guides(key) {
-			const links = GUIDES[key];
+			const links = (this.data.references || {})[key];
 			if (!links) return "";
 			return `<section><h4>${__("Reference")}</h4><div class="sch-guides">${links.map(([label, url]) =>
 				`<a class="btn btn-default btn-sm" href="${e(url)}" target="_blank" rel="noopener">${e(label)} ↗</a>`).join("")}</div></section>`;
@@ -260,10 +256,12 @@ function social(d, platforms, onText) {
 				<header><span class="sch-logo" style="--c:${item.color}">${item.mark ? `<b>${e(item.mark)}</b>` : icon(item.glyph, 22)}</span>
 					<div class="grow"><h3>${e(item.name)}</h3><div class="sch-desc">${e(item.desc)}</div></div>
 					${key === "vendor" ? "" : `<span class="sch-state ${state}"><i></i>${e(STATE_LABEL[state])}</span>`}
+					${key === "vendor" ? "" : `<button class="btn btn-default btn-xs sch-help" title="${__("AI guide")}" aria-label="${__("AI guide")}">?</button>`}
 					<button class="btn btn-default btn-xs sch-close" aria-label="${__("Close")}">${icon("close", 14)}</button></header>
-				<div class="sch-panel-body">${this.body(key, d)}${this.guides(key)}</div>`);
+				<div class="sch-help-box"></div><div class="sch-panel-body">${this.body(key, d)}${this.guides(key)}</div>`);
 			this.$root.find(".sch-drawer").addClass("open").attr("aria-hidden", "false");
 			panel.find(".sch-close").on("click", () => this.close());
+			panel.find(".sch-help").on("click", () => this.help(panel, key, false));
 			this.bind(panel, key, d);
 		}
 
