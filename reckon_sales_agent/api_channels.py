@@ -249,6 +249,7 @@ def overview() -> dict:
         "fast": {"auto_answer": bool(settings.get("chat_auto_answer")),
                  "whatsapp": bool(settings.get("autopilot_whatsapp")),
                  "agents": settings.get("chat_agents") or "", "auto_assign": bool(settings.get("auto_assign", 1)),
+                 "call_routing": settings.get("call_routing") or "One salesperson",
                  "sla_minutes": settings.get("chat_reply_sla_minutes") or 0,
                  "comment_to_chat": bool(settings.get("comment_to_chat")),
                  "assignee": settings.get("task_assignee") or ""},
@@ -289,6 +290,8 @@ def set_fast_answers(data: str | dict) -> dict:
         doc.auto_assign = 1 if data.get("auto_assign") else 0
     if "whatsapp" in data:
         doc.autopilot_whatsapp = 1 if data.get("whatsapp") else 0
+    if data.get("call_routing") in ("One salesperson", "Share across the team"):
+        doc.call_routing = data["call_routing"]
     doc.save()
     from reckon_sales_agent.usage import log_activity
 

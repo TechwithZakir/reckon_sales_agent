@@ -377,7 +377,12 @@
 				["not_interested", __("Not interested")], ["wrong_number", __("Wrong number")]];
 			const outcomeButtons = (doctype, name) => `<div class="ags-outcomes" data-doctype="${e(doctype)}" data-task="${e(name)}">
 				${OUTCOMES.map(([k, l]) => `<button class="btn btn-default btn-xs" data-outcome="${k}">${e(l)}</button>`).join("")}</div>`;
-			const calls = (a.todos || []).map((t) => `<div class="ags-lead ags-call" data-todo="${e(t.name)}"><div class="grow"><details>
+			// A salesperson sees their own calls first; managers see the whole team (each row says whose it is).
+			if (this.onlyMine == null) this.onlyMine = !this.data.can_manage;
+			const mine = (who) => !this.onlyMine || who === a.me;
+			const todos = (a.todos || []).filter((t) => mine(t.assignee));
+			const crmTasks = (a.tasks || []).filter((t) => mine(t.assigned_to));
+			const calls = todos.map((t) => `<div class="ags-lead ags-call" data-todo="${e(t.name)}"><div class="grow"><details>
 				<summary><b>${e(t.business || t.prospect)}</b>
 					${t.phone ? ` · <a href="tel:${e(t.phone)}" title="${__("Call")}">${e(t.phone)}</a>` : ""}
 					<span class="ags-muted">${e(due(t.due_date))} · ${e(t.assignee || "")}</span></summary>
@@ -385,8 +390,8 @@
 				${t.is_call && this.data.office_phone && t.phone ? `<button class="btn btn-xs btn-default ags-dial" data-p="${e(t.prospect)}">${__("Call via office phone")}</button>` : ""}
 				${t.is_call ? outcomeButtons("ToDo", t.name) : ""}</div>
 				${t.is_call ? "" : `<button class="btn btn-default btn-xs ags-done">${__("Mark done")}</button>`}</div>`).join("");
-			const tasks = (a.tasks || []).map((t) => `<div class="ags-lead ags-call"><div class="grow"><b>${e(t.title)}</b>
-				<div class="ags-muted">${e(t.business || "")}${e(due(t.due_date))}</div>
+			const tasks = crmTasks.map((t) => `<div class="ags-lead ags-call"><div class="grow"><b>${e(t.title)}</b>
+				<div class="ags-muted">${e(t.business || "")}${e(due(t.due_date))}${t.assigned_to ? " · " + e(t.assigned_to) : ""}</div>
 				${t.is_call ? outcomeButtons("CRM Task", t.name) : ""}</div>
 				<a class="btn btn-default btn-xs" href="/crm/leads/${encodeURIComponent(t.reference_docname)}">${__("Open in CRM")}</a></div>`).join("");
 			// Power dialer: ring the next due call, and after each outcome the one after (within calling hours).
@@ -396,7 +401,9 @@
 						<button class="btn btn-default btn-xs ags-stop">${__("Stop calling")}</button>`
 					: `<button class="btn btn-primary btn-xs ags-start">${__("Start calling")}</button>
 						<span class="ags-muted">${__("Rings your phone for each due call in turn; log the outcome to move on.")}</span>`}</div>` : "";
-			body.html(dialer + (calls + tasks || `<div class="ags-muted">${__("Open your ToDo list to see them.")}</div>`));
+			const toggle = `<label class="ags-check ags-mine"><input type="checkbox" ${this.onlyMine ? "checked" : ""}> ${__("Only my calls and follow-ups")}</label>`;
+			body.html(toggle + dialer + (calls + tasks || `<div class="ags-muted">${this.onlyMine ? __("Nothing assigned to you right now.") : __("Open your ToDo list to see them.")}</div>`));
+			body.find(".ags-mine input").on("change", (ev) => { this.onlyMine = ev.currentTarget.checked; this.inboxKey = null; this.render_inbox(this.data); });
 			if (this.dialing) body.find(`.ags-call[data-todo="${CSS.escape(this.dialing.todo)}"]`).addClass("ags-active").find("details").attr("open", true);
 			body.find(".ags-start").on("click", () => this.dial_next());
 			body.find(".ags-stop").on("click", () => { this.dialing = null; this.inboxKey = null; this.refresh(); });

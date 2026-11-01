@@ -67,6 +67,11 @@ def run() -> None:
         api_conversations.tag(prospect, "vip")
         api_conversations.set_mode(prospect, "Suggest only")
         assert "vip" in api_conversations.thread(prospect)["conversation"]["tags"]
+        from reckon_sales_agent.agents.ownership import owner_for, reassign
+
+        reassign(company, prospect, "Administrator")  # the whole lead follows its owner
+        assert frappe.db.get_value("Sales Prospect", prospect, "sales_owner") == "Administrator"
+        assert owner_for(prospect) == "Administrator"
         from reckon_sales_agent.agents.omni import compose
 
         # The CI Company has no subscription, so the approved reply waits ("Approved") instead of a dry run.

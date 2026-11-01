@@ -85,9 +85,16 @@ def touch_inbound(company: str, prospect: str, channel: str, at=None) -> str:
         updates["resolved_on"] = None
     settings = get_settings(company)
     if not doc.assigned_to and settings.get("auto_assign", 1):
+        from reckon_sales_agent.agents.ownership import owner_for, set_owner
+
+        # The lead's owner answers its chats too; a lead with none goes to the least-busy team member.
+        owner = owner_for(prospect, settings, fallback=False, sticky_only=True)
         agents = parse_agents(settings.get("chat_agents"))
-        if agents:
-            updates["assigned_to"] = pick_agent(agents, _open_counts(company, agents))
+        if not owner and agents:
+            owner = pick_agent(agents, _open_counts(company, agents))
+        if owner:
+            updates["assigned_to"] = owner
+            set_owner(prospect, owner)
     doc.db_set(updates)
     if updates.get("assigned_to"):
         notify(doc, updates["assigned_to"], f"New conversation on {channel}: {doc.title}")
@@ -120,9 +127,15 @@ def handoff(company: str, prospect: str, reason: str) -> None:
     doc = get(company, prospect)
     owner = doc.assigned_to
     if not owner:
+        from reckon_sales_agent.agents.ownership import owner_for, set_owner
+
         settings = get_settings(company)
+        owner = owner_for(prospect, settings, fallback=False, sticky_only=True)
         agents = parse_agents(settings.get("chat_agents"))
-        owner = pick_agent(agents, _open_counts(company, agents)) if agents else settings.get("task_assignee")
+        if not owner and agents:
+            owner = pick_agent(agents, _open_counts(company, agents))
+        if owner:
+            set_owner(prospect, owner)
     doc.db_set({"handoff_reason": reason[:500], "assigned_to": owner, "status": "Open"})
     add_tag(doc.name, NEEDS_HUMAN)
     if owner:

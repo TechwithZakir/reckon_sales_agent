@@ -63,9 +63,13 @@ def assign(prospect: str, user: str | None = None) -> dict:
     doc, convo = _convo(prospect)
     if user and user not in {a["user"] for a in agents_for(doc.company)}:
         frappe.throw(_("{0} is not one of this Company's users.").format(user))
+    from reckon_sales_agent.agents.ownership import reassign
+
     convo.db_set("assigned_to", user or None)
+    moved = reassign(doc.company, doc.name, user)  # the whole lead follows: tasks, CRM lead, owner
     if user and user != frappe.session.user:
-        notify(convo, user, f"{frappe.session.user} gave you the conversation with {convo.title}")
+        notify(convo, user, f"{frappe.session.user} gave you {convo.title}"
+                            + (f" with {moved} open task(s)" if moved else ""))
     return thread(prospect)
 
 

@@ -82,7 +82,9 @@ class WiringTests(unittest.TestCase):
         self.assertLess(task.index("_contact_line(prospect_name)"), task.index("return _todo("))
         self.assertIn("_assignee(prospect_name, settings)", task)
         self.assertIn("_assignee(prospect_name, settings)", channels.split("def _todo(")[1])
-        self.assertIn('settings.get("task_assignee")', channels.split("def _assignee(")[1].split("\ndef ")[0])
+        self.assertIn("owner_for(prospect_name, settings)", channels.split("def _assignee(")[1].split("\ndef ")[0])
+        # The named salesperson still owns a lead when no team routing or earlier owner applies.
+        self.assertIn('settings.get("task_assignee")', self.read("agents", "ownership.py").split("def owner_for(")[1])
         api = self.read("api_agent_studio.py")
         self.assertIn('item["todos"]', api)
         done = api.split('if action == "task_done":')[1].split("if action ==")[0]

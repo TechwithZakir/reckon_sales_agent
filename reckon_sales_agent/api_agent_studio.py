@@ -195,12 +195,13 @@ def _detail(company: str, step) -> dict:
         item["tasks"] = [{**task, "business": names.get(task.reference_docname)} for task in frappe.get_all(
             "CRM Task", filters={"reference_doctype": "CRM Lead", "reference_docname": ["in", list(names) or [""]],
                                  "status": ["in", ["Backlog", "Todo", "In Progress"]]},
-            fields=["name", "title", "priority", "due_date", "reference_docname"], limit=10)]
+            fields=["name", "title", "priority", "due_date", "reference_docname", "assigned_to"], limit=30)]
+        item["me"] = frappe.session.user
         # Calls for leads not yet in the CRM are ToDos on the prospect (live test: they were not listed).
         todos = frappe.get_all("ToDo", filters={"reference_type": "Sales Prospect", "status": "Open",
                                                 "rsa_company": company},
                                fields=["name", "description", "date", "reference_name", "allocated_to"],
-                               order_by="date asc", limit=15)
+                               order_by="date asc", limit=40)
         prospects = {row.name: row for row in frappe.get_all(
             "Sales Prospect", filters={"name": ["in", [t.reference_name for t in todos] or [""]]},
             fields=["name", "business_name", "phone"])}

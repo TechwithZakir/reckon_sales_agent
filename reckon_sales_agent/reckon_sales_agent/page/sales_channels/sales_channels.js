@@ -258,7 +258,9 @@
 						<label class="sch-switch"><input type="checkbox" class="sch-wa" ${d.fast.whatsapp ? "checked" : ""}><span></span>${__("Also answer WhatsApp (inside the 24-hour window)")}</label>
 						<label class="sch-switch"><input type="checkbox" class="sch-comments" ${d.fast.comment_to_chat ? "checked" : ""}><span></span>${__("Answer buying comments on our posts with one private message")}</label></div>`)
 					+ this.section(__("Your team"), `<div class="sch-fields">
-						<label>${__("People who answer conversations (one email per line)")}<textarea class="form-control sch-agents" rows="3" placeholder="sales1@yourcompany.com">${e(d.fast.agents)}</textarea></label>
+						<label>${__("Sales team (one email per line)")}<textarea class="form-control sch-agents" rows="3" placeholder="sales1@yourcompany.com">${e(d.fast.agents)}</textarea>
+							<small>${__("They answer conversations; each lead keeps one owner across its calls, follow-ups and chats.")}</small></label>
+						<label>${__("Calls and follow-ups go to")}<select class="form-control sch-routing">${["One salesperson", "Share across the team"].map((o) => `<option ${o === d.fast.call_routing ? "selected" : ""} value="${e(o)}">${e(o === "One salesperson" ? __("One salesperson (named in Get started)") : __("Share across the sales team (least busy first)"))}</option>`).join("")}</select></label>
 						<label class="sch-switch"><input type="checkbox" class="sch-assign" ${d.fast.auto_assign ? "checked" : ""}><span></span>${__("Share new conversations automatically (fewest open first)")}</label>
 						<label>${__("Remind {0} when a chat waits longer than (minutes, 0 = off)", [e(d.fast.assignee || __("the salesperson"))])}<input type="number" class="form-control sch-sla" min="0" max="1440" value="${e(d.fast.sla_minutes)}"></label>
 						${d.can_manage ? `<div class="sch-actions"><button class="btn btn-primary btn-sm sch-fast-save">${__("Save")}</button></div>` : ""}</div>`);
@@ -382,6 +384,7 @@
 				auto_answer: p.find(".sch-auto").is(":checked") ? 1 : 0, comment_to_chat: p.find(".sch-comments").is(":checked") ? 1 : 0,
 				sla_minutes: Number(p.find(".sch-sla").val() || 0), whatsapp: p.find(".sch-wa").is(":checked") ? 1 : 0,
 				agents: p.find(".sch-agents").val(), auto_assign: p.find(".sch-assign").is(":checked") ? 1 : 0,
+				call_routing: p.find(".sch-routing").val(),
 			}) }).then((r) => this.refresh(r, __("Saved"))));
 			p.find(".sch-token").on("click", () => frappe.confirm(__("Make a new verify token? The old one stops working in the Meta app."),
 				() => this.call("new_verify_token").then((token) => frappe.msgprint({ title: __("Paste this into the Meta app's webhook settings"),

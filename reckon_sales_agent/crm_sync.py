@@ -80,6 +80,8 @@ def sync_to_crm(prospect) -> str | None:
     if lead_name and not prospect.crm_lead:
         fill_empty_lead_fields(lead_name, data)  # same business already in the CRM: link, never duplicate
     if not lead_name:
+        from reckon_sales_agent.agents.ownership import owner_for
+
         lead = frappe.get_doc({
             "doctype": "CRM Lead",
             "first_name": data["business_name"][:140],
@@ -90,6 +92,7 @@ def sync_to_crm(prospect) -> str | None:
             "status": _default_lead_status(),
             "source": LEAD_SOURCE if frappe.db.exists("CRM Lead Source", LEAD_SOURCE) else None,
             "rsa_company": prospect.company,
+            "lead_owner": owner_for(prospect.name, fallback=False),
         })
         lead.insert()
         lead_name = lead.name

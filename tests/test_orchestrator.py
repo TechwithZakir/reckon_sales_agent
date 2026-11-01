@@ -255,7 +255,8 @@ class WiringTests(unittest.TestCase):
     def test_a_task_always_has_someone(self):
         channels = self.read("providers", "channels.py")
         task = channels.split("def create_task(")[1].split("\ndef ")[0]
-        self.assertIn('or _assignee(prospect_name, settings)', task)  # the named salesperson, else the finder
+        self.assertIn('owner = _assignee(prospect_name, settings)', task)  # the lead's owner (agents/ownership.py)
+        self.assertIn('or _finder(prospect_name)', channels.split("def _assignee(")[1].split("\ndef ")[0])  # never nobody
 
 
 if __name__ == "__main__":

@@ -149,8 +149,8 @@ def create_task(prospect_name: str, title: str, description: str, settings, prio
     lead = frappe.db.get_value("Sales Prospect", prospect_name, "crm_lead") or _sync_approved(prospect_name)
     if not lead:
         return _todo(prospect_name, title, description, settings, priority)
-    # Live test: a lead without an owner left the task unassigned; the Company's task owner or the finder takes it.
-    owner = frappe.db.get_value("CRM Lead", lead, "lead_owner") or _assignee(prospect_name, settings)
+    # Live test: a lead without an owner left the task unassigned; the lead's owner takes it (CRM owner first).
+    owner = _assignee(prospect_name, settings)
     task = frappe.get_doc({
         "doctype": "CRM Task",
         "title": title[:140],
@@ -183,11 +183,10 @@ def _finder(prospect_name: str) -> str:
 
 
 def _assignee(prospect_name: str, settings) -> str:
-    """The salesperson the Company named for tasks, else whoever found the prospect."""
-    named = settings.get("task_assignee")
-    if named and frappe.db.get_value("User", named, "enabled"):
-        return named
-    return _finder(prospect_name)
+    """The lead's owner (one person across its calls, follow-ups and chats; see agents/ownership.py)."""
+    from reckon_sales_agent.agents.ownership import owner_for
+
+    return owner_for(prospect_name, settings) or _finder(prospect_name)
 
 
 def _contact_line(prospect_name: str) -> str:

@@ -4,7 +4,7 @@
  "module": "Reckon Sales Agent",
  "owner": "Administrator",
  "creation": "2026-10-19 12:00:00.000000",
- "modified": "2026-10-28 14:00:00.000000",
+ "modified": "2026-11-01 10:00:00.000000",
  "modified_by": "Administrator",
  "custom": 0,
  "engine": "InnoDB",
@@ -82,6 +82,7 @@
   "crm_section",
   "crm_organization",
   "crm_lead",
+  "sales_owner",
   "crm_col",
   "do_not_contact",
   "review_notes",
@@ -504,6 +505,13 @@
    "label": "CRM Lead",
    "options": "CRM Lead",
    "read_only": 1
+  },
+  {
+   "fieldname": "sales_owner",
+   "fieldtype": "Link",
+   "options": "User",
+   "label": "Lead owner",
+   "description": "The salesperson who owns this lead: its calls, follow-ups, conversation and CRM lead."
   },
   {
    "fieldname": "crm_col",
