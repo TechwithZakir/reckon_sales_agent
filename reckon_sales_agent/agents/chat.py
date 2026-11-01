@@ -27,7 +27,7 @@ from datetime import datetime, timedelta
 CHAT_CHANNELS = ("Messenger", "Instagram", "Web Chat")
 META_CHANNELS = {"page": "Messenger", "instagram": "Instagram"}
 ACCOUNT_PLATFORM = {"Messenger": "Facebook Page", "Instagram": "Instagram"}
-SOURCE_TYPES = {"Messenger": "messenger", "Instagram": "instagram", "Web Chat": "web_chat", "SMS": "sms", "Voice": "voice"}
+SOURCE_TYPES = {"Messenger": "messenger", "Instagram": "instagram", "Web Chat": "web_chat", "SMS": "sms", "Voice": "voice", "WhatsApp": "whatsapp"}
 WINDOW = timedelta(hours=24)  # Meta's standard messaging window
 COMMENT_WINDOW = timedelta(days=7)  # Meta: one private reply per comment, within 7 days
 COMMENT = "comment:"  # recipient prefix for a private reply to a comment

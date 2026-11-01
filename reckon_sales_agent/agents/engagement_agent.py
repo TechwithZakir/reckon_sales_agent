@@ -153,12 +153,13 @@ def handle_communication_status(doc, method=None) -> None:
                        "message": doc.reference_name})
 
 
-def record_whatsapp_inbound(phone: str) -> None:
+def record_whatsapp_inbound(phone: str, company: str | None = None) -> None:
     """The customer wrote on WhatsApp: the 24-hour service window opens for every prospect with this number."""
     from reckon_sales_agent.discovery.normalize import normalize_phone
 
     normalized = normalize_phone(phone)
     if not normalized:
         return
-    for name in frappe.get_all("Sales Prospect", filters={"normalized_phone": normalized}, pluck="name", limit=50):
+    filters = {"normalized_phone": normalized, **({"company": company} if company else {})}
+    for name in frappe.get_all("Sales Prospect", filters=filters, pluck="name", limit=50):
         frappe.db.set_value("Sales Prospect", name, "whatsapp_last_inbound", now_datetime(), update_modified=False)

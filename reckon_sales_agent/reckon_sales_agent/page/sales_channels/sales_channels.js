@@ -52,7 +52,7 @@
 			state: (d) => d.webchat.enabled ? ["on", __("{0} chats", [d.counts["Web Chat"]])] : ["off", __("Off")] },
 		{ key: "whatsapp", cat: "messaging", name: "WhatsApp", glyph: "whatsapp", color: "#16a34a",
 			desc: __("WhatsApp Business Cloud API: replies, templates, opt-ins"),
-			state: (d) => !d.whatsapp.installed ? ["na", __("App not installed")] : d.whatsapp.enabled ? ["on", __("On")] : ["off", __("Off")] },
+			state: (d) => !d.whatsapp.installed ? ["na", __("App not installed")] : d.whatsapp.enabled && d.whatsapp.account ? ["on", d.whatsapp.account] : d.whatsapp.enabled ? ["warn", __("Choose an account")] : ["off", __("Off")] },
 		{ key: "facebook", cat: "social", name: __("Facebook & Messenger"), mark: "f", color: "#1877f2",
 			desc: __("Pages: approved posts, Messenger chats, buying comments"),
 			state: (d) => social(d, ["Facebook Page"]) },
@@ -449,10 +449,17 @@ function social(d, platforms, onText) {
 					+ (d.webchat.enabled && d.webchat.key ? this.section(__("Install on your website"), `<p class="sch-muted">${__("Paste before </body> on every page:")}</p>
 						${this.copy_row(__("Script tag"), `<script src="${d.webchat.script}" data-site="${d.webchat.site}" data-key="${d.webchat.key}" defer><\/script>`)}`) : "");
 			case "whatsapp":
-				return d.whatsapp.installed
-					? this.section(__("Settings"), this.fields([{ f: "whatsapp_enabled", type: "check", label: __("Send and receive WhatsApp messages") }]))
-						+ `<div class="sch-note small">${__("Messages from leads open a conversation. Replies within 24 hours are free-form; later ones need an approved template. WhatsApp accounts are set up in the Frappe WhatsApp app.")}</div>`
-					: `<div class="sch-note small">${__("Ask your system provider to install the Frappe WhatsApp app (official WhatsApp Business Cloud API).")}</div>`;
+				if (!d.whatsapp.installed) return `<div class="sch-note small">${__("Install the Frappe WhatsApp app (frappe_whatsapp) on this site to use WhatsApp.")}</div>`;
+				return this.section(__("Account"), this.fields([
+					{ f: "whatsapp_enabled", type: "check", label: __("Send and receive WhatsApp messages") },
+					{ f: "whatsapp_account", type: "select", label: __("WhatsApp account"), options: ["", ...d.whatsapp.accounts.map((a) => a.name)] },
+				]))
+					+ this.section(__("Accounts available to you"), d.whatsapp.accounts.length
+						? d.whatsapp.accounts.map((a) => `<div class="sch-kv"><span>${e(a.account_name || a.name)}</span><b>${e(a.status || "")}</b></div>`).join("")
+						: `<div class="sch-muted">${__("No WhatsApp account is free for this Company. Add one in the WhatsApp Account list, with its phone number ID and token.")}</div>`)
+					+ this.section(__("Paste into Meta: WhatsApp, Configuration"), this.copy_row(__("Webhook callback URL"), d.whatsapp.webhook)
+						+ `<div class="sch-note small">${__("The verify token is on the WhatsApp Account (Webhook Verify Token).")}</div>`)
+					+ `<div class="sch-note small">${__("After a customer writes, you can reply freely for 24 hours; after that only an approved template can be sent.")}</div>`;
 			case "facebook":
 			case "instagram":
 				return this.section(__("Connect"), this.steps([[d.meta_ready, __("Your system provider set up the Meta app")],

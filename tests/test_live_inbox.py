@@ -20,7 +20,7 @@ class LiveUpdateTests(unittest.TestCase):
         self.assertEqual(EVENT, "rsa_inbox")
         self.assertIn("notify_inbox(company, prospect.name)", read("agents", "chat.py"))
         self.assertIn("notify_inbox(message.company, message.prospect)", read("campaigns", "engine.py"))
-        self.assertIn("notify_inbox(prospect.company, prospect.name)", read("campaigns", "engine.py"))
+        self.assertIn('receive_chat(company, "WhatsApp"', read("campaigns", "engine.py"))  # notifies via the chat path
         omni = read("agents", "omni.py")
         self.assertGreaterEqual(omni.count("notify_inbox(company, prospect.name)"), 3)
         api = read("api_conversations.py")

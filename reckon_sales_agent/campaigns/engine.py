@@ -464,49 +464,59 @@ def handle_communication(doc, method=None) -> None:
 
 
 def handle_whatsapp(doc, method=None) -> None:
-    """``WhatsApp Message.after_insert`` (frappe_whatsapp): an inbound WhatsApp reply."""
+    """``WhatsApp Message.after_insert`` (frappe_whatsapp): an inbound WhatsApp message on a Company's account.
+
+    The account decides the Company (Sales Agent Settings → WhatsApp account), so a message is never filed under
+    another tenant. A reply to a running sequence answers that sequence; anything else opens or continues the
+    lead's conversation in Conversations, like a Messenger or website chat message.
+    """
     if doc.get("type") != "Incoming":
         return
+    company = _account_company(doc.get("whatsapp_account"))
     phone = normalize_phone(doc.get("from"))
-    if not phone:
+    if not company or not phone:
         return
     from reckon_sales_agent.agents.engagement_agent import record_whatsapp_inbound
 
-    record_whatsapp_inbound(phone)
-    member = frappe.db.get_value("Sales Campaign Member", {"phone": ["in", [phone, phone.lstrip("+")]],
+    record_whatsapp_inbound(phone, company)
+    member = frappe.db.get_value("Sales Campaign Member", {"company": company, "phone": ["in", [phone, phone.lstrip("+")]],
                                                            "status": "Active"}, "name", order_by="modified desc")
-    if not member:
-        _whatsapp_conversation(phone, doc)  # not in a running sequence: it still opens a conversation
-        return
-    message = frappe.db.get_value("Sales Outreach Message", {"member": member, "channel": "WhatsApp"},
-                                  "name", order_by="creation desc")
+    message = frappe.db.get_value("Sales Outreach Message", {"member": member, "channel": "WhatsApp"}, "name",
+                                  order_by="creation desc") if member else None
     if message:
         receive_reply(message, doc.get("message") or "", f"whatsapp:{doc.name}", "WhatsApp")
+        return
+    _whatsapp_conversation(company, phone, doc)
 
 
-def _whatsapp_conversation(phone: str, doc) -> None:
-    """A WhatsApp message from a known lead outside any sequence becomes a thread in Conversations."""
-    prospect = frappe.db.get_value("Sales Prospect", {"phone": ["in", [phone, phone.lstrip("+")]],
-                                                      "merged_into": ["is", "not set"]},
-                                   ["name", "company"], as_dict=True, order_by="modified desc")
+def _account_company(account: str | None) -> str | None:
+    """The Company that uses this WhatsApp account (one Company per account)."""
+    if not account:
+        return None
+    return frappe.db.get_value("Sales Agent Settings", {"whatsapp_account": account}, "name")
+
+
+def _whatsapp_conversation(company: str, phone: str, doc) -> None:
+    """A WhatsApp message outside any sequence: it joins the lead's conversation like a chat message."""
+    from reckon_sales_agent.agents.chat import receive_chat
+    from reckon_sales_agent.agents.engagement_agent import record_whatsapp_inbound
+
+    text = (doc.get("message") or "").strip()
+    if doc.get("attach"):
+        text = f"{text}\n[attachment: {doc.attach}]".strip()
+    name = receive_chat(company, "WhatsApp", doc.get("whatsapp_account") or "whatsapp", phone, text or "[message]",
+                        f"wa:{doc.get('message_id') or doc.name}"[:140], at=doc.get("creation"),
+                        contact_name=doc.get("profile_name") or None, phone=phone)
+    prospect = frappe.db.get_value("Sales Chat Message", name, "prospect") if name else None
     if not prospect:
         return
-    from reckon_sales_agent.agents.omni import conversations_campaign, member_for
-
-    campaign = conversations_campaign(prospect.company)
-    frappe.get_doc({
-        "doctype": "Sales Communication Event", "company": prospect.company, "event_type": "received",
-        "campaign": campaign, "member": member_for(prospect.company, campaign, frappe.get_doc("Sales Prospect", prospect.name)),
-        "channel": "WhatsApp", "event_time": now_datetime(), "idempotency_key": f"received:whatsapp:{doc.name}"[:140],
-        "detail": (doc.get("message") or "")[:500],
-    }).insert(ignore_permissions=True)
-    from reckon_sales_agent.agents.conversations import touch_inbound
-
-    touch_inbound(prospect.company, prospect.name, "WhatsApp")
-    from reckon_sales_agent.agents.inbox_events import notify_inbox
-    notify_inbox(prospect.company, prospect.name)
-    frappe.enqueue("reckon_sales_agent.agents.chat.auto_draft", queue="short", prospect=prospect.name,
-                   job_id=f"chat-draft:{prospect.name}", deduplicate=True, enqueue_after_commit=True)
+    # They wrote first: that is consent to answer on WhatsApp, and it opens the 24-hour window.
+    frappe.db.set_value("Sales Prospect", prospect, "whatsapp_consent", 1, update_modified=False)
+    if not frappe.db.get_value("Sales Prospect", prospect, "consent_source"):
+        frappe.db.set_value("Sales Prospect", prospect, "consent_source", "Wrote to us on WhatsApp", update_modified=False)
+    record_whatsapp_inbound(phone, company)
+    frappe.enqueue("reckon_sales_agent.agents.chat.auto_draft", queue="short", prospect=prospect,
+                   job_id=f"chat-draft:{prospect}", deduplicate=True, enqueue_after_commit=True)
 
 
 def receive_reply(message_name: str, text: str, source_key: str, channel: str) -> None:

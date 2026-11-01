@@ -35,6 +35,7 @@ def thread(prospect: str) -> dict:
         "channels": reply_channels(doc.name),
         "agents": agents_for(doc.company),
         "me": frappe.session.user,
+        "wa_templates": _wa_templates(doc.company),
     }
 
 
@@ -110,14 +111,14 @@ def tag(prospect: str, tag: str, remove: int = 0) -> dict:
 
 
 @frappe.whitelist(methods=["POST"])
-def send(prospect: str, channel: str, text: str) -> str:
+def send(prospect: str, channel: str, text: str, template: str | None = None) -> str:
     """A person's own reply on the chosen channel, sent now."""
     from reckon_sales_agent.agents.omni import compose
     from reckon_sales_agent.usage import assert_entitled
 
     doc = get_tenant_doc("Sales Prospect", prospect, "write")
     assert_entitled(doc.company)
-    return compose(doc.name, channel, text[:3000])
+    return compose(doc.name, channel, text[:3000], template)
 
 
 @frappe.whitelist()
@@ -163,4 +164,17 @@ def _changed(prospect: str) -> dict:
 
     notify_inbox(frappe.db.get_value("Sales Prospect", prospect, "company"), prospect)
     return thread(prospect)
+
+
+def _wa_templates(company: str) -> list[dict]:
+    """The WhatsApp templates Meta approved for this Company's account (frappe_whatsapp)."""
+    from reckon_sales_agent.usage import get_settings
+
+    if "frappe_whatsapp" not in frappe.get_installed_apps() or not frappe.db.exists("DocType", "WhatsApp Templates"):
+        return []
+    filters = {"status": ["in", ["APPROVED", "Approved"]]}
+    account = get_settings(company).get("whatsapp_account")
+    if account:
+        filters["whatsapp_account"] = account
+    return frappe.get_all("WhatsApp Templates", filters=filters, fields=["name", "template_name", "language"], limit=200)
 

@@ -108,6 +108,7 @@
   "sms_account",
   "sms_sender_id",
   "whatsapp_enabled",
+  "whatsapp_account",
   "limits_section",
   "monthly_discovery_limit",
   "monthly_research_limit",
@@ -713,6 +714,13 @@
    "label": "WhatsApp Business",
    "default": "0",
    "description": "Needs the frappe_whatsapp app and recorded WhatsApp opt-in."
+  },
+  {
+   "fieldname": "whatsapp_account",
+   "fieldtype": "Data",
+   "label": "WhatsApp account",
+   "depends_on": "whatsapp_enabled",
+   "description": "The account from the Frappe WhatsApp app this Company sends and receives on."
   },
   {
    "fieldname": "limits_section",

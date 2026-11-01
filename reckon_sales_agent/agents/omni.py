@@ -166,10 +166,11 @@ def timeline(prospect_name: str, limit: int = 40) -> list[dict]:
     if "frappe_whatsapp" in frappe.get_installed_apps():
         phone = frappe.db.get_value("Sales Prospect", prospect_name, "phone")
         if phone:
-            for w in frappe.get_all("WhatsApp Message", filters={"type": "Incoming",
-                                                                  "from": ["in", [phone, phone.lstrip("+")]]},
+            # Typed in WhatsApp directly (not by a sequence): the incoming ones are chat messages already.
+            for w in frappe.get_all("WhatsApp Message", filters={"type": "Outgoing", "reference_doctype": ["is", "not set"],
+                                                                  "to": ["in", [phone, phone.lstrip("+")]]},
                                     fields=["name", "message", "creation"], limit=100):
-                items.append({"at": w.creation, "direction": "in", "channel": "WhatsApp", "status": "Received",
+                items.append({"at": w.creation, "direction": "out", "channel": "WhatsApp", "status": "Sent",
                               "subject": "", "text": (w.message or "")[:1500], "ref": w.name})
     for c in frappe.get_all("Sales Chat Message", filters={"prospect": prospect_name, "direction": "In"},
                             fields=["name", "channel", "text", "sent_at", "kind"], limit=200):
@@ -356,7 +357,7 @@ def draft_reply(prospect_name: str, reason: str = "", instruction: str = "", all
 
 
 def reply_channels(prospect_name: str) -> list[dict]:
-    """Where a person can answer this lead now: [{channel, ok, reason}], the lead's latest chat channel first."""
+    """Where a person can answer this lead now: [{channel, ok, reason, window_closed}], the lead's latest channel first."""
     import frappe
     from frappe.utils import now_datetime
 
@@ -368,24 +369,24 @@ def reply_channels(prospect_name: str) -> list[dict]:
     prospect = frappe.get_doc("Sales Prospect", prospect_name)
     settings = get_settings(prospect.company)
     chat = last_chat(prospect_name)
-    order = ([chat["channel"]] if chat and chat["channel"] in CHAT_CHANNELS + ("SMS",) else []) + [
-        "WhatsApp", "Email", "SMS", "Messenger", "Instagram", "Web Chat"]
+    latest = [chat["channel"]] if chat and chat["channel"] in CHAT_CHANNELS + ("SMS", "WhatsApp") else []
     out = []
-    for channel in dict.fromkeys(order):
+    for channel in dict.fromkeys(latest + ["WhatsApp", "Email", "SMS", "Messenger", "Instagram", "Web Chat"]):
         ok, reason, _recipient = reachability(channel, prospect, settings)
-        if ok and channel == "WhatsApp" and not within_service_window(prospect.get("whatsapp_last_inbound"),
-                                                                       now_datetime()):
-            ok, reason = False, "Outside WhatsApp's 24-hour window: use an approved template."
-        if channel in CHAT_CHANNELS and not frappe.db.exists("Sales Chat Message", {"prospect": prospect_name,
-                                                                                    "channel": channel}):
+        closed = False
+        if ok and channel == "WhatsApp" and not within_service_window(prospect.get("whatsapp_last_inbound"), now_datetime()):
+            ok, reason, closed = False, "Outside WhatsApp's 24-hour window: send an approved template.", True
+        if channel in CHAT_CHANNELS and not frappe.db.exists("Sales Chat Message", {"prospect": prospect_name, "channel": channel}):
             continue  # never offered unless they wrote there
-        out.append({"channel": channel, "ok": bool(ok), "reason": reason})
+        out.append({"channel": channel, "ok": bool(ok), "reason": reason, "window_closed": closed})
     return out
 
 
-def compose(prospect_name: str, channel: str, text: str) -> str:
-    """A person's own reply: approved by them and sent now (dry run while sending is off). The conversation
-    switches to Human only so the AI does not answer over them."""
+def compose(prospect_name: str, channel: str, text: str, template: str | None = None) -> str:
+    """A person's own reply (or an approved WhatsApp template): approved by them and sent now.
+
+    Dry run while sending is off. The conversation switches to Human only so the AI does not answer over them.
+    """
     import frappe
     from frappe import _
     from frappe.utils import get_url
@@ -398,15 +399,16 @@ def compose(prospect_name: str, channel: str, text: str) -> str:
     from reckon_sales_agent.usage import get_settings, log_activity
 
     text = (text or "").strip()
-    if not text:
+    if not text and not template:
         frappe.throw(_("Write a message."))
     prospect = frappe.get_doc("Sales Prospect", prospect_name)
     if prospect.do_not_contact:
         frappe.throw(_("This lead asked not to be contacted."))
     options = {o["channel"]: o for o in reply_channels(prospect_name)}
-    if channel not in options or not options[channel]["ok"]:
-        frappe.throw(_("You cannot reply on {0} now: {1}").format(channel, (options.get(channel) or {}).get(
-            "reason", _("not available"))))
+    option = options.get(channel)
+    template_ok = bool(template) and channel == "WhatsApp" and bool(option) and option["window_closed"]
+    if not option or not (option["ok"] or template_ok):
+        frappe.throw(_("You cannot reply on {0} now: {1}").format(channel, (option or {}).get("reason", _("not available"))))
     company = prospect.company
     settings = get_settings(company)
     campaign = conversations_campaign(company)
@@ -415,7 +417,7 @@ def compose(prospect_name: str, channel: str, text: str) -> str:
     _ok, _why, recipient = reachability(channel, prospect, settings)
     if chat and chat["channel"] == channel:
         recipient = chat["recipient"]
-    html = text_to_html(frappe.utils.escape_html(text[:3000]))
+    html = text_to_html(frappe.utils.escape_html(text[:3000])) if text else frappe.utils.escape_html(template or "")
     if channel == "Email":
         token = frappe.db.get_value("Sales Campaign Member", member, "unsubscribe_token")
         sender = settings.sender_name or company
@@ -426,6 +428,7 @@ def compose(prospect_name: str, channel: str, text: str) -> str:
         "prospect": prospect.name, "step_no": 0, "channel": channel, "recipient": recipient,
         "subject": f"Re: {prospect.business_name}"[:140] if channel == "Email" else f"Reply: {prospect.business_name}"[:140],
         "body": html, "ai_generated": 0, "is_reply": 1, "status": "Draft",
+        "whatsapp_template": template if channel == "WhatsApp" else None,
         "idempotency_key": f"human:{prospect.name}:{frappe.generate_hash(length=8)}",
     }).insert(ignore_permissions=True)
     record_event(message, "drafted", f"draft:{message.name}", detail="written by a person")
@@ -436,8 +439,8 @@ def compose(prospect_name: str, channel: str, text: str) -> str:
         convo.db_set("ai_mode", "Human only")  # a person took over: the AI stops answering here
     if not convo.assigned_to:
         convo.db_set("assigned_to", frappe.session.user)
-    log_activity(company, "reply_sent_by_person", message, f"{channel}: {text[:200]}", agent="Conversations")
+    log_activity(company, "reply_sent_by_person", message, f"{channel}: {(text or template or '')[:200]}", agent="Conversations")
     from reckon_sales_agent.agents.inbox_events import notify_inbox
+
     notify_inbox(company, prospect.name)
     return frappe.db.get_value("Sales Outreach Message", message.name, "status")
-

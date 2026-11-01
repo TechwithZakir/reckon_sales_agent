@@ -95,7 +95,7 @@ class DeskTests(unittest.TestCase):
         self.assertIn("touch_inbound(", read("agents", "chat.py").split("def receive_chat(")[1])
         engine = read("campaigns", "engine.py")
         self.assertIn("touch_inbound(message.company", engine.split("def receive_reply(")[1])
-        self.assertIn("touch_inbound(prospect.company", engine.split("def _whatsapp_conversation(")[1])
+        self.assertIn('receive_chat(company, "WhatsApp"', engine.split("def _whatsapp_conversation(")[1])  # the shared chat path
 
 
 class ReviewFixTests(unittest.TestCase):

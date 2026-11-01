@@ -231,7 +231,8 @@ def overview() -> dict:
         "meta_ready": bool(platform.get("meta_app_id") and platform.get("meta_app_secret")),
         "linkedin_ready": bool(platform.get("linkedin_client_id") and platform.get("linkedin_client_secret")),
         "whatsapp": {"installed": "frappe_whatsapp" in frappe.get_installed_apps(),
-                     "enabled": bool(settings.get("whatsapp_enabled"))},
+                     "enabled": bool(settings.get("whatsapp_enabled")), "account": settings.get("whatsapp_account") or "",
+                     "accounts": _wa_accounts(company), "webhook": frappe.utils.get_url("/api/method/frappe_whatsapp.utils.webhook.webhook")},
         "email": {"account": frappe.db.get_value("Email Account", {"enable_outgoing": 1, "default_outgoing": 1},
                                                  "email_id")},
         "webchat": {"enabled": bool(settings.get("webchat_enabled")), "key": settings.get("webchat_key") or "",
@@ -382,6 +383,7 @@ EDITABLE = {
     "sms_sender_id": "text", "whatsapp_enabled": "check",
     "telephony_provider": "text", "calling_hours": "text", "ari_url": "text", "ari_username": "text",
     "ari_password": "secret", "sip_context": "text", "sip_caller_id": "text", "telephony_webhook_secret": "secret",
+    "whatsapp_account": "text",
     "twilio_account_sid": "text", "twilio_auth_token": "secret", "twilio_phone_number": "text",
     "twilio_messaging_service_sid": "text", "twilio_record_calls": "check", "voice_ai_enabled": "check",
     "voice_ai_greeting": "text", "voice_ai_language": "text", "voice_forward_to": "text",
@@ -476,4 +478,14 @@ def save_platform_settings(data: str | dict) -> dict:
         doc.set(field, value)
     doc.save()
     return overview()
+
+
+def _wa_accounts(company: str) -> list[dict]:
+    """The WhatsApp accounts on this site that no other Company has taken."""
+    if "frappe_whatsapp" not in frappe.get_installed_apps() or not frappe.db.exists("DocType", "WhatsApp Account"):
+        return []
+    taken = frappe.get_all("Sales Agent Settings", filters={"whatsapp_account": ["is", "set"], "name": ["!=", company]},
+                           pluck="whatsapp_account")
+    return frappe.get_all("WhatsApp Account", filters={"name": ["not in", taken or [""]]},
+                          fields=["name", "account_name", "status"], order_by="name asc", limit=50)
 

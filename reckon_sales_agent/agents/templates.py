@@ -186,10 +186,16 @@ def _publish_whatsapp(doc) -> str | None:
         frappe.msgprint(frappe._("Approved here. Install the frappe_whatsapp app to submit it to Meta for "
                                  "approval; until then it cannot be sent."), indicator="orange")
         return None
+    from reckon_sales_agent.usage import get_settings
+
     meta = frappe.get_meta("WhatsApp Templates")
     slug = re.sub(r"[^a-z0-9_]", "_", doc.template_name.lower())[:60].strip("_") or "template"
     values = {"template_name": slug, "template": doc.body, "category": (doc.whatsapp_category or "Marketing").upper(),
-              "language_code": "bn" if doc.language == "Bangla" else "en"}
+              "language_code": "bn" if doc.language == "Bangla" else "en",
+              "whatsapp_account": get_settings(doc.company).get("whatsapp_account") or None}
+    lang = "bn" if doc.language == "Bangla" else "en"
+    if frappe.db.exists("Language", lang):
+        values["language"] = lang  # frappe_whatsapp requires a language
     template = frappe.get_doc({"doctype": "WhatsApp Templates", **{k: v for k, v in values.items() if meta.has_field(k)}})
     template.insert(ignore_permissions=True)
     return template.name

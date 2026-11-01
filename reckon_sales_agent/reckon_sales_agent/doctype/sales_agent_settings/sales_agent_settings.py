@@ -13,6 +13,9 @@ BOUNDS = {"daily_message_limit": (0, 1000), "max_results_per_job": (1, 1000), "m
 
 class SalesAgentSettings(Document):
     def validate(self):
+        account = self.get("whatsapp_account")
+        if account and frappe.db.exists("Sales Agent Settings", {"whatsapp_account": account, "name": ["!=", self.name]}):
+            frappe.throw(_("That WhatsApp account already belongs to another Company."))
         if not is_system_actor():
             # Plan limits and the AI provider are set by the vendor, never by the tenant.
             for field in PLAN_FIELDS + AI_FIELDS:

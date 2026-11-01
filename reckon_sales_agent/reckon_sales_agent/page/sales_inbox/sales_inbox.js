@@ -170,6 +170,8 @@
 			const p = t.prospect, c = t.conversation;
 			const ok = t.channels.filter((ch) => ch.ok);
 			const resolved = c.status === "Resolved";
+			const waClosed = t.channels.some((ch) => ch.channel === "WhatsApp" && ch.window_closed);
+			const waTemplates = waClosed && (t.wa_templates || []).length ? `<div class="sin-reply-row sin-wa"><span class="sin-muted">${__("24-hour window closed: send an approved template")}</span><select class="form-control input-sm sin-wa-tpl">${t.wa_templates.map((w) => `<option value="${e(w.name)}">${e(w.template_name)}</option>`).join("")}</select><button class="btn btn-default btn-sm sin-wa-send">${__("Send template")}</button></div>` : "";
 			el.html(`<div class="sin-head"><div><h3>${e(p.business_name)}</h3>
 					<div class="sin-muted">${[p.email ? e(p.email) : "", p.phone ? `<a href="tel:${e(p.phone)}">${e(p.phone)}</a>` : "", e(p.city || "")].filter(Boolean).join(" · ")}</div></div>
 					<div class="sin-links"><button class="btn btn-xs ${resolved ? "btn-default" : "btn-primary"} sin-status">${resolved ? __("Reopen") : __("Resolve")}</button></div></div>
@@ -186,7 +188,7 @@
 						<button class="btn btn-xs btn-default sin-discard">${__("Discard")}</button>
 						<button class="btn btn-xs btn-primary sin-send">${__("Approve and send")}</button></div></div>`).join("")}</div>
 				${p.do_not_contact ? `<div class="sin-warn">${__("This lead asked not to be contacted.")}</div>` : `<div class="sin-reply">
-					${ok.length ? `<div class="sin-reply-row"><select class="form-control input-sm sin-channel">${ok.map((ch) => `<option value="${e(ch.channel)}">${e(CHANNELS[ch.channel] || __(ch.channel))}</option>`).join("")}</select>
+					${waTemplates}${ok.length ? `<div class="sin-reply-row"><select class="form-control input-sm sin-channel">${ok.map((ch) => `<option value="${e(ch.channel)}">${e(CHANNELS[ch.channel] || __(ch.channel))}</option>`).join("")}</select>
 						<span class="sin-muted">${e(t.channels.filter((ch) => !ch.ok).map((ch) => `${CHANNELS[ch.channel] || ch.channel}: ${ch.reason}`).join(" · "))}</span></div>
 						<textarea class="form-control sin-text" rows="3" placeholder="${__("Write your reply… (Ctrl+Enter to send)")}"></textarea>
 						<div class="sin-actions"><input class="form-control input-sm sin-instr" placeholder="${__("Or tell the AI what to say")}">
@@ -231,6 +233,8 @@
 					.finally(() => el.find(".sin-write").prop("disabled", false));
 			};
 			el.find(".sin-write").on("click", send);
+			el.find(".sin-wa-send").on("click", () => this.call("send", { prospect, channel: "WhatsApp", text: "", template: el.find(".sin-wa-tpl").val() })
+				.then((status) => { frappe.show_alert({ message: __("Sent ({0})", [__(status)]), indicator: "green" }); refresh(); }));
 			el.find(".sin-text").on("keydown", (ev) => { if (ev.key === "Enter" && (ev.ctrlKey || ev.metaKey)) send(); });
 			el.find(".sin-suggest").on("click", (ev) => {
 				$(ev.currentTarget).prop("disabled", true);

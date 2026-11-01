@@ -134,6 +134,11 @@ def _whatsapp(message) -> SendResult:
         values.update({"message_type": "Template", "template": message.whatsapp_template})
         if meta.has_field("body_param") and message.get("whatsapp_params"):
             values["body_param"] = message.whatsapp_params
+    from reckon_sales_agent.usage import get_settings
+
+    account = get_settings(message.company).get("whatsapp_account")
+    if account:
+        values["whatsapp_account"] = account  # the Company's own WhatsApp account, never another tenant's
     doc = frappe.get_doc(values).insert(ignore_permissions=True)
     return SendResult(doc.get("message_id") or doc.name)
 

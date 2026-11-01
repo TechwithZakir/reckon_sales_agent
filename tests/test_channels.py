@@ -195,7 +195,7 @@ class ChannelSchemaTests(unittest.TestCase):
         chat = doctype("sales_chat_message")
         fields = {f["fieldname"]: f for f in chat["fields"]}
         self.assertEqual(fields["external_id"].get("unique"), 1)  # Meta retries webhooks
-        self.assertEqual(fields["channel"]["options"], "Messenger\nInstagram\nWeb Chat\nSMS\nVoice")
+        self.assertEqual(fields["channel"]["options"], "Messenger\nInstagram\nWeb Chat\nSMS\nVoice\nWhatsApp")
         self.assertIn("Sales Chat Message", read("constants.py").split("COMPANY_DOCTYPES = (")[1].split(")")[0])
         self.assertIn('"sales-channels"', read("constants.py"))
 
