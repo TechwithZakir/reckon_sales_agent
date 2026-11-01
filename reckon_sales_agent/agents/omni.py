@@ -340,6 +340,8 @@ def draft_reply(prospect_name: str, reason: str = "", instruction: str = "", all
 
         send_message(frappe.get_doc("Sales Outreach Message", message.name))  # dry run while sending is off
         frappe.db.commit()
+        from reckon_sales_agent.agents.inbox_events import notify_inbox
+        notify_inbox(company, prospect.name)
         return message.name
     if allow_auto and settings.get("chat_auto_answer"):
         from reckon_sales_agent.agents.conversations import handoff
@@ -348,6 +350,8 @@ def draft_reply(prospect_name: str, reason: str = "", instruction: str = "", all
     log_activity(company, "reply_drafted_omni", message, f"{channel}: {data.get('why') or why_channel}"[:500],
                  actor_type="agent", agent="Conversations", policy_outcome=f"draft: {decision.reason}"[:140])
     frappe.db.commit()
+    from reckon_sales_agent.agents.inbox_events import notify_inbox
+    notify_inbox(company, prospect.name)
     return message.name
 
 
@@ -433,5 +437,7 @@ def compose(prospect_name: str, channel: str, text: str) -> str:
     if not convo.assigned_to:
         convo.db_set("assigned_to", frappe.session.user)
     log_activity(company, "reply_sent_by_person", message, f"{channel}: {text[:200]}", agent="Conversations")
+    from reckon_sales_agent.agents.inbox_events import notify_inbox
+    notify_inbox(company, prospect.name)
     return frappe.db.get_value("Sales Outreach Message", message.name, "status")
 

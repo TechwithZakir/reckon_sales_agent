@@ -1,6 +1,7 @@
-// Conversations: every lead's thread across email, WhatsApp, SMS, Messenger, Instagram, website chat, calls and
-// forms. Each conversation has an owner, a status, tags and an AI mode; people reply here themselves or approve
-// the AI's drafts. Wrapped in a closure: Desk evaluates page scripts in the global scope.
+// Conversations: a dock-style inbox for every channel a lead uses (email, WhatsApp, SMS, Messenger, Instagram,
+// website chat, calls). Left dock: the conversations. Centre: the thread and the reply box. Right dock: the lead,
+// its owner, AI mode, tags and channels. Changes arrive live over Frappe's realtime channel; a slow poll is only a
+// fallback. Wrapped in a closure: Desk evaluates page scripts in the global scope.
 (() => {
 	frappe.pages["sales-inbox"].on_page_load = function (wrapper) {
 		const page = frappe.ui.make_app_page({ parent: wrapper, title: __("Conversations"), single_column: true });
@@ -12,37 +13,90 @@
 	frappe.pages["sales-inbox"].on_page_hide = (wrapper) => wrapper.inbox && wrapper.inbox.stop();
 
 	const API = "reckon_sales_agent.api_conversations.";
-	const POLL_MS = 15000;
+	const EVENT = "rsa_inbox";
+	const FALLBACK_MS = 60000;
+	const PREFS = "rsa_inbox_layout";
 	const e = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
 	const when = (v) => (v ? frappe.datetime.prettyDate(v) : "");
-	const SOURCES = { meta_lead_ads: __("Meta lead form"), messenger: __("Messenger"), instagram: __("Instagram"),
-		web_chat: __("Website chat"), sms: __("SMS"), voice: __("Phone call"), linkedin_lead_gen: __("LinkedIn lead form") };
-	const CHANNELS = { "Web Chat": __("Website chat") };
+	const CHANNELS = { "Web Chat": __("Website chat"), Messenger: "Messenger", Instagram: "Instagram", WhatsApp: "WhatsApp",
+		SMS: "SMS", Voice: __("Phone call"), Email: __("Email"), Call: __("Phone call"), LinkedIn: "LinkedIn" };
+	const SOURCES = { meta_lead_ads: __("Meta lead form"), linkedin_lead_gen: __("LinkedIn lead form"), voice: __("Phone call") };
 	const MODES = [["Company default", __("Company default")], ["Autopilot", __("AI autopilot")],
 		["Suggest only", __("AI suggests, we send")], ["Human only", __("Human only")]];
 	const FILTERS = [["waiting", __("Waiting")], ["mine", __("Mine")], ["unassigned", __("Unassigned")],
 		["needs", __("Needs a person")], ["open", __("Open")], ["resolved", __("Resolved")]];
+
+	const loadPrefs = () => {
+		try { return { left: true, right: true, max: false, ...JSON.parse(localStorage.getItem(PREFS) || "{}") }; }
+		catch (err) { return { left: true, right: true, max: false }; }
+	};
 
 	class Inbox {
 		constructor(page) {
 			this.page = page;
 			this.filter = "waiting";
 			this.search = "";
-			this.$root = $(`<div class="sin"><aside class="sin-list"></aside><section class="sin-thread"></section></div>`).appendTo(page.main);
+			this.prefs = loadPrefs();
+			this.pending = new Set();
+			this.flush = frappe.utils.debounce(() => { this.pending.clear(); this.load(true); }, 300);
+			this.onRealtime = (data) => { if (data && data.prospect) this.pending.add(data.prospect); this.flush(); };
+			this.$root = $(`<div class="sin">
+				<aside class="sin-dock sin-left"><div class="sin-list"></div></aside>
+				<section class="sin-main">
+					<div class="sin-topbar">
+						<span class="sin-live"></span>
+						<div class="sin-tools">
+							<button class="btn btn-default btn-xs" data-t="left"></button>
+							<button class="btn btn-default btn-xs" data-t="right"></button>
+							<button class="btn btn-default btn-xs" data-t="max"></button>
+						</div>
+					</div>
+					<div class="sin-thread"></div>
+				</section>
+				<aside class="sin-dock sin-right"><div class="sin-ctx"></div></aside>
+			</div>`).appendTo(page.main);
+			this.$root.find(".sin-tools button").on("click", (ev) => {
+				const key = ev.currentTarget.dataset.t;
+				this.prefs[key] = key === "max" ? !this.prefs.max : !this.prefs[key];
+				this.save_prefs();
+				this.apply_layout();
+			});
+			this.apply_layout();
 		}
 
 		call(method, args) {
 			return frappe.xcall(API + method, args || {});
 		}
 
+		save_prefs() {
+			try { localStorage.setItem(PREFS, JSON.stringify(this.prefs)); } catch (err) { /* private mode: this visit only */ }
+		}
+
+		apply_layout() {
+			const p = this.prefs;
+			this.$root.toggleClass("no-left", !p.left).toggleClass("no-right", !p.right).toggleClass("max", !!p.max);
+			this.$root.find('[data-t="left"]').text(p.left ? __("Hide list") : __("Show list"));
+			this.$root.find('[data-t="right"]').text(p.right ? __("Hide details") : __("Show details"));
+			this.$root.find('[data-t="max"]').text(p.max ? __("Standard width") : __("Full width"));
+		}
+
+		render_live() {
+			const live = !!(frappe.realtime && frappe.realtime.socket && frappe.realtime.socket.connected);
+			this.$root.find(".sin-live").attr("class", `sin-live ${live ? "on" : ""}`)
+				.attr("title", live ? __("Updates arrive live") : __("Reconnecting; checking every minute"))
+				.text(live ? __("Live") : __("Syncing"));
+		}
+
 		start() {
 			this.load();
-			this.stop();
-			// New messages appear without reloading; a reply being typed is never redrawn.
-			this.timer = setInterval(() => !document.hidden && this.load(true), POLL_MS);
+			if (frappe.realtime && frappe.realtime.off) frappe.realtime.off(EVENT, this.onRealtime);
+			if (frappe.realtime && frappe.realtime.on) frappe.realtime.on(EVENT, this.onRealtime);
+			clearInterval(this.timer);
+			this.timer = setInterval(() => !document.hidden && this.load(true), FALLBACK_MS);
 		}
 
 		stop() {
+			if (frappe.realtime && frappe.realtime.off) frappe.realtime.off(EVENT, this.onRealtime);
 			clearInterval(this.timer);
 		}
 
@@ -51,11 +105,18 @@
 				this.rows = rows;
 				if (!this.current && rows.length) this.current = (rows.find((r) => r.needs_reply) || rows[0]).prospect;
 				this.render_list();
-				// Never redraw the thread under someone typing a reply or a tag, or using a menu.
-				const busy = this.$root.find(".sin-text").val() || $.contains(this.$root.find(".sin-thread")[0], document.activeElement);
+				this.render_live();
+				// Never redraw a thread under someone typing a reply, or using a menu in the details dock.
+				const busy = this.$root.find(".sin-text").val()
+					|| this.$root.find(".sin-thread, .sin-ctx").toArray().some((el) => $.contains(el, document.activeElement));
 				if (this.current && !(quiet && busy)) this.open(this.current);
 				else if (!this.current) this.$root.find(".sin-thread").html(`<div class="sin-empty">${__("No conversations yet. Replies, chats, texts, calls and lead forms appear here.")}</div>`);
 			});
+		}
+
+		channel_of(r) {
+			const c = r.conversation || {};
+			return c.last_channel || r.chat || "";
 		}
 
 		matches(r, filter) {
@@ -79,11 +140,12 @@
 				<div class="sin-tabs">${FILTERS.map(([k, l]) => `<button data-f="${k}" class="${this.filter === k ? "on" : ""}">${e(l)} <b>${this.rows.filter((r) => this.matches(r, k)).length}</b></button>`).join("")}</div>
 				${rows.map((r) => {
 					const c = r.conversation || {};
+					const channel = this.channel_of(r);
 					return `<button class="sin-item ${r.prospect === this.current ? "on" : ""}" data-p="${e(r.prospect)}">
 					<div class="top"><b>${e(r.business || r.prospect)}</b><span>${e(when(r.last))}</span></div>
 					<div class="meta">${r.needs_reply ? `<span class="sin-badge warn">${__("They spoke last")}</span>` : ""}
 						${r.draft_waiting ? `<span class="sin-badge">${__("Draft ready")}</span>` : ""}
-						${r.chat ? `<span class="sin-badge src">${e(CHANNELS[r.chat] || __(r.chat))}</span>` : SOURCES[r.source] ? `<span class="sin-badge src">${e(SOURCES[r.source])}</span>` : ""}
+						${channel ? `<span class="sin-badge ch">${e(CHANNELS[channel] || __(channel))}</span>` : SOURCES[r.source] ? `<span class="sin-badge src">${e(SOURCES[r.source])}</span>` : ""}
 						${c.assigned_to ? `<span class="sin-badge src" title="${e(c.assigned_to)}">${e(frappe.user.full_name(c.assigned_to) || c.assigned_to)}</span>` : ""}
 						${(c.tags || []).map((t) => `<span class="sin-badge ${t === "needs-human" ? "warn" : "tag"}">#${e(t)}</span>`).join("")}</div></button>`;
 				}).join("") || `<div class="sin-empty small">${__("Nothing here.")}</div>`}`);
@@ -94,29 +156,18 @@
 		}
 
 		open(prospect) {
-			const el = this.$root.find(".sin-thread");
-			if (this.shown !== prospect) el.html(`<div class="sin-empty">${__("Loading…")}</div>`);
-			return this.call("thread", { prospect }).then((t) => { this.shown = prospect; this.render_thread(el, prospect, t); });
+			if (this.shown !== prospect) this.$root.find(".sin-thread").html(`<div class="sin-empty">${__("Loading…")}</div>`);
+			return this.call("thread", { prospect }).then((t) => { this.shown = prospect; this.render_thread(prospect, t); });
 		}
 
-		render_thread(el, prospect, t) {
+		render_thread(prospect, t) {
+			const el = this.$root.find(".sin-thread"), ctx = this.$root.find(".sin-ctx");
 			const p = t.prospect, c = t.conversation;
 			const ok = t.channels.filter((ch) => ch.ok);
 			const resolved = c.status === "Resolved";
 			el.html(`<div class="sin-head"><div><h3>${e(p.business_name)}</h3>
-					<div class="sin-muted">${[p.email ? e(p.email) : "", p.phone ? `<a href="tel:${e(p.phone)}">${e(p.phone)}</a>` : "", e(p.city || "")]
-						.filter(Boolean).join(" · ")}${p.consent_source ? ` · ${__("consent")}: ${e(p.consent_source)}` : ""}</div></div>
-					<div class="sin-links"><a class="btn btn-xs btn-default" href="/desk/sales-prospect/${encodeURIComponent(p.name)}">${__("Lead")}</a>
-					${p.crm_lead ? `<a class="btn btn-xs btn-default" href="/crm/leads/${encodeURIComponent(p.crm_lead)}">${__("CRM")}</a>` : ""}
-					<button class="btn btn-xs ${resolved ? "btn-default" : "btn-primary"} sin-status">${resolved ? __("Reopen") : __("Resolve")}</button></div></div>
-				<div class="sin-bar">
-					<label>${__("Owner")} <select class="form-control input-xs sin-assign"><option value="">${__("Nobody")}</option>
-						${t.agents.map((a) => `<option value="${e(a.user)}" ${a.user === c.assigned_to ? "selected" : ""}>${e(a.name)}${a.user === t.me ? " (" + __("me") + ")" : ""}</option>`).join("")}</select></label>
-					<label>${__("AI")} <select class="form-control input-xs sin-mode">${MODES.map(([k, l]) => `<option value="${e(k)}" ${k === c.ai_mode ? "selected" : ""}>${e(l)}</option>`).join("")}</select></label>
-					<span class="sin-muted">${c.ai_mode === "Company default" ? __("now: {0}", [e(__(c.effective))]) : ""}</span>
-					<div class="sin-tags">${(c.tags || []).map((tg) => `<span class="sin-badge ${tg === "needs-human" ? "warn" : "tag"}">#${e(tg)}
-						<a class="sin-untag" data-t="${e(tg)}" title="${__("Remove")}">×</a></span>`).join("")}
-						<input class="sin-tag-in" placeholder="${__("+ tag")}" maxlength="40"></div></div>
+					<div class="sin-muted">${[p.email ? e(p.email) : "", p.phone ? `<a href="tel:${e(p.phone)}">${e(p.phone)}</a>` : "", e(p.city || "")].filter(Boolean).join(" · ")}</div></div>
+					<div class="sin-links"><button class="btn btn-xs ${resolved ? "btn-default" : "btn-primary"} sin-status">${resolved ? __("Reopen") : __("Resolve")}</button></div></div>
 				${c.handoff_reason && !resolved ? `<div class="sin-warn">${__("Needs a person")}: ${e(c.handoff_reason)}</div>` : ""}
 				<div class="sin-timeline">${t.timeline.map((i) => `<div class="sin-msg ${e(i.direction)}">
 					<div class="sin-muted">${e(CHANNELS[i.channel] || i.channel)} · ${e(__(i.status))} · ${e(when(i.at))}</div>
@@ -138,21 +189,40 @@
 							<button class="btn btn-primary btn-sm sin-write">${__("Send")}</button></div>`
 						: `<div class="sin-warn">${__("No channel to reply on right now")}: ${e(t.channels.map((ch) => `${ch.channel}: ${ch.reason}`).join(" · ") || __("no email, phone or chat"))}</div>`}</div>`}`);
 			el.find(".sin-timeline").scrollTop(1e6);
-			const reload = (r) => { this.render_thread(el, prospect, r); this.load(true); };
-			el.find(".sin-status").on("click", () => this.call("set_status", { prospect, status: resolved ? "Open" : "Resolved" }).then(reload));
-			el.find(".sin-assign").on("change", (ev) => this.call("assign", { prospect, user: ev.target.value }).then(reload));
-			el.find(".sin-mode").on("change", (ev) => this.call("set_mode", { prospect, mode: ev.target.value }).then(reload));
-			el.find(".sin-tag-in").on("keydown", (ev) => {
+
+			ctx.html(`<div class="sin-card"><h4>${__("Lead")}</h4>
+					<div class="sin-kv"><span>${__("Source")}</span><b>${e(CHANNELS[this.channel_of({ conversation: c })] || SOURCES[p.source_type] || p.source_type || "–")}</b>
+						${p.consent_source ? `<span>${__("Consent")}</span><b>${e(p.consent_source)}</b>` : ""}
+						${c.last_inbound_at ? `<span>${__("Wrote")}</span><b>${e(when(c.last_inbound_at))}</b>` : ""}</div>
+					<div class="sin-links"><a class="btn btn-xs btn-default" href="/desk/sales-prospect/${encodeURIComponent(p.name)}">${__("Lead")}</a>
+						${p.crm_lead ? `<a class="btn btn-xs btn-default" href="/crm/leads/${encodeURIComponent(p.crm_lead)}">${__("CRM")}</a>` : ""}</div></div>
+				<div class="sin-card"><h4>${__("Owner")}</h4>
+					<select class="form-control sin-assign"><option value="">${__("Nobody")}</option>
+						${t.agents.map((a) => `<option value="${e(a.user)}" ${a.user === c.assigned_to ? "selected" : ""}>${e(a.name)}${a.user === t.me ? " (" + __("me") + ")" : ""}</option>`).join("")}</select></div>
+				<div class="sin-card"><h4>${__("AI")}</h4>
+					<select class="form-control sin-mode">${MODES.map(([k, l]) => `<option value="${e(k)}" ${k === c.ai_mode ? "selected" : ""}>${e(l)}</option>`).join("")}</select>
+					<div class="sin-muted">${__("now: {0}", [e(__(c.effective))])}</div></div>
+				<div class="sin-card"><h4>${__("Tags")}</h4>
+					<div class="sin-tags">${(c.tags || []).map((tg) => `<span class="sin-badge ${tg === "needs-human" ? "warn" : "tag"}">#${e(tg)} <a class="sin-untag" data-t="${e(tg)}" title="${__("Remove")}">×</a></span>`).join("")}</div>
+					<input class="form-control sin-tag-in" placeholder="${__("Add a tag and press Enter")}" maxlength="40"></div>
+				<div class="sin-card"><h4>${__("Channels")}</h4>
+					${t.channels.map((ch) => `<div class="sin-chan ${ch.ok ? "ok" : ""}"><span>${e(CHANNELS[ch.channel] || ch.channel)}</span><small>${e(ch.reason)}</small></div>`).join("")}</div>`);
+
+			const refresh = () => { this.open(prospect); this.load(true); };
+			el.find(".sin-status").on("click", () => this.call("set_status", { prospect, status: resolved ? "Open" : "Resolved" }).then(refresh));
+			ctx.find(".sin-assign").on("change", (ev) => this.call("assign", { prospect, user: ev.target.value }).then(refresh));
+			ctx.find(".sin-mode").on("change", (ev) => this.call("set_mode", { prospect, mode: ev.target.value }).then(refresh));
+			ctx.find(".sin-tag-in").on("keydown", (ev) => {
 				if (ev.key !== "Enter" || !ev.target.value.trim()) return;
-				this.call("tag", { prospect, tag: ev.target.value.trim() }).then(reload);
+				this.call("tag", { prospect, tag: ev.target.value.trim() }).then(refresh);
 			});
-			el.find(".sin-untag").on("click", (ev) => this.call("tag", { prospect, tag: ev.currentTarget.dataset.t, remove: 1 }).then(reload));
+			ctx.find(".sin-untag").on("click", (ev) => this.call("tag", { prospect, tag: ev.currentTarget.dataset.t, remove: 1 }).then(refresh));
 			const send = () => {
 				const text = el.find(".sin-text").val().trim();
 				if (!text) return;
 				el.find(".sin-write").prop("disabled", true);
 				this.call("send", { prospect, channel: el.find(".sin-channel").val(), text })
-					.then((status) => { frappe.show_alert({ message: __("Sent ({0})", [__(status)]), indicator: "green" }); el.find(".sin-text").val(""); this.open(prospect); this.load(true); })
+					.then((status) => { frappe.show_alert({ message: __("Sent ({0})", [__(status)]), indicator: "green" }); el.find(".sin-text").val(""); refresh(); })
 					.finally(() => el.find(".sin-write").prop("disabled", false));
 			};
 			el.find(".sin-write").on("click", send);
@@ -164,7 +234,7 @@
 					.then(() => this.open(prospect)).always(() => $(ev.currentTarget).prop("disabled", false));
 			});
 			el.find(".sin-use").on("click", (ev) => {
-				// Take the AI's draft into the reply box: the person edits and sends it as their own.
+				// The AI's draft goes into the reply box: the person edits it and sends it as their own.
 				const box = $(ev.currentTarget).closest(".sin-draft");
 				el.find(".sin-text").val(box.find(".txt").text()).trigger("focus");
 				this.call("discard", { message: box.data("m") }).then(() => box.remove());
@@ -172,7 +242,7 @@
 			el.find(".sin-send").on("click", (ev) => {
 				const name = $(ev.currentTarget).closest(".sin-draft").data("m");
 				frappe.confirm(__("Approve and send this message?"), () => this.call("approve_and_send", { message: name })
-					.then((status) => { frappe.show_alert({ message: __("Status: {0}", [__(status)]), indicator: "green" }); this.open(prospect); this.load(true); }));
+					.then((status) => { frappe.show_alert({ message: __("Status: {0}", [__(status)]), indicator: "green" }); refresh(); }));
 			});
 			el.find(".sin-discard").on("click", (ev) => this.call("discard", { message: $(ev.currentTarget).closest(".sin-draft").data("m") })
 				.then(() => this.open(prospect)));

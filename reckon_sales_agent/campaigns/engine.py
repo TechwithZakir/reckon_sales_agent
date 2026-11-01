@@ -503,6 +503,8 @@ def _whatsapp_conversation(phone: str, doc) -> None:
     from reckon_sales_agent.agents.conversations import touch_inbound
 
     touch_inbound(prospect.company, prospect.name, "WhatsApp")
+    from reckon_sales_agent.agents.inbox_events import notify_inbox
+    notify_inbox(prospect.company, prospect.name)
     frappe.enqueue("reckon_sales_agent.agents.chat.auto_draft", queue="short", prospect=prospect.name,
                    job_id=f"chat-draft:{prospect.name}", deduplicate=True, enqueue_after_commit=True)
 
@@ -518,6 +520,8 @@ def receive_reply(message_name: str, text: str, source_key: str, channel: str) -
     from reckon_sales_agent.agents.conversations import touch_inbound
 
     touch_inbound(message.company, message.prospect, channel)
+    from reckon_sales_agent.agents.inbox_events import notify_inbox
+    notify_inbox(message.company, message.prospect)
     member = frappe.get_doc("Sales Campaign Member", message.member)
     rule_class = classify_rules(text)
     action = actions_for(rule_class)

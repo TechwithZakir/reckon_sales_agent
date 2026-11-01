@@ -209,6 +209,8 @@ def receive_chat(company: str, channel: str, account_id: str, contact_id: str, t
     from reckon_sales_agent.agents.conversations import touch_inbound
 
     touch_inbound(company, prospect.name, channel, doc.sent_at)
+    from reckon_sales_agent.agents.inbox_events import notify_inbox
+    notify_inbox(company, prospect.name)
     log_activity(company, "comment_received" if kind == "Comment" else "chat_received", prospect,
                  f"{channel}: {text[:200]}", actor_type="system",
                  agent="Conversations")

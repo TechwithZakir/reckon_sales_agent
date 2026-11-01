@@ -70,7 +70,7 @@ def assign(prospect: str, user: str | None = None) -> dict:
     if user and user != frappe.session.user:
         notify(convo, user, f"{frappe.session.user} gave you {convo.title}"
                             + (f" with {moved} open task(s)" if moved else ""))
-    return thread(prospect)
+    return _changed(prospect)
 
 
 @frappe.whitelist(methods=["POST"])
@@ -86,7 +86,7 @@ def set_status(prospect: str, status: str) -> dict:
                   "handoff_reason": None if status == "Resolved" else convo.handoff_reason})
     if status == "Resolved":
         remove_tag(convo.name, NEEDS_HUMAN)
-    return thread(prospect)
+    return _changed(prospect)
 
 
 @frappe.whitelist(methods=["POST"])
@@ -97,7 +97,7 @@ def set_mode(prospect: str, mode: str) -> dict:
         frappe.throw(_("Unknown AI mode."))
     _doc, convo = _convo(prospect)
     convo.db_set("ai_mode", mode)
-    return thread(prospect)
+    return _changed(prospect)
 
 
 @frappe.whitelist(methods=["POST"])
@@ -106,7 +106,7 @@ def tag(prospect: str, tag: str, remove: int = 0) -> dict:
 
     _doc, convo = _convo(prospect)
     (remove_tag if int(remove or 0) else add_tag)(convo.name, tag)
-    return thread(prospect)
+    return _changed(prospect)
 
 
 @frappe.whitelist(methods=["POST"])
@@ -140,6 +140,8 @@ def approve_and_send(message: str) -> str:
     api.approve_messages(json.dumps([doc.name]))
     sent = send_message(frappe.get_doc("Sales Outreach Message", doc.name))
     status = frappe.db.get_value("Sales Outreach Message", doc.name, "status")
+    from reckon_sales_agent.agents.inbox_events import notify_inbox
+    notify_inbox(doc.company, doc.name)
     if not sent and status == "Approved":
         return _("Approved; it goes out when the daily limit allows.")
     return status
@@ -151,3 +153,14 @@ def discard(message: str) -> None:
     if doc.status != "Draft":
         frappe.throw(_("Only drafts can be discarded."))
     doc.db_set({"status": "Cancelled", "error": "Discarded by a person"})
+    from reckon_sales_agent.agents.inbox_events import notify_inbox
+    notify_inbox(doc.company, doc.name)
+
+
+def _changed(prospect: str) -> dict:
+    """A team action changed this lead's conversation: tell everyone on the team, then return the thread."""
+    from reckon_sales_agent.agents.inbox_events import notify_inbox
+
+    notify_inbox(frappe.db.get_value("Sales Prospect", prospect, "company"), prospect)
+    return thread(prospect)
+

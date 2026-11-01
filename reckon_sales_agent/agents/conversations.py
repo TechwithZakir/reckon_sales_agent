@@ -160,7 +160,7 @@ def by_prospect(company: str) -> dict[str, dict]:
     """Conversation fields for the inbox list, by lead."""
     import frappe
 
-    fields = ["name", "prospect", "status", "assigned_to", "ai_mode", "handoff_reason", "_user_tags"]
+    fields = ["name", "prospect", "status", "assigned_to", "ai_mode", "handoff_reason", "last_channel", "_user_tags"]
     return {r.prospect: {**r, "tags": parse_tags(r.pop("_user_tags", ""))}
             for r in frappe.get_all("Sales Conversation", filters={"company": company}, fields=fields, limit=100000)}
 
