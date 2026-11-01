@@ -226,6 +226,7 @@ function social(d, platforms, onText) {
 					<span class="sch-help-tools"><button class="btn btn-default btn-xs sch-help-ai">${__("Explain with AI")}</button>
 					<button class="btn btn-default btn-xs sch-help-close" aria-label="${__("Close")}">×</button></span></div>
 				<p class="sch-help-what">${e(q.what)}</p>
+				${(q.details || []).length ? `<div class="sch-help-sub"><b>${__("Configuration")}</b><ul>${q.details.map((d) => `<li>${e(d)}</li>`).join("")}</ul></div>` : ""}
 				<ol class="sch-help-steps">${q.steps.map((s) => `<li>${e(s)}</li>`).join("")}</ol>
 				<div class="sch-help-ai-out"></div>
 			</div>`);

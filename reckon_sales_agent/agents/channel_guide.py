@@ -119,6 +119,137 @@ QUICK_HELP = {
                                         "Use the same secret in the SendGrid event webhook settings."]},
 }
 
+# Configuration details: what to fill in, for each integration. Shown under the steps in the quick help.
+CONFIG = {
+    "autopilot": [
+        "Each agent has its own on/off switch in Agent Studio. Turn on only the ones you want.",
+        "Approval rules decide which actions wait for you (sending, publishing, spending) and which run on their own.",
+        "Keep new agents in dry run until you have reviewed a few of their drafts.",
+    ],
+    "ai": [
+        "Provider: Claude, OpenAI or a local model, chosen by the system provider.",
+        "Company override: if the system provider allows it, enter your own key in Sales Agent Settings. It is used for this Company only.",
+        "Monthly AI limit: when it is used up, AI pauses until next month and the agents fall back to rule-based replies.",
+        "Keys stay secret: after saving, a key is never shown again.",
+    ],
+    "webchat": [
+        "Enable: turn the chat on in this panel.",
+        "Title and welcome line: what visitors see when the chat opens.",
+        "Allowed website addresses: only these sites may show the chat. Enter each one in full, for example https://www.yourcompany.com.",
+        "Install: paste the snippet shown in this panel into your website, just before the closing body tag.",
+    ],
+    "whatsapp": [
+        "WhatsApp Account: create it in the frappe_whatsapp app with the Meta access token, phone number ID, business account ID and app ID.",
+        "Webhook: in the Meta app, set the callback URL to the address shown here and the webhook verify token from the WhatsApp Account. Subscribe to messages and message_template_status_update.",
+        "Company link: choose the WhatsApp Account here. One account belongs to one Company.",
+        "Templates: a message sent more than 24 hours after the customer's last message needs an approved template. Submit templates from Message Templates.",
+    ],
+    "facebook": [
+        "Connect: the Connect button opens Facebook sign-in. Grant access to the Page's messages.",
+        "Page: it must be a Page you manage, and the Meta app must be in live mode.",
+        "Permission: pages_messaging must be approved for the Meta app.",
+        "Test: message the Page from another account and check that it appears in Conversations.",
+    ],
+    "instagram": [
+        "Account type: a professional (business or creator) Instagram account.",
+        "Link: the Instagram account must be connected to a Facebook Page you manage.",
+        "Permission: instagram_manage_messages must be approved for the Meta app.",
+        "Enable: turn the account on in the list so it can receive messages.",
+    ],
+    "linkedin": [
+        "Connect: sign in with LinkedIn and choose the company page you administer.",
+        "Permission: posting needs the LinkedIn products for page posting to be approved for the app.",
+        "Enable: turn the page on in the list. Posts go out only after you approve them.",
+        "Test: the Test button checks the connection without posting anything.",
+    ],
+    "meta_leads": [
+        "Page: the Facebook Page that owns the lead forms.",
+        "Permission: leads_retrieval must be approved for the Meta app.",
+        "Webhook: the system provider sets the verify token. The Meta app must subscribe to the leadgen field.",
+        "Check: submit a test lead and confirm it appears among the prospects, with name, email and phone filled in.",
+    ],
+    "linkedin_leads": [
+        "Forms: the Lead Gen Forms must belong to a company page you administer.",
+        "Permission: Lead Gen Forms access must be approved for the LinkedIn app.",
+        "Connect: choose the company page in the list and turn it on.",
+        "Test: submit a test response on a draft form and confirm the prospect appears.",
+    ],
+    "twilio": [
+        "Account SID and Auth token: from the Twilio console home page. The Auth token is hidden after saving.",
+        "Phone number: a Twilio number in international format, for example +14155550123.",
+        "Webhooks: in the Twilio console, set the number's messaging and voice webhook addresses to the ones shown here, using HTTP POST.",
+        "RCS: needs a Messaging Service and a sender registered in Twilio.",
+    ],
+    "voice_ai": [
+        "Enable: the assistant answers when your Twilio number receives a call.",
+        "Forward to: the phone number, in international format, that takes over when the caller asks for a person.",
+        "Recording: check your local rules before recording any call.",
+        "Test: call the Twilio number from your own phone and ask for a person.",
+    ],
+    "sms": [
+        "Enable: turns SMS sending on for this Company.",
+        "Gateway: Twilio, BulkSMSBD, SSL Wireless, or the platform gateway (no key needed).",
+        "API key or token: copy it from your gateway's dashboard. It is hidden after saving.",
+        "Sender ID: the name or number recipients see. Some gateways need it approved first.",
+        "Dry run: keep it on until you have checked the message text and the recipients.",
+    ],
+    "asterisk": [
+        "ARI address: the HTTPS address of your Asterisk REST interface, for example https://pbx.example.com:8089.",
+        "ARI user and password: defined in Asterisk's ari.conf with the rights to start calls.",
+        "Caller ID: the number people see when you call. Your SIP trunk must allow it.",
+        "Network: the Asterisk server must be reachable from Reckon over HTTPS.",
+    ],
+    "email": [
+        "Email Account: create it in Frappe with your SMTP server, port and login.",
+        "Default outgoing: tick Default Outgoing on that account. Bulk email is sent from it.",
+        "Sender domain: set SPF and DKIM for your domain so mail is not marked as spam.",
+        "Test: send one email to yourself before any bulk send.",
+    ],
+    "sendgrid": [
+        "API key: create it in SendGrid with Mail Send permission. SendGrid shows it only once, so copy it then.",
+        "Verified sender: the From address must be verified in SendGrid, as a single sender or through domain authentication.",
+        "Signed event webhook: enable it in SendGrid, copy the verification key into the field here, and point the webhook at the address shown.",
+        "Events: enable delivered, opened, clicked, bounced and unsubscribed so the timeline is complete.",
+    ],
+    "platform_ai": [
+        "Provider: choose Claude, OpenAI or a local server. Each needs its own key or address.",
+        "Local server: the base address of an OpenAI-compatible server, such as Ollama or vLLM.",
+        "Monthly limits: they stop AI usage per Company before the cost grows.",
+        "Company override: tick to let Companies use their own AI key.",
+    ],
+    "platform_meta": [
+        "App ID and App secret: from the Meta app's Settings, Basic page. Keep the secret private.",
+        "Verify token: any random string you choose. Enter the same value in the Meta webhook setup.",
+        "Products: add Messenger, Instagram and Webhooks to the app.",
+        "Review: app review and business verification must be complete before other businesses can connect.",
+    ],
+    "platform_linkedin": [
+        "Client ID and client secret: from the Auth tab of the LinkedIn app.",
+        "Redirect URL: add the callback address shown here to the app's authorized redirect URLs.",
+        "Products: request the products for page posting and lead forms. Approval can take days.",
+    ],
+    "platform_transcription": [
+        "Enable transcription, then enter the speech-to-text key.",
+        "Transcripts are attached to the call in Conversations. Check your consent rules before recording.",
+    ],
+    "platform_lead_sources": [
+        "Brave Search: enable it and enter the API key from the Brave Search API dashboard.",
+        "Google Places: uses the Places API. Set a billing limit in Google Cloud first.",
+        "SerpAPI, Apify, Scrapingdog, ScrapingBee: each has its own key. Enable only the ones you use.",
+        "Use each key's Test button before you rely on it.",
+    ],
+    "platform_social": [
+        "Publishing: turn it on to allow approved posts to go out to connected pages.",
+        "Connections: connect Meta and LinkedIn company by company first.",
+        "Approval: posts wait for approval before they go out.",
+    ],
+    "platform_email_events": [
+        "Signing secret: a long random string. Enter it here and in the SendGrid event webhook settings.",
+        "Webhook address: point the SendGrid event webhook at the address shown here.",
+        "Check: send a test email and confirm its delivered event appears in Reckon.",
+    ],
+}
+
 # Vendor-only integrations (the system provider's settings).
 PLATFORM_KEYS = frozenset(key for key in REFERENCES if key.startswith("platform_"))
 

@@ -493,9 +493,9 @@ def _wa_accounts(company: str) -> list[dict]:
 
 
 def _quick_help() -> dict:
-    from reckon_sales_agent.agents.channel_guide import QUICK_HELP
+    from reckon_sales_agent.agents.channel_guide import CONFIG, QUICK_HELP
 
-    return QUICK_HELP
+    return {key: {**help_, "details": CONFIG.get(key, [])} for key, help_ in QUICK_HELP.items()}
 
 
 def _references() -> dict:

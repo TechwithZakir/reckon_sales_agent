@@ -141,3 +141,7 @@
 .sch-help-steps { margin: 0; padding-left: 18px; font-size: 12.5px; }
 .sch-help-ai-out { margin-top: 10px; border-top: 1px solid var(--sch-line); padding-top: 8px; }
 .sch-help-ai-out:empty { display: none; }
+.sch-help-sub { margin-bottom: 8px; font-size: 12.5px; }
+.sch-help-sub ul { margin: 4px 0 0; padding-left: 18px; }
+.sch-help-sub li { margin-bottom: 3px; }
+
