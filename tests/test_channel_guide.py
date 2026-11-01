@@ -9,6 +9,7 @@ sys.path.insert(0, str(Path(__file__).parents[1]))
 from reckon_sales_agent.agents.channel_guide import (  # noqa: E402
     FALLBACK_DETAIL,
     PLATFORM_KEYS,
+    QUICK_HELP,
     REFERENCES,
     ai_guide,
     cache_key,
@@ -73,6 +74,12 @@ class ReferenceTests(unittest.TestCase):
         for key, links in REFERENCES.items():
             for label, url in links:
                 self.assertTrue(url.startswith("https://"), (key, label))
+
+    def test_every_integration_has_quick_help(self):
+        self.assertLessEqual(set(REFERENCES), set(QUICK_HELP))
+        for key, help_ in QUICK_HELP.items():
+            self.assertTrue(help_["what"], key)
+            self.assertTrue(help_["steps"], key)
 
     def test_platform_keys_are_the_platform_tiles(self):
         self.assertTrue(PLATFORM_KEYS)

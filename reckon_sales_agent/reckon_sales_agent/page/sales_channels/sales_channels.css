@@ -136,3 +136,8 @@
 .sch-spin { display: inline-block; width: 10px; height: 10px; border: 2px solid var(--sch-accent); border-right-color: transparent; border-radius: 50%; animation: sch-spin 0.8s linear infinite; vertical-align: -1px; }
 @keyframes sch-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .sch-spin { animation: none; } }
+
+.sch-help-what { margin: 0 0 6px; font-size: 13px; }
+.sch-help-steps { margin: 0; padding-left: 18px; font-size: 12.5px; }
+.sch-help-ai-out { margin-top: 10px; border-top: 1px solid var(--sch-line); padding-top: 8px; }
+.sch-help-ai-out:empty { display: none; }

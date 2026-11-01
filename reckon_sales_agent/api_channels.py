@@ -219,6 +219,7 @@ def overview() -> dict:
         "company": company,
         "is_vendor": vendor,
         "references": _references(),
+        "quick_help": _quick_help(),
         # Vendors only: the platform's own values (secrets say whether they are set) and every Company to switch to.
         "platform": _platform_values(platform) if vendor else None,
         "companies": frappe.get_all("Sales Agent Settings", pluck="name", order_by="name asc") if vendor else [],
@@ -489,6 +490,12 @@ def _wa_accounts(company: str) -> list[dict]:
                            pluck="whatsapp_account")
     return frappe.get_all("WhatsApp Account", filters={"name": ["not in", taken or [""]]},
                           fields=["name", "account_name", "status"], order_by="name asc", limit=50)
+
+
+def _quick_help() -> dict:
+    from reckon_sales_agent.agents.channel_guide import QUICK_HELP
+
+    return QUICK_HELP
 
 
 def _references() -> dict:

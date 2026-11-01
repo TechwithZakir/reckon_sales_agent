@@ -218,24 +218,28 @@ function social(d, platforms, onText) {
 		}
 
 		// ------------------------------------------------------------ panel
-		help(p, key, refresh) {
-			const box = p.find(".sch-help-box").html(`<div class="sch-help-card"><span class="sch-spin"></span> ${__("Reading your setup…")}</div>`);
-			return this.call("guide", { key, refresh: refresh ? 1 : 0 })
-				.then((g) => this.render_help(box, g, () => this.help(p, key, true)))
-				.catch(() => box.html(`<div class="sch-help-card">${__("The guide is unavailable right now. Use the Reference links below.")}</div>`));
-		}
-
-		render_help(box, g, refresh) {
-			const title = g.source === "ai" ? __("AI guide") : __("Setup checklist");
+		help(p, key) {
+			const box = p.find(".sch-help-box");
+			const q = (this.data.quick_help || {})[key] || { what: __("Fill in the fields in this panel and press Save. The reference links below show where to find each value."), steps: [] };
 			box.html(`<div class="sch-help-card">
-				<div class="sch-help-head"><b>${e(title)}</b><span class="sch-muted">${e(g.summary)}</span>
-					<span class="sch-help-tools"><button class="btn btn-default btn-xs sch-help-refresh">${__("Refresh")}</button>
+				<div class="sch-help-head"><b>${__("Quick help")}</b>
+					<span class="sch-help-tools"><button class="btn btn-default btn-xs sch-help-ai">${__("Explain with AI")}</button>
 					<button class="btn btn-default btn-xs sch-help-close" aria-label="${__("Close")}">×</button></span></div>
-				${this.steps(g.steps.map((st) => [st.done, `<b>${e(st.title)}</b> ${e(st.detail)}`]))}
-				${(g.watch_out || []).length ? `<div class="sch-note small">${g.watch_out.map((w) => `<div>${e(w)}</div>`).join("")}</div>` : ""}
+				<p class="sch-help-what">${e(q.what)}</p>
+				<ol class="sch-help-steps">${q.steps.map((s) => `<li>${e(s)}</li>`).join("")}</ol>
+				<div class="sch-help-ai-out"></div>
 			</div>`);
 			box.find(".sch-help-close").on("click", () => box.empty());
-			box.find(".sch-help-refresh").on("click", refresh);
+			box.find(".sch-help-ai").on("click", () => this.ai_help(p, key));
+		}
+
+		ai_help(p, key) {
+			const out = p.find(".sch-help-ai-out").html(`<div class="sch-muted"><span class="sch-spin"></span> ${__("Reading your setup…")}</div>`);
+			return this.call("guide", { key }).then((g) => {
+				out.html(`<div class="sch-help-head"><b>${e(g.source === "ai" ? __("AI guide") : __("Your setup"))}</b><span class="sch-muted">${e(g.summary)}</span></div>
+					${this.steps(g.steps.map((st) => [st.done, `<b>${e(st.title)}</b> ${e(st.detail)}`]))}
+					${(g.watch_out || []).map((w) => `<div class="sch-note small">${e(w)}</div>`).join("")}`);
+			}).catch(() => out.html(`<div class="sch-muted">${__("The AI guide is not available right now. The quick help above still applies.")}</div>`));
 		}
 
 		guides(key) {
@@ -261,7 +265,7 @@ function social(d, platforms, onText) {
 				<div class="sch-help-box"></div><div class="sch-panel-body">${this.body(key, d)}${this.guides(key)}</div>`);
 			this.$root.find(".sch-drawer").addClass("open").attr("aria-hidden", "false");
 			panel.find(".sch-close").on("click", () => this.close());
-			panel.find(".sch-help").on("click", () => this.help(panel, key, false));
+			panel.find(".sch-help").on("click", () => this.help(panel, key));
 			this.bind(panel, key, d);
 		}
 
