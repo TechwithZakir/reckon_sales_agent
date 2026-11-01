@@ -108,6 +108,25 @@ const PLATFORM_TILES = [
     { key: "platform_transcription", cat: "platform", platform: true, name: __("Call transcription"), glyph: "mic", color: "#9333ea",
         desc: __("Transcribes recorded calls and writes the summary to the CRM"),
         state: (d) => !d.platform.transcription_enabled ? ["off", __("Off")] : ["on", d.platform.transcription_provider || ""] },
+    { key: "platform_lead_sources", cat: "platform", platform: true, name: __("Lead sources"), glyph: "search", color: "#2563eb",
+        desc: __("Brave, Google Places, Google Maps and Search providers that find leads"),
+        state: (d) => { const p = d.platform, n = ["brave_enabled", "places_enabled", "serpapi_enabled", "apify_enabled", "scrapingdog_enabled", "scrapingbee_enabled"].filter((k) => p[k]).length;
+            return n ? ["on", __("{0} provider(s) on", [n])] : ["warn", __("No provider on")]; } },
+    { key: "platform_research", cat: "platform", platform: true, name: __("Website research"), glyph: "form", color: "#0d9488",
+        desc: __("How the agents read a lead's website: politeness, limits and size"),
+        state: (d) => d.platform.research_enabled ? ["on", __("On")] : ["off", __("Off")] },
+    { key: "platform_social", cat: "platform", platform: true, name: __("Social publishing"), glyph: "send", color: "#0284c7",
+        desc: __("Publishing approved posts to Facebook, Instagram and LinkedIn: API versions"),
+        state: (d) => d.platform.social_enabled ? ["on", __("On")] : ["off", __("Off")] },
+    { key: "platform_email_events", cat: "platform", platform: true, name: __("Email delivery events"), glyph: "mail", color: "#2563eb",
+        desc: __("Bounces and spam reports from your email provider reach the do-not-contact list"),
+        state: (d) => d.platform.email_webhook_secret ? ["on", __("Signed")] : ["warn", __("Needs a signing secret")] },
+    { key: "platform_plans", cat: "platform", platform: true, name: __("Plans and limits"), glyph: "shield", color: "#475569",
+        desc: __("Monthly limits per Company, research budgets and internal companies"),
+        state: (d) => d.platform.monthly_message_limit || d.platform.monthly_ai_limit ? ["on", __("Limits set")] : ["warn", __("No limits set")] },
+    { key: "platform_experimental", cat: "platform", platform: true, name: __("Experimental browsers"), glyph: "cpu", color: "#b91c1c",
+        desc: __("Headless browsers for Google Maps and Search: off unless you have reviewed the terms"),
+        state: (d) => d.platform.maps_browser_enabled || d.platform.search_browser_enabled ? ["warn", __("On")] : ["off", __("Off")] },
 ];
 
 function social(d, platforms, onText) {
@@ -333,6 +352,89 @@ function social(d, platforms, onText) {
 					{ f: "transcription_model", label: __("Model"), placeholder: "whisper-1" },
 				], d.platform, "platform"))
 					+ `<div class="sch-note small">${__("Customers' own recordings are transcribed with this service. Callers must hear a recording notice.")}</div>` : "";
+			case "platform_lead_sources":
+				return d.platform ? this.section(__("Brave Search"), this.fields([
+					{ f: "brave_enabled", type: "check", label: __("Use Brave Search (web, places, page context)") },
+					{ f: "brave_api_key", type: "secret", label: __("Brave API key") },
+					{ f: "brave_country", label: __("Country (optional)"), placeholder: "BD" },
+				], d.platform, "platform"))
+					+ this.section(__("Google Places API"), this.fields([
+					{ f: "places_enabled", type: "check", label: __("Use Google Places") },
+					{ f: "google_places_api_key", type: "secret", label: __("Google Places API key") },
+					{ f: "places_terms_reviewed", type: "check", label: __("Google Maps Platform terms reviewed"), help: __("Turn on only after your team has read Google's terms.") },
+					{ f: "places_retention_days", label: __("Keep Places data (days)") },
+				], d.platform, "platform"))
+					+ this.section(__("Google Maps providers"), this.fields([
+					{ f: "maps_terms_ack", type: "check", label: __("Accept responsibility for Google Maps data use"), help: __("Google's terms restrict scraping Google Maps.") },
+					{ f: "maps_data_retention_days", label: __("Keep Maps data (days)") },
+					{ f: "serpapi_enabled", type: "check", label: __("Use SerpAPI (Maps)") },
+					{ f: "serpapi_api_key", type: "secret", label: __("SerpAPI key") },
+					{ f: "apify_enabled", type: "check", label: __("Use Apify (Maps scraper)") },
+					{ f: "apify_api_token", type: "secret", label: __("Apify API token") },
+					{ f: "apify_actor", label: __("Apify actor") },
+					{ f: "scrapingdog_enabled", type: "check", label: __("Use Scrapingdog (Maps)") },
+					{ f: "scrapingdog_api_key", type: "secret", label: __("Scrapingdog key") },
+					{ f: "scrapingbee_enabled", type: "check", label: __("Use ScrapingBee (Maps)") },
+					{ f: "scrapingbee_api_key", type: "secret", label: __("ScrapingBee key") },
+				], d.platform, "platform"))
+					+ this.section(__("Google Search providers"), this.fields([
+					{ f: "search_terms_ack", type: "check", label: __("Accept responsibility for Google Search data use") },
+					{ f: "search_data_retention_days", label: __("Keep Search data (days)") },
+					{ f: "search_country", label: __("Country (gl)") },
+					{ f: "search_language", label: __("Language (hl)") },
+					{ f: "search_serpapi_enabled", type: "check", label: __("Use SerpAPI (Search), with the SerpAPI key above") },
+					{ f: "search_scrapingdog_enabled", type: "check", label: __("Use Scrapingdog (Search), with its key above") },
+					{ f: "search_scrapingbee_enabled", type: "check", label: __("Use ScrapingBee (Search), with its key above") },
+				], d.platform, "platform"))
+					+ this.section(__("Routing"), this.fields([
+					{ f: "default_places_provider", type: "select", label: __("Default places provider"), options: ["brave_place_search", "google_places_api", "scrapingdog_google_maps", "scrapingbee_google_maps", "serpapi_google_maps", "apify_google_maps"] },
+					{ f: "default_page_context_provider", type: "select", label: __("Default page context provider"), options: ["brave_llm_context"] },
+					{ f: "default_web_search_provider", type: "select", label: __("Default web search provider"), options: ["brave_web_search", "scrapingdog_google_search", "scrapingbee_google_search", "serpapi_google_search"] },
+				], d.platform, "platform"))
+					+ `<div class="sch-note small">${__("Brave is the default. Every other provider switched on joins Smart Sources.")}</div>` : "";
+			case "platform_research":
+				return d.platform ? this.section(__("Website research"), this.fields([
+					{ f: "research_enabled", type: "check", label: __("Read lead websites") },
+					{ f: "user_agent", label: __("Crawler user agent") },
+					{ f: "fetch_timeout", label: __("Fetch timeout (seconds)") },
+					{ f: "max_page_kb", label: __("Max page size (KB)") },
+					{ f: "max_pages_per_site", label: __("Max pages per website") },
+					{ f: "market_research_max_requests", label: __("Requests per market brief") },
+				], d.platform, "platform"))
+					+ `<div class="sch-note small">${__("Robots.txt is always respected; private network addresses are always refused.")}</div>` : "";
+			case "platform_social":
+				return d.platform ? this.section(__("Social publishing"), this.fields([
+					{ f: "social_enabled", type: "check", label: __("Publish approved posts") },
+					{ f: "meta_graph_version", label: __("Meta Graph API version"), placeholder: "v23.0" },
+					{ f: "linkedin_api_version", label: __("LinkedIn API version (YYYYMM)"), placeholder: "202509" },
+				], d.platform, "platform")) : "";
+			case "platform_email_events":
+				return d.platform ? this.section(__("Signing"), this.fields([
+					{ f: "email_webhook_secret", type: "secret", label: __("Webhook signing secret"), help: __("Your email provider signs each event with this secret.") },
+				], d.platform, "platform"))
+					+ this.section(__("Address to paste into your email provider"), this.copy_row(__("Email events"), d.webchat.site + "/api/method/reckon_sales_agent.api.email_events")) : "";
+			case "platform_plans":
+				return d.platform ? this.section(__("Monthly limits per Company"), this.fields([
+					{ f: "monthly_discovery_limit", label: __("Discovery") },
+					{ f: "monthly_research_limit", label: __("Website research") },
+					{ f: "monthly_ai_limit", label: __("AI requests") },
+					{ f: "monthly_message_limit", label: __("Messages") },
+				], d.platform, "platform")) + this.section(__("Internal companies"), this.fields([
+					{ f: "internal_companies", type: "textarea", label: __("Companies with no subscription needed"), help: __("One per line.") },
+				], d.platform, "platform")) : "";
+			case "platform_experimental":
+				return d.platform ? `<div class="sch-note">${__("These drive a headless browser on Google's pages. They break when Google changes its pages and may breach its terms. Leave them off unless you have reviewed the risk.")}</div>`
+					+ this.section(__("Google Maps browser"), this.fields([
+					{ f: "maps_browser_enabled", type: "check", label: __("Enable the Maps browser") },
+					{ f: "maps_browser_max_results", label: __("Max places per search") },
+					{ f: "maps_browser_delay", label: __("Delay between places (seconds)") },
+					{ f: "maps_browser_language", label: __("Language (hl)") },
+				], d.platform, "platform"))
+					+ this.section(__("Google Search browser"), this.fields([
+					{ f: "search_browser_enabled", type: "check", label: __("Enable the Search browser") },
+					{ f: "search_browser_max_results", label: __("Max results per search") },
+					{ f: "search_browser_delay", label: __("Delay between result pages (seconds)") },
+				], d.platform, "platform")) : "";
 			case "ai":
 				return this.section(__("Current AI"), `<div class="sch-kv"><span>${__("Provider")}</span><b>${e(d.ai.label)}</b><span>${__("Model")}</span><b>${e(d.ai.model || "–")}</b>
 						<span>${__("Status")}</span><b>${d.ai.error ? e(d.ai.error) : d.ai.on ? __("On") : __("Off")}</b></div>`)

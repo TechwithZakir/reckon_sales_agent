@@ -426,6 +426,30 @@ PLATFORM_EDITABLE = {
     "meta_app_id": "text", "meta_app_secret": "secret", "meta_verify_token": "secret",
     "linkedin_client_id": "text", "linkedin_client_secret": "secret",
     "transcription_enabled": "check", "transcription_provider": "text", "transcription_model": "text",
+    # Lead sources: Brave, Google Places, Google Maps and Search providers, and how leads are routed between them.
+    "brave_enabled": "check", "brave_api_key": "secret", "brave_country": "text",
+    "places_enabled": "check", "google_places_api_key": "secret", "places_terms_reviewed": "check",
+    "places_retention_days": "text",
+    "maps_terms_ack": "check", "maps_data_retention_days": "text",
+    "serpapi_enabled": "check", "serpapi_api_key": "secret",
+    "apify_enabled": "check", "apify_api_token": "secret", "apify_actor": "text",
+    "scrapingdog_enabled": "check", "scrapingdog_api_key": "secret",
+    "scrapingbee_enabled": "check", "scrapingbee_api_key": "secret",
+    "search_terms_ack": "check", "search_data_retention_days": "text", "search_country": "text",
+    "search_language": "text", "search_serpapi_enabled": "check", "search_scrapingdog_enabled": "check",
+    "search_scrapingbee_enabled": "check",
+    "default_places_provider": "text", "default_page_context_provider": "text", "default_web_search_provider": "text",
+    # Experimental headless browsers (Playwright): off unless the vendor turns them on.
+    "maps_browser_enabled": "check", "maps_browser_max_results": "text", "maps_browser_delay": "text",
+    "maps_browser_language": "text", "search_browser_enabled": "check", "search_browser_max_results": "text",
+    "search_browser_delay": "text",
+    # Website research, social publishing, email events, plans and limits.
+    "research_enabled": "check", "user_agent": "text", "fetch_timeout": "text", "max_page_kb": "text",
+    "max_pages_per_site": "text", "market_research_max_requests": "text",
+    "social_enabled": "check", "meta_graph_version": "text", "linkedin_api_version": "text",
+    "email_webhook_secret": "secret",
+    "monthly_discovery_limit": "text", "monthly_research_limit": "text", "monthly_ai_limit": "text",
+    "monthly_message_limit": "text", "internal_companies": "text",
 }
 
 

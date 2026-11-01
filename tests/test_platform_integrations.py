@@ -68,6 +68,34 @@ class PlatformPageTests(unittest.TestCase):
         for key in ("platform_ai", "platform_meta", "platform_linkedin", "platform_transcription"):
             self.assertIn(f'"{key}"', js)
 
+    def test_every_platform_field_is_a_real_setting(self):
+        import json
+        import re
+
+        doctype = json.loads(read("reckon_sales_agent", "doctype", "sales_agent_platform_settings",
+                                  "sales_agent_platform_settings.json"))
+        real = {f["fieldname"]: f["fieldtype"] for f in doctype["fields"]}
+        for field, kind in PLATFORM_EDITABLE.items():
+            self.assertIn(field, real, field)
+            expected = {"check": "Check", "secret": "Password"}.get(kind, None)
+            if expected:
+                self.assertEqual(real[field], expected, field)
+        js = PAGE.read_text(encoding="utf-8")
+        used = set(re.findall(r'f: "([a-z_]+)"', js))
+        platform_used = {f for f in used if f in real and f not in ("ari_url", "ari_username", "ari_password",
+                                                                  "calling_hours", "sip_caller_id", "sip_context",
+                                                                  "telephony_webhook_secret", "sms_account",
+                                                                  "sms_api_key", "sms_enabled", "sms_provider",
+                                                                  "sms_sender_id", "twilio_account_sid",
+                                                                  "twilio_auth_token", "twilio_messaging_service_sid",
+                                                                  "twilio_phone_number", "twilio_record_calls",
+                                                                  "voice_ai_enabled", "voice_ai_greeting",
+                                                                  "voice_ai_language", "voice_forward_to",
+                                                                  "whatsapp_enabled", "email_provider",
+                                                                  "sendgrid_api_key", "sendgrid_from_email",
+                                                                  "sendgrid_webhook_key", "telephony_provider")}
+        self.assertTrue(platform_used <= set(PLATFORM_EDITABLE), platform_used - set(PLATFORM_EDITABLE))
+
     def test_company_switcher_sends_the_chosen_company(self):
         js = PAGE.read_text(encoding="utf-8")
         self.assertIn("company: this.company", js)
