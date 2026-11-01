@@ -458,7 +458,14 @@ function social(d, platforms, onText) {
 						? d.whatsapp.accounts.map((a) => `<div class="sch-kv"><span>${e(a.account_name || a.name)}</span><b>${e(a.status || "")}</b></div>`).join("")
 						: `<div class="sch-muted">${__("No WhatsApp account is free for this Company. Add one in the WhatsApp Account list, with its phone number ID and token.")}</div>`)
 					+ this.section(__("Paste into Meta: WhatsApp, Configuration"), this.copy_row(__("Webhook callback URL"), d.whatsapp.webhook)
-						+ `<div class="sch-note small">${__("The verify token is on the WhatsApp Account (Webhook Verify Token).")}</div>`)
+						+ `<div class="sch-note small">${__("Subscribe to messages and message_template_status_update. The verify token is on the WhatsApp Account (Webhook Verify Token).")}</div>`)
+					+ this.section(__("Setup guide"), this.steps([
+						[false, __("In Meta Developers, create a Business app with the WhatsApp product, and get a permanent token, the Phone ID and the Business ID.")],
+						[false, __("Create a WhatsApp Account in the WhatsApp Account list: Account Name, Token, Phone ID, Business ID, App ID, Webhook Verify Token (any long random text), URL https://graph.facebook.com and Version v17.0.")],
+						[false, __("Choose it above and save. Tick Is Default Outgoing only if it is your only account; this setting takes priority over the default.")],
+						[false, __("Paste the callback address above into Meta, with the verify token, and subscribe to messages and message_template_status_update.")],
+						[false, __("Serve the site over HTTPS, in production mode: Meta refuses webhooks otherwise.")],
+					]) + `<a class="btn btn-default btn-sm" href="https://shridarpatil.github.io/frappe_whatsapp/configuration" target="_blank" rel="noopener">${__("Full configuration guide")}</a>`)
 					+ `<div class="sch-note small">${__("After a customer writes, you can reply freely for 24 hours; after that only an approved template can be sent.")}</div>`;
 			case "facebook":
 			case "instagram":
