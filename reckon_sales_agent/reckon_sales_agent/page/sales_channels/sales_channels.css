@@ -124,3 +124,6 @@
 @media (prefers-reduced-motion: reduce) {
 	.sch-tile, .sch-panel, .sch-scrim { transition: none; }
 }
+.sch-company { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--sch-muted); margin-right: 10px; }
+.sch-company select { width: auto; min-width: 180px; height: 30px; font-size: 12.5px; }
+

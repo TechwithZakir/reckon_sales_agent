@@ -88,7 +88,29 @@
 			state: (d) => d.twilio.email ? (d.values.sendgrid_api_key ? ["on", __("Sending")] : ["warn", __("Needs an API key")]) : ["off", __("Not used")] },
 	];
 
-	function social(d, platforms, onText) {
+	// The system provider's tiles: shown and saved only to vendor roles (the server checks too).
+const PLATFORM_TILES = [
+    { key: "platform_ai", cat: "platform", platform: true, name: __("AI provider and model"), glyph: "cpu", color: "#0f766e",
+        desc: __("The AI for every customer; customers may bring their own if you allow it"),
+        state: (d) => {
+            const p = d.platform;
+            if (!p.ai_enabled) return ["off", __("Off")];
+            return p.anthropic_api_key || p.openai_api_key || p.local_ai_base_url ? ["on", p.ai_provider || ""] : ["warn", __("Needs a key")];
+        } },
+    { key: "platform_meta", cat: "platform", platform: true, name: __("Meta app"), mark: "f", color: "#1877f2",
+        desc: __("One app for every customer: Pages, Instagram, Messenger and lead ads"),
+        state: (d) => d.platform.meta_app_id && d.platform.meta_app_secret ? ["on", __("App set up")]
+            : d.platform.meta_app_id ? ["warn", __("Needs the secret")] : ["off", __("Not set up")] },
+    { key: "platform_linkedin", cat: "platform", platform: true, name: __("LinkedIn app"), mark: "in", color: "#0a66c2",
+        desc: __("One app for every customer: company pages and Lead Gen forms"),
+        state: (d) => d.platform.linkedin_client_id && d.platform.linkedin_client_secret ? ["on", __("App set up")]
+            : d.platform.linkedin_client_id ? ["warn", __("Needs the secret")] : ["off", __("Not set up")] },
+    { key: "platform_transcription", cat: "platform", platform: true, name: __("Call transcription"), glyph: "mic", color: "#9333ea",
+        desc: __("Transcribes recorded calls and writes the summary to the CRM"),
+        state: (d) => !d.platform.transcription_enabled ? ["off", __("Off")] : ["on", d.platform.transcription_provider || ""] },
+];
+
+function social(d, platforms, onText) {
 		const rows = d.accounts.filter((a) => platforms.includes(a.platform));
 		if (rows.some((a) => a.enabled && a.last_error)) return ["warn", __("Reconnect needed")];
 		const live = rows.filter((a) => a.enabled);
@@ -106,7 +128,7 @@
 		}
 
 		call(method, args) {
-			return frappe.xcall(API + method, args || {});
+			return frappe.xcall(API + method, this.company ? { ...(args || {}), company: this.company } : (args || {}));
 		}
 
 		load() {
@@ -118,22 +140,28 @@
 		}
 
 		// ------------------------------------------------------------ gallery
+		company_switch(d) {
+			return `<label class="sch-company"><span>${icon("shield", 15)} ${__("Company")}</span><select class="form-control sch-co">${(d.companies || []).map((c) => `<option ${c === d.company ? "selected" : ""}>${e(c)}</option>`).join("")}</select></label>`;
+		}
+
 		render(d) {
 			this.data = d;
-			const states = INTEGRATIONS.map((i) => i.state(d)[0]);
+			const shown = INTEGRATIONS.filter((i) => !i.platform);
+			const states = shown.map((i) => i.state(d)[0]);
 			const connected = states.filter((s) => s === "on").length, attention = states.filter((s) => s === "warn").length;
 			this.$root.html(`
 				<div class="sch-hero">
 					<div><h2>${__("Integrations")}</h2>
 						<p>${__("Connect the channels your leads use. Each one feeds Conversations and the agents.")}</p></div>
+					${d.is_vendor ? this.company_switch(d) : ""}
 					<div class="sch-stats"><div><b>${connected}</b><span>${__("connected")}</span></div>
 						<div class="${attention ? "warn" : ""}"><b>${attention}</b><span>${__("need attention")}</span></div>
-						<div><b>${INTEGRATIONS.length - connected - attention}</b><span>${__("available")}</span></div></div>
+						<div><b>${shown.length - connected - attention}</b><span>${__("available")}</span></div></div>
 				</div>
 				${d.vendor ? this.vendor_strip(d.vendor) : ""}
 				${d.outbound_enabled ? "" : `<div class="sch-note">${icon("shield", 16)}<span>${__("Dry run is on: approved replies are recorded but not delivered. Switch it off in Sales Agent Settings when you are ready.")}</span></div>`}
 				<div class="sch-toolbar">
-					<div class="sch-cats" role="tablist">${CATEGORIES.map(([k, l]) => `<button role="tab" data-cat="${k}" class="${this.cat === k ? "on" : ""}">${e(l)}</button>`).join("")}</div>
+					<div class="sch-cats" role="tablist">${(d.is_vendor ? [...CATEGORIES, ["platform", __("System provider")]] : CATEGORIES).map(([k, l]) => `<button role="tab" data-cat="${k}" class="${this.cat === k ? "on" : ""}">${e(l)}</button>`).join("")}</div>
 					<label class="sch-search">${icon("search", 15)}<input placeholder="${__("Search integrations")}" value="${e(this.q)}"></label>
 				</div>
 				<div class="sch-tiles"></div>
@@ -142,13 +170,14 @@
 			this.$root.find(".sch-cats button").on("click", (ev) => { this.cat = ev.currentTarget.dataset.cat; this.$root.find(".sch-cats button").removeClass("on"); $(ev.currentTarget).addClass("on"); this.render_tiles(); });
 			this.$root.find(".sch-search input").on("input", (ev) => { this.q = ev.target.value.toLowerCase(); this.render_tiles(); });
 			this.$root.find(".sch-scrim").on("click", () => this.close());
+			this.$root.find(".sch-co").on("change", (ev) => { this.company = ev.target.value; this.openKey = null; this.load(); });
 			this.$root.find(".sch-vendor-strip").on("click", () => this.open("vendor"));
 			if (this.openKey) this.open(this.openKey);
 		}
 
 		render_tiles() {
 			const d = this.data;
-			const rows = INTEGRATIONS.filter((i) => (this.cat === "all" || i.cat === this.cat)
+			const rows = [...INTEGRATIONS, ...(d.is_vendor ? PLATFORM_TILES : [])].filter((i) => (this.cat === "all" || i.cat === this.cat)
 				&& (!this.q || `${i.name} ${i.desc}`.toLowerCase().includes(this.q)));
 			this.$root.find(".sch-tiles").html(rows.map((i) => {
 				const [state, text] = i.state(d);
@@ -173,8 +202,8 @@
 		open(key) {
 			const d = this.data;
 			const item = key === "vendor" ? { key, name: __("System provider setup"), glyph: "shield", color: "#334155",
-				desc: __("Once for every Company"), state: () => ["on", ""] } : INTEGRATIONS.find((i) => i.key === key);
-			if (!item) return;
+				desc: __("Once for every Company"), state: () => ["on", ""] } : [...INTEGRATIONS, ...PLATFORM_TILES].find((i) => i.key === key);
+			if (!item || (item.platform && !this.data.is_vendor)) return;
 			this.openKey = key;
 			const [state] = item.state(d);
 			const panel = this.$root.find(".sch-panel").html(`
@@ -212,8 +241,8 @@
 				<button class="btn btn-default btn-xs sch-copy-url" data-url="${e(url)}" title="${__("Copy")}">${icon("copy", 13)}</button></div></div>`;
 		}
 
-		fields(list) {
-			const v = this.data.values, dis = this.data.can_manage ? "" : "disabled";
+		fields(list, source = this.data.values, scope = "company") {
+			const v = source, dis = this.data.can_manage ? "" : "disabled";
 			return `<div class="sch-fields">${list.map((f) => {
 				const val = v[f.f];
 				if (f.type === "check") return `<label class="sch-switch"><input type="checkbox" data-f="${f.f}" ${val ? "checked" : ""} ${dis}><span></span>${e(f.label)}</label>`;
@@ -222,7 +251,7 @@
 				if (f.type === "secret") return `<label>${e(f.label)}<input class="form-control" type="password" autocomplete="new-password" data-f="${f.f}" placeholder="${val ? __("Saved · type to replace") : ""}" ${dis}>${help}</label>`;
 				if (f.type === "textarea") return `<label>${e(f.label)}<textarea class="form-control" rows="3" data-f="${f.f}" ${dis}>${e(val || "")}</textarea>${help}</label>`;
 				return `<label>${e(f.label)}<input class="form-control" data-f="${f.f}" value="${e(val || "")}" placeholder="${e(f.placeholder || "")}" ${dis}>${help}</label>`;
-			}).join("")}${this.data.can_manage ? `<div class="sch-actions"><button class="btn btn-primary btn-sm sch-save">${__("Save")}</button></div>` : ""}</div>`;
+			}).join("")}${this.data.can_manage ? `<div class="sch-actions"><button class="btn btn-primary btn-sm sch-save" data-scope="${scope}">${__("Save")}</button></div>` : ""}</div>`;
 		}
 
 		accounts(platforms, messaging) {
@@ -264,6 +293,46 @@
 						<label class="sch-switch"><input type="checkbox" class="sch-assign" ${d.fast.auto_assign ? "checked" : ""}><span></span>${__("Share new conversations automatically (fewest open first)")}</label>
 						<label>${__("Remind {0} when a chat waits longer than (minutes, 0 = off)", [e(d.fast.assignee || __("the salesperson"))])}<input type="number" class="form-control sch-sla" min="0" max="1440" value="${e(d.fast.sla_minutes)}"></label>
 						${d.can_manage ? `<div class="sch-actions"><button class="btn btn-primary btn-sm sch-fast-save">${__("Save")}</button></div>` : ""}</div>`);
+			case "platform_ai":
+				return d.platform ? this.section(__("Default AI"), this.fields([
+					{ f: "ai_enabled", type: "check", label: __("AI is on for every customer") },
+					{ f: "ai_provider", type: "select", label: __("Provider"), options: ["Anthropic (Claude)", "OpenAI", "Local (OpenAI-compatible)"] },
+					{ f: "ai_model", label: __("Claude model") },
+					{ f: "ai_effort", type: "select", label: __("Effort"), options: ["low", "medium", "high"] },
+					{ f: "anthropic_api_key", type: "secret", label: __("Anthropic API key") },
+					{ f: "openai_api_key", type: "secret", label: __("OpenAI API key") },
+					{ f: "openai_model", label: __("OpenAI model") },
+					{ f: "openai_base_url", label: __("OpenAI API address") },
+					{ f: "local_ai_base_url", label: __("Local AI server address"), placeholder: "http://127.0.0.1:11434/v1" },
+					{ f: "local_ai_model", label: __("Local model") },
+					{ f: "local_ai_api_key", type: "secret", label: __("Local AI key") },
+				], d.platform, "platform"))
+					+ this.section(__("Customers"), this.fields([
+					{ f: "allow_company_ai_override", type: "check", label: __("Customers may use the AI set for their Company") },
+					{ f: "allow_company_ai_endpoints", type: "check", label: __("Customers may use their own AI server address (HTTPS)") },
+				], d.platform, "platform")) : "";
+			case "platform_meta":
+				return d.platform ? this.section(__("Meta app"), this.fields([
+					{ f: "meta_app_id", label: __("App ID") },
+					{ f: "meta_app_secret", type: "secret", label: __("App secret"), help: __("Also checks every webhook's signature.") },
+					{ f: "meta_verify_token", type: "secret", label: __("Webhook verify token"), help: __("Paste the same text in the Meta app's webhook settings.") },
+				], d.platform, "platform"))
+					+ this.section(__("Addresses for the Meta app"), this.copy_row(__("OAuth redirect URI"), d.vendor.redirect_uri)
+						+ this.copy_row(__("Webhook callback URL"), d.vendor.meta_webhook)
+						+ `<button class="btn btn-default btn-sm sch-token">${__("Make a new verify token")}</button>`) : "";
+			case "platform_linkedin":
+				return d.platform ? this.section(__("LinkedIn app"), this.fields([
+					{ f: "linkedin_client_id", label: __("Client ID") },
+					{ f: "linkedin_client_secret", type: "secret", label: __("Client secret") },
+				], d.platform, "platform"))
+					+ this.section(__("Address for the LinkedIn app"), this.copy_row(__("OAuth redirect URI"), d.vendor.redirect_uri)) : "";
+			case "platform_transcription":
+				return d.platform ? this.section(__("Recorded calls"), this.fields([
+					{ f: "transcription_enabled", type: "check", label: __("Transcribe recorded calls") },
+					{ f: "transcription_provider", type: "select", label: __("Speech-to-text service"), options: ["OpenAI", "Local (OpenAI-compatible)"] },
+					{ f: "transcription_model", label: __("Model"), placeholder: "whisper-1" },
+				], d.platform, "platform"))
+					+ `<div class="sch-note small">${__("Customers' own recordings are transcribed with this service. Callers must hear a recording notice.")}</div>` : "";
 			case "ai":
 				return this.section(__("Current AI"), `<div class="sch-kv"><span>${__("Provider")}</span><b>${e(d.ai.label)}</b><span>${__("Model")}</span><b>${e(d.ai.model || "–")}</b>
 						<span>${__("Status")}</span><b>${d.ai.error ? e(d.ai.error) : d.ai.on ? __("On") : __("Off")}</b></div>`)
@@ -373,7 +442,7 @@
 				const data = {};
 				p.find("[data-f]").each((_, el) => { data[el.dataset.f] = el.type === "checkbox" ? (el.checked ? 1 : 0) : el.value; });
 				$(ev.currentTarget).prop("disabled", true);
-				this.call("save_settings", { data: JSON.stringify(data) }).then((r) => this.refresh(r, __("Saved")))
+				this.call($(ev.currentTarget).data("scope") === "platform" ? "save_platform_settings" : "save_settings", { data: JSON.stringify(data) }).then((r) => this.refresh(r, __("Saved")))
 					.finally(() => $(ev.currentTarget).prop("disabled", false));
 			});
 			p.find(".sch-wc-save").on("click", () => this.call("set_webchat", { data: JSON.stringify({

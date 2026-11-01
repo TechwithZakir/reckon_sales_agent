@@ -214,8 +214,13 @@ def overview() -> dict:
     from reckon_sales_agent.providers.factory import ai_setup
 
     ai = ai_setup(company)
+    vendor = _is_vendor()
     return {
         "company": company,
+        "is_vendor": vendor,
+        # Vendors only: the platform's own values (secrets say whether they are set) and every Company to switch to.
+        "platform": _platform_values(platform) if vendor else None,
+        "companies": frappe.get_all("Sales Agent Settings", pluck="name", order_by="name asc") if vendor else [],
         "values": _values(settings),
         "ai": {"on": bool(platform.get("ai_enabled") and settings.get("ai_enabled")), "label": ai["label"],
                "model": ai["model"], "error": ai["error"]},
@@ -408,6 +413,43 @@ def save_settings(data: str | dict) -> dict:
             if str(value) not in options:
                 frappe.throw(_("{0} is not an option for {1}.").format(value, doc.meta.get_label(field)))
         doc.set(field, str(value).strip()[:2000] if kind != "check" else value)
+    doc.save()
+    return overview()
+
+
+# The system provider's settings (Sales Agent Platform Settings): shown and saved only to vendor roles.
+PLATFORM_EDITABLE = {
+    "ai_enabled": "check", "ai_provider": "text", "ai_model": "text", "ai_effort": "text",
+    "anthropic_api_key": "secret", "openai_api_key": "secret", "openai_model": "text", "openai_base_url": "text",
+    "local_ai_base_url": "text", "local_ai_model": "text", "local_ai_api_key": "secret",
+    "allow_company_ai_override": "check", "allow_company_ai_endpoints": "check",
+    "meta_app_id": "text", "meta_app_secret": "secret", "meta_verify_token": "secret",
+    "linkedin_client_id": "text", "linkedin_client_secret": "secret",
+    "transcription_enabled": "check", "transcription_provider": "text", "transcription_model": "text",
+}
+
+
+def _platform_values(platform) -> dict:
+    return {field: bool(platform.get(field)) if kind == "secret" else platform.get(field)
+            for field, kind in PLATFORM_EDITABLE.items()}
+
+
+@frappe.whitelist(methods=["POST"])
+def save_platform_settings(data: str | dict) -> dict:
+    """Save the system provider's settings. Vendor roles only, checked here on the server."""
+    if not _is_vendor():
+        frappe.throw(_("Only the system provider can change these settings."), frappe.PermissionError)
+    data = json.loads(data) if isinstance(data, str) else data
+    doc = frappe.get_doc("Sales Agent Platform Settings")
+    for field, value in (data or {}).items():
+        kind = PLATFORM_EDITABLE.get(field)
+        if not kind or (kind == "secret" and not str(value or "").strip()):
+            continue  # an empty secret keeps the stored one
+        if kind == "check":
+            value = 1 if value in (1, "1", True, "true") else 0
+        else:
+            value = str(value).strip()[:2000]
+        doc.set(field, value)
     doc.save()
     return overview()
 
