@@ -143,7 +143,7 @@ function social(d, platforms, onText) {
 			this.cat = "all";
 			this.q = "";
 			this.$root = $('<div class="sch"></div>').appendTo(page.main);
-			$(document).on("keydown.schhub", (ev) => ev.key === "Escape" && this.close());
+			$(document).off("keydown.schhub").on("keydown.schhub", (ev) => { if (ev.key === "Escape") this.close(); });
 		}
 
 		call(method, args) {

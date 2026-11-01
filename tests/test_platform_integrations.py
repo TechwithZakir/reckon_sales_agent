@@ -96,6 +96,12 @@ class PlatformPageTests(unittest.TestCase):
                                                                   "sendgrid_webhook_key", "telephony_provider")}
         self.assertTrue(platform_used <= set(PLATFORM_EDITABLE), platform_used - set(PLATFORM_EDITABLE))
 
+    def test_keyboard_handler_never_cancels_typing(self):
+        # A handler that returns false cancels the key in jQuery: every letter typed on the page was blocked.
+        js = PAGE.read_text(encoding="utf-8")
+        self.assertIn('if (ev.key === "Escape") this.close();', js)
+        self.assertNotIn('ev.key === "Escape" && this.close()', js)
+
     def test_company_switcher_sends_the_chosen_company(self):
         js = PAGE.read_text(encoding="utf-8")
         self.assertIn("company: this.company", js)
