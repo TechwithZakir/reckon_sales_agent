@@ -19,6 +19,14 @@ class PolicyPageTests(unittest.TestCase):
         self.assertIn("Data from Meta", page)
         self.assertIn("Data deletion", page)
 
+    def test_no_placeholders_are_left_for_meta_to_see(self):
+        for name in ("privacy.html", "terms.html"):
+            page = (WWW / name).read_text(encoding="utf-8")
+            self.assertNotIn("[privacy contact email]", page, name)
+            self.assertNotIn("[legal contact email]", page, name)
+            self.assertNotIn("[registered address]", page, name)
+            self.assertIn("info@reckon.tech", page, name)
+
     def test_terms_link_to_the_privacy_policy(self):
         self.assertIn('href="/privacy"', (WWW / "terms.html").read_text(encoding="utf-8"))
 
