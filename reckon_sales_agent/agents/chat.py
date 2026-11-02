@@ -22,7 +22,7 @@ import hashlib
 import hmac
 import json
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 CHAT_CHANNELS = ("Messenger", "Instagram", "Web Chat")
 META_CHANNELS = {"page": "Messenger", "instagram": "Instagram"}
@@ -49,6 +49,20 @@ def verify_meta_signature(app_secret: str | None, body: bytes, header: str | Non
     return hmac.compare_digest(expected, header[7:].strip())
 
 
+def _site_time(seconds: float) -> datetime:
+    """Meta's timestamps are UTC. Reckon stores times in the site's time zone, like every other record."""
+    moment = datetime.fromtimestamp(seconds, tz=timezone.utc)
+    try:
+        from zoneinfo import ZoneInfo
+
+        import frappe
+
+        zone = ZoneInfo(frappe.utils.get_system_timezone())
+    except Exception:  # outside a site (tests): keep UTC
+        return moment.replace(tzinfo=None)
+    return moment.astimezone(zone).replace(tzinfo=None)
+
+
 def meta_events(payload: dict) -> list[dict]:
     """Messages people sent to a Page or Instagram account, from one webhook call (echoes and receipts skipped)."""
     channel = META_CHANNELS.get(str(payload.get("object") or ""))
@@ -71,7 +85,7 @@ def meta_events(payload: dict) -> list[dict]:
             if not sender or not account or sender == account:
                 continue
             stamp = event.get("timestamp")
-            at = datetime.fromtimestamp(stamp / 1000) if isinstance(stamp, int | float) else None
+            at = _site_time(stamp / 1000) if isinstance(stamp, int | float) else None
             out.append({"channel": channel, "account_id": account, "contact_id": sender,
                         "external_id": str(message["mid"])[:140], "text": text[:MAX_TEXT], "at": at})
     return out
@@ -102,7 +116,7 @@ def meta_comments(payload: dict) -> list[dict]:
             if not comment_id or not text or not author.get("id") or str(author["id"]) == account:
                 continue
             stamp = value.get("created_time")
-            at = datetime.fromtimestamp(stamp) if isinstance(stamp, int | float) else None
+            at = _site_time(stamp) if isinstance(stamp, int | float) else None
             out.append({"channel": channel, "account_id": account, "contact_id": str(author["id"]),
                         "contact_name": str(author.get("name") or author.get("username") or "")[:80] or None,
                         "external_id": str(comment_id)[:140], "text": str(text)[:MAX_TEXT], "at": at,
@@ -268,6 +282,7 @@ def meta_profile_name(channel: str, account: str, contact_id: str) -> str | None
         response = requests.get(f"https://graph.facebook.com/v23.0/{contact_id}",
                                 params={"fields": fields, "access_token": token}, timeout=10)
         if response.status_code >= 400:
+            frappe.log_error(title="Meta profile not read", message=f"{channel} {contact_id}: {response.text[:400]}")
             return None
         data = response.json() or {}
     except Exception:  # a missing name must never stop the message from being saved
