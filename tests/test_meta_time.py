@@ -24,3 +24,10 @@ class MetaTimeTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TimelineOrderTests(unittest.TestCase):
+    def test_timeline_sorts_by_real_time(self):
+        source = (Path(__file__).parents[1] / "reckon_sales_agent" / "agents" / "omni.py").read_text(encoding="utf-8")
+        timeline = source.split("def timeline(")[1].split("\ndef ")[0]
+        self.assertIn('items.sort(key=lambda i: get_datetime(i["at"] or "1970-01-01"))', timeline)

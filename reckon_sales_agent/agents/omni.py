@@ -142,6 +142,7 @@ def member_for(company: str, campaign: str, prospect) -> str:
 def timeline(prospect_name: str, limit: int = 40) -> list[dict]:
     """The lead's history across channels, oldest first."""
     import frappe
+    from frappe.utils import get_datetime
 
     from reckon_sales_agent.providers.channels import html_to_text
 
@@ -182,7 +183,8 @@ def timeline(prospect_name: str, limit: int = 40) -> list[dict]:
                                 fields=["name", "status", "starts_on", "creation", "outcome_notes"], limit=50):
             items.append({"at": m.starts_on or m.creation, "direction": "note", "channel": "Meeting",
                           "status": m.status, "subject": "", "text": m.outcome_notes or "", "ref": m.name})
-    items.sort(key=lambda i: str(i["at"]))
+    # Real datetimes, not their text: a text sort is only right while every time is written the same way.
+    items.sort(key=lambda i: get_datetime(i["at"] or "1970-01-01"))
     return items[-limit:]
 
 
