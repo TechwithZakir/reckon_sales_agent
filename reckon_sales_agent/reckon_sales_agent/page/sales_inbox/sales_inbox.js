@@ -165,6 +165,22 @@
 			return this.call("thread", { prospect }).then((t) => { this.shown = prospect; this.render_thread(prospect, t); });
 		}
 
+		timeline_html(items, name) {
+			if (!items.length) return `<div class="sin-empty small">${__("No messages yet.")}</div>`;
+			const avatar = String(name || "?").trim().charAt(0).toUpperCase() || "?";
+			let day = "";
+			return items.map((i) => {
+				const d = i.at ? String(i.at).slice(0, 10) : "";
+				const sep = d && d !== day ? `<div class="sin-day">${e(frappe.datetime.str_to_user(d))}</div>` : "";
+				day = d || day;
+				if (i.direction === "note") return `${sep}<div class="sin-note-line">${e(i.text || __(i.status))}</div>`;
+				const out = i.direction === "out";
+				return `${sep}<div class="sin-row ${out ? "out" : "in"}">${out ? "" : `<span class="sin-av">${e(avatar)}</span>`}
+					<div class="sin-bubble ${out ? "out" : "in"}">${i.subject ? `<b>${e(i.subject)}</b><br>` : ""}${e(i.text)}
+					<div class="sin-stamp">${e(CHANNELS[i.channel] || i.channel)} · ${e(__(i.status))} · ${e(when(i.at))}</div></div></div>`;
+			}).join("");
+		}
+
 		render_thread(prospect, t) {
 			const el = this.$root.find(".sin-thread"), ctx = this.$root.find(".sin-ctx");
 			const p = t.prospect, c = t.conversation;
@@ -176,10 +192,7 @@
 					<div class="sin-muted">${[p.email ? e(p.email) : "", p.phone ? `<a href="tel:${e(p.phone)}">${e(p.phone)}</a>` : "", e(p.city || "")].filter(Boolean).join(" · ")}</div></div>
 					<div class="sin-links"><button class="btn btn-xs ${resolved ? "btn-default" : "btn-primary"} sin-status">${resolved ? __("Reopen") : __("Resolve")}</button></div></div>
 				${c.handoff_reason && !resolved ? `<div class="sin-warn">${__("Needs a person")}: ${e(c.handoff_reason)}</div>` : ""}
-				<div class="sin-timeline">${t.timeline.map((i) => `<div class="sin-msg ${e(i.direction)}">
-					<div class="sin-muted">${e(CHANNELS[i.channel] || i.channel)} · ${e(__(i.status))} · ${e(when(i.at))}</div>
-					${i.subject ? `<b>${e(i.subject)}</b>` : ""}<div class="txt">${e(i.text)}</div></div>`).join("")
-					|| `<div class="sin-empty small">${__("No messages yet.")}</div>`}</div>
+				<div class="sin-timeline">${this.timeline_html(t.timeline, p.business_name)}</div>
 				<div class="sin-drafts">${t.drafts.map((d) => `<div class="sin-draft" data-m="${e(d.name)}">
 					<div class="sin-muted">${__("AI draft")} · ${e(CHANNELS[d.channel] || d.channel)} → ${e(d.recipient || "")}</div>
 					${d.subject ? `<b>${e(d.subject)}</b>` : ""}<div class="txt">${e($("<div>").html(d.body).text())}</div>
