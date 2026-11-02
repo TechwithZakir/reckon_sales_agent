@@ -23,7 +23,7 @@
 	const waiting = () => state.rows.filter((r) => r.needs_reply).length;
 
 	const STYLE = `
-		#rsa-dock { position: fixed; right: 16px; bottom: 64px; z-index: 1030; font-size: 13px; line-height: 1.4; text-align: right; }
+		#rsa-dock { position: fixed; left: 16px; bottom: 64px; z-index: 1030; font-size: 13px; line-height: 1.4; text-align: left; }
 		#rsa-dock[hidden] { display: none; }
 		#rsa-dock .rd-launch { border: 0; border-radius: 999px; padding: 9px 16px; background: #0084ff; color: #fff; font-weight: 600; box-shadow: 0 4px 14px rgba(0,0,0,.2); }
 		#rsa-dock .rd-launch b { background: #fff; color: #0084ff; border-radius: 999px; padding: 0 7px; margin-left: 6px; }
@@ -224,8 +224,16 @@
 		return (frappe.get_route() || [])[0] === "sales-inbox";  // the full page is open: no need for the dock
 	}
 
+	// Sit to the right of Desk's sidebar, so the dock never covers the menu.
+	function place() {
+		const side = document.querySelector(".body-sidebar, .body-sidebar-container");
+		const width = side ? side.getBoundingClientRect().width : 0;
+		root().style.left = `${width + 16}px`;
+	}
+
 	function sync_visibility() {
 		root().hidden = route_is_inbox() || !state.ready;
+		place();
 	}
 
 	function start() {
@@ -242,6 +250,7 @@
 		frappe.realtime.on(EVENT, frappe.utils.debounce(on_realtime, 300));
 		setInterval(() => { if (state.ready) load_rows(); }, 60000);
 		$(document).on("page-change", sync_visibility);
+		$(window).on("resize", place);
 	}
 
 	$(document).ready(() => setTimeout(start, 500));

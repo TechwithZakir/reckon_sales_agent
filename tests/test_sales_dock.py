@@ -31,7 +31,8 @@ class DockTests(unittest.TestCase):
 
     def test_sits_above_the_ask_ai_bar_and_offers_the_ai_reply_modes(self):
         js = DOCK.read_text(encoding="utf-8")
-        self.assertIn("right: 16px; bottom: 64px;", js)
+        self.assertIn("left: 16px; bottom: 64px;", js)
+        self.assertIn("function place()", js)  # to the right of the sidebar
         for mode in ("Company default", "Autopilot", "Suggest only", "Human only"):
             self.assertIn(f'["{mode}"', js, mode)
         self.assertIn('call("set_mode", { prospect: state.prospect, mode: btn.dataset.mode })', js)
