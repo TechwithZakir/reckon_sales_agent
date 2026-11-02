@@ -48,7 +48,7 @@ class WiringTests(unittest.TestCase):
     def test_messenger_and_instagram_names_come_from_meta_on_first_contact(self):
         api = (APP / "api_channels.py").read_text(encoding="utf-8")
         self.assertIn("meta_profile_name(event[\"channel\"], owner[1], event[\"contact_id\"])", api)
-        self.assertIn("if not known and not event.get(\"contact_name\")", api)
+        self.assertIn("if not named and not event.get(\"contact_name\")", api)
 
 
 if __name__ == "__main__":
