@@ -48,6 +48,8 @@ def meta_webhook(**kwargs):
     body = frappe.request.get_data() or b""
     secret = platform.get_password("meta_app_secret", raise_exception=False) if platform.get("meta_app_secret") else ""
     if not verify_meta_signature(secret, body, frappe.get_request_header("X-Hub-Signature-256")):
+        frappe.log_error(title="Meta webhook rejected",
+                         message="The signature does not match the Meta app secret in Sales Agent Platform Settings.")
         return Response("invalid signature", status=401, mimetype="text/plain")
     try:
         payload = json.loads(body or b"{}")
@@ -64,6 +66,9 @@ def meta_webhook(**kwargs):
     for event in (meta_events(payload) + comments)[:100]:
         owner = account_company(event["channel"], event["account_id"])
         if not owner:
+            frappe.log_error(title="Meta message not saved",
+                             message=f"{event['channel']} account {event['account_id']} has no connected Company with messages on. "
+                                     "Connect it in Integrations and keep Messages switched on.")
             continue  # a Page no Company has connected (or it switched messages off)
         if event.get("kind") == "Comment" and not get_settings(owner[0]).get("comment_to_chat"):
             continue
