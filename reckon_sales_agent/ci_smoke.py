@@ -81,6 +81,31 @@ def run() -> None:
         api_conversations.set_status(prospect, "Resolved")
 
     check("Conversation end to end", conversation)
+
+    def isolation():
+        # Two Companies on one site: a lead of one Company must not be listed or opened from the other.
+        other = "CI Smoke Other Ltd"
+        if not frappe.db.exists("Company", other):
+            frappe.get_doc({"doctype": "Company", "company_name": other, "abbr": "CIO", "default_currency": "BDT",
+                            "country": "Bangladesh"}).insert(ignore_permissions=True)
+        get_settings(other)  # the other Company's own settings
+        name = receive_chat(company, "Web Chat", "web", "d" * 32, "Who are you?",
+                            f"web:iso:{frappe.generate_hash(length=8)}", contact_name="Isolation Visitor")
+        prospect = frappe.db.get_value("Sales Chat Message", name, "prospect")
+        frappe.form_dict["company"] = other
+        try:
+            listed = [row["prospect"] for row in api_conversations.threads()]
+            assert prospect not in listed, "another Company's lead is listed"
+            try:
+                api_conversations.thread(prospect)
+            except Exception:
+                pass  # refused, as it should be
+            else:
+                raise AssertionError("another Company's lead opened")
+        finally:
+            frappe.form_dict["company"] = company
+
+    check("Companies stay separate", isolation)
     frappe.db.rollback()  # leave the CI site as it was (the Company stays for the next run)
     if failures:
         raise AssertionError("Smoke test failed:\n" + "\n".join(failures))
