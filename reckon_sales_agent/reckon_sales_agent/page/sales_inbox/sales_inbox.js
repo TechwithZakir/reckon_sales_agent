@@ -3,6 +3,9 @@
 // its owner, AI mode, tags and channels. Changes arrive live over Frappe's realtime channel; a slow poll is only a
 // fallback. Wrapped in a closure: Desk evaluates page scripts in the global scope.
 (() => {
+	const SOUND_KEY = "rsa_sound";  // shared with the Desk dock: the same bell setting everywhere
+	const sound_on = () => { try { return localStorage.getItem(SOUND_KEY) !== "off"; } catch (err) { return true; } };
+	const set_sound = (on) => { try { localStorage.setItem(SOUND_KEY, on ? "on" : "off"); } catch (err) { /* private browsing */ } };
 	frappe.pages["sales-inbox"].on_page_load = function (wrapper) {
 		const page = frappe.ui.make_app_page({ parent: wrapper, title: __("Conversations"), single_column: true });
 		page.add_inner_button(__("Agent Studio"), () => frappe.set_route("sales-agent"));
@@ -139,7 +142,7 @@
 			const list = this.$root.find(".sin-list");
 			const searching = list.find(".sin-search").is(":focus");
 			list.html(`
-				<div class="sin-dock-head"><b>${__("Conversations")}</b><span class="sin-dock-count">${this.rows.filter((r) => this.matches(r, "waiting")).length} ${__("waiting")}</span><button class="btn btn-default btn-xs sin-fold" title="${this.prefs.folded ? __("Expand") : __("Fold")}">${this.prefs.folded ? "+" : "–"}</button></div>
+				<div class="sin-dock-head"><b>${__("Conversations")}</b><span class="sin-dock-count">${this.rows.filter((r) => this.matches(r, "waiting")).length} ${__("waiting")}</span><button class="btn btn-default btn-xs sin-sound" title="${__("New message sound")}">${sound_on() ? "🔔" : "🔕"}</button><button class="btn btn-default btn-xs sin-fold" title="${this.prefs.folded ? __("Expand") : __("Fold")}">${this.prefs.folded ? "+" : "–"}</button></div>
 				<input class="form-control sin-search" placeholder="${__("Search name, phone, tag")}" value="${e(this.search)}">
 				<div class="sin-tabs">${FILTERS.map(([k, l]) => `<button data-f="${k}" class="${this.filter === k ? "on" : ""}">${e(l)} <b>${this.rows.filter((r) => this.matches(r, k)).length}</b></button>`).join("")}</div>
 				${rows.map((r) => {
@@ -156,6 +159,7 @@
 			if (searching) list.find(".sin-search").trigger("focus").get(0).setSelectionRange(this.search.length, this.search.length);
 			list.find(".sin-search").on("input", frappe.utils.debounce((ev) => { this.search = ev.target.value; this.render_list(); }, 250));
 			list.find(".sin-tabs button").on("click", (ev) => { this.filter = ev.currentTarget.dataset.f; this.render_list(); });
+			list.find(".sin-sound").on("click", () => { set_sound(!sound_on()); this.render_list(); });
 			list.find(".sin-fold").on("click", () => { this.prefs.folded = !this.prefs.folded; this.save_prefs(); this.apply_layout(); this.render_list(); });
 			list.find(".sin-item").on("click", (ev) => { this.current = ev.currentTarget.dataset.p; this.render_list(); this.open(this.current); });
 		}

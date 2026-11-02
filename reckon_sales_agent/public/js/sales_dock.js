@@ -5,7 +5,12 @@
 	const API = "reckon_sales_agent.api_conversations.";
 	const EVENT = "rsa_inbox";
 	const KEY = "rsa_dock";
-	const state = { rows: [], prospect: null, thread: null, list: true, ready: false };
+	const state = { rows: [], prospect: null, thread: null, list: true, ready: false, primed: false };
+	const seen = {};  // prospect -> the last message time we have already announced
+	const SOUND_KEY = "rsa_sound";
+	const sound_on = () => { try { return localStorage.getItem(SOUND_KEY) !== "off"; } catch (err) { return true; } };
+	const set_sound = (on) => { try { localStorage.setItem(SOUND_KEY, on ? "on" : "off"); } catch (err) { /* private browsing */ } };
+	const ring = () => { try { frappe.utils.play_sound("notification"); } catch (err) { /* no audio here */ } };
 
 	const store = {
 		get() { try { return JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (err) { return {}; } },
@@ -97,11 +102,13 @@
 				</div></div>`).join("");
 		panel.innerHTML = `
 			<div class="rd-head"><span class="rd-title">${esc(__("Conversations"))}</span>
+				<button class="rd-sound" title="${esc(__("New message sound"))}">${sound_on() ? "🔔" : "🔕"}</button>
 				<button class="rd-open" title="${esc(__("Open Conversations"))}">↗</button>
 				<button class="rd-close" aria-label="${esc(__("Close"))}">×</button></div>
 			<div class="rd-body">${rows || `<div class="rd-hint">${esc(__("No conversations yet."))}</div>`}</div>`;
 		panel.querySelectorAll(".rd-row").forEach((row) => row.addEventListener("click", () => open_chat(row.dataset.p)));
 		panel.querySelector(".rd-open").addEventListener("click", () => frappe.set_route("sales-inbox"));
+		panel.querySelector(".rd-sound").addEventListener("click", () => { set_sound(!sound_on()); render_list(); });
 		panel.querySelector(".rd-close").addEventListener("click", () => root().classList.remove("open"));
 	}
 
@@ -167,9 +174,19 @@
 			.finally(() => { const btn = panel.querySelector(".rd-send"); if (btn) btn.disabled = false; });
 	}
 
+	// A bell when a lead writes in: a lead that needs a reply and has a newer message than we announced before.
+	// The first load only records what is already there, so opening a page never rings.
+	function announce(rows) {
+		const fresh = rows.filter((r) => r.needs_reply && (!(r.prospect in seen) || String(r.last) > String(seen[r.prospect])));
+		rows.forEach((r) => { seen[r.prospect] = r.last; });
+		if (state.primed && fresh.length && sound_on()) ring();
+		state.primed = true;
+	}
+
 	function load_rows() {
 		return call("threads").then((rows) => {
 			state.rows = rows || [];
+			announce(state.rows);
 			render_launch();
 			if (root().classList.contains("open") && state.list && !state.prospect) render_list();
 		});
