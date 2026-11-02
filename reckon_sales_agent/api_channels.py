@@ -183,12 +183,16 @@ def social_callback(code: str | None = None, state: str | None = None, error: st
         message = kwargs.get("error_description") or error or "cancelled"
         return _redirect(f"/desk/sales-channels?connect_error={quote(str(message)[:200])}")
     try:
-        _company, saved = finish(state or "", code, frappe.session.user)
+        _company, saved, skipped = finish(state or "", code, frappe.session.user)
     except frappe.ValidationError as exc:
         frappe.db.rollback()
         return _redirect(f"/desk/sales-channels?connect_error={quote(str(exc)[:200])}")
     frappe.db.commit()
-    return _redirect(f"/desk/sales-channels?connected={len(saved)}")
+    if not saved and skipped:
+        message = _("Already connected to another Company: {0}").format(", ".join(skipped))
+        return _redirect(f"/desk/sales-channels?connect_error={quote(message[:200])}")
+    skip = f"&skipped={quote(', '.join(skipped)[:200])}" if skipped else ""
+    return _redirect(f"/desk/sales-channels?connected={len(saved)}{skip}")
 
 
 def _redirect(location: str) -> Response:

@@ -180,6 +180,7 @@ function social(d, platforms, onText) {
 			const params = new URLSearchParams(window.location.search);
 			if (params.get("connected")) frappe.show_alert({ message: __("Connected {0} account(s).", [params.get("connected")]), indicator: "green" });
 			if (params.get("connect_error")) frappe.msgprint({ title: __("Not connected"), message: e(params.get("connect_error")), indicator: "orange" });
+			if (params.get("skipped")) frappe.msgprint({ title: __("Some pages were not connected"), message: e(params.get("skipped")), indicator: "orange" });
 			if (params.get("connected") || params.get("connect_error")) window.history.replaceState(null, "", window.location.pathname);
 			return this.call("overview").then((d) => this.render(d));
 		}

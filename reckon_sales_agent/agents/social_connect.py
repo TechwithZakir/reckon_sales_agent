@@ -139,8 +139,10 @@ def start(company: str, user: str, provider: str) -> str:
     return authorize_url(provider, client_id, redirect_uri(), state)
 
 
-def finish(state: str, code: str, user: str) -> tuple[str, list[str]]:
-    """Exchange the code and save the accounts; returns (company, account names)."""
+def finish(state: str, code: str, user: str) -> tuple[str, list[str], list[str]]:
+    """Exchange the code and save the accounts; returns (company, saved names, skipped names).
+
+    An account another Company already runs is skipped and reported; the rest still connect."""
     import frappe
     from frappe import _
 
@@ -150,11 +152,16 @@ def finish(state: str, code: str, user: str) -> tuple[str, list[str]]:
                      frappe.PermissionError)
     company, provider = data["c"], data["p"]
     accounts = _meta(code) if provider == "meta" else _linkedin(code, lead_gen=provider == "linkedin_leads")
-    saved = [save_account(company, user, a) for a in accounts]
+    saved, skipped = [], []
+    for account in accounts:
+        try:
+            saved.append(save_account(company, user, account))
+        except frappe.ValidationError:
+            skipped.append(account.get("account_name") or account["account_id"])
     from reckon_sales_agent.usage import log_activity
 
     log_activity(company, "social_connected", None, ", ".join(saved)[:500] or "no accounts", agent="Social")
-    return company, saved
+    return company, saved, skipped
 
 
 def _get(url: str, **kw) -> dict:
