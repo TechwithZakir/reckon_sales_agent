@@ -164,3 +164,6 @@ scheduler_events = {
 }
 
 fixtures = [{"dt": "Role", "filters": [["name", "in", list(_c.SAAS_ROLES)]]}]
+
+# The Conversation dock: a chat that stays open while the Desk changes pages.
+app_include_js = ["/assets/reckon_sales_agent/js/sales_dock.js"]
