@@ -191,6 +191,7 @@ def receive_chat(company: str, channel: str, account_id: str, contact_id: str, t
     if frappe.db.exists("Sales Chat Message", {"external_id": external_id}):
         return None  # Meta retries a webhook it thinks failed
     prospect = _prospect_for(company, channel, contact_id, contact_name, email, phone)
+    first = not frappe.db.exists("Sales Chat Message", {"prospect": prospect.name})
     doc = frappe.get_doc({
         "doctype": "Sales Chat Message", "company": company, "prospect": prospect.name, "channel": channel,
         "direction": "In", "sent_at": at or now_datetime(), "contact_id": contact_id, "account_id": account_id,
@@ -214,6 +215,9 @@ def receive_chat(company: str, channel: str, account_id: str, contact_id: str, t
     log_activity(company, "comment_received" if kind == "Comment" else "chat_received", prospect,
                  f"{channel}: {text[:200]}", actor_type="system",
                  agent="Conversations")
+    from reckon_sales_agent.agents.lead_details import after_inbound
+
+    after_inbound(prospect.name, text, first)  # asks a new contact for their details; never raises
     _notify(company, prospect, channel, text)
     return doc.name
 
@@ -251,6 +255,28 @@ def _prospect_for(company, channel, contact_id, contact_name, email, phone):
         "phone": phone or None, "consent_source": f"Wrote to us on {channel}", "first_seen": now_datetime(),
         "last_seen": now_datetime(), "provenance_json": json.dumps({k: given for k in provided}, sort_keys=True),
     }).insert(ignore_permissions=True)
+
+
+def meta_profile_name(channel: str, account: str, contact_id: str) -> str | None:
+    """The name Meta shows for someone who wrote to a Page (Messenger) or an Instagram account; None when unavailable."""
+    import frappe
+    import requests
+
+    try:
+        token = frappe.get_doc("Sales Social Account", account).get_password("access_token", raise_exception=False)
+        fields = "first_name,last_name" if channel == "Messenger" else "name,username"
+        response = requests.get(f"https://graph.facebook.com/v23.0/{contact_id}",
+                                params={"fields": fields, "access_token": token}, timeout=10)
+        if response.status_code >= 400:
+            return None
+        data = response.json() or {}
+    except Exception:  # a missing name must never stop the message from being saved
+        return None
+    if channel == "Messenger":
+        name = " ".join(part for part in (data.get("first_name"), data.get("last_name")) if part)
+    else:
+        name = data.get("name") or data.get("username")
+    return str(name)[:140] if name else None
 
 
 def _notify(company, prospect, channel, text) -> None:

@@ -56,7 +56,7 @@ def meta_webhook(**kwargs):
     except ValueError:
         return Response("invalid JSON", status=400, mimetype="text/plain")
     frappe.set_user("Administrator")  # a verified Meta event: act as the system
-    from reckon_sales_agent.agents.chat import buying_comment, meta_comments
+    from reckon_sales_agent.agents.chat import buying_comment, meta_comments, meta_profile_name
     from reckon_sales_agent.leads_bridge import leadgen_events
 
     for lead in leadgen_events(payload)[:50]:
@@ -70,6 +70,10 @@ def meta_webhook(**kwargs):
                              message=f"{event['channel']} account {event['account_id']} has no connected Company with messages on. "
                                      "Connect it in Integrations and keep Messages switched on.")
             continue  # a Page no Company has connected (or it switched messages off)
+        known = frappe.db.exists("Sales Chat Message", {"company": owner[0], "channel": event["channel"],
+                                                       "contact_id": event["contact_id"]})
+        if not known and not event.get("contact_name") and event.get("kind") != "Comment":
+            event["contact_name"] = meta_profile_name(event["channel"], owner[1], event["contact_id"])  # their Meta name
         if event.get("kind") == "Comment" and not get_settings(owner[0]).get("comment_to_chat"):
             continue
         try:
