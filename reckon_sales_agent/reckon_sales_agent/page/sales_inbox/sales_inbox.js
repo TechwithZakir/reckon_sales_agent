@@ -188,7 +188,7 @@
 						<button class="btn btn-xs btn-default sin-discard">${__("Discard")}</button>
 						<button class="btn btn-xs btn-primary sin-send">${__("Approve and send")}</button></div></div>`).join("")}</div>
 				${p.do_not_contact ? `<div class="sin-warn">${__("This lead asked not to be contacted.")}</div>` : `<div class="sin-reply">
-					${waTemplates}${ok.length ? `<div class="sin-reply-row"><select class="form-control input-sm sin-channel">${ok.map((ch) => `<option value="${e(ch.channel)}">${e(CHANNELS[ch.channel] || __(ch.channel))}</option>`).join("")}</select>
+					${waTemplates}${ok.length ? `<div class="sin-reply-row"><select class="form-control input-sm sin-channel">${ok.map((ch) => `<option value="${e(ch.channel)}">${e(CHANNELS[ch.channel] || __(ch.channel))}${ch.from ? ` · ${e(ch.from)}` : ""}</option>`).join("")}</select>
 						<span class="sin-muted">${e(t.channels.filter((ch) => !ch.ok).map((ch) => `${CHANNELS[ch.channel] || ch.channel}: ${ch.reason}`).join(" · "))}</span></div>
 						<textarea class="form-control sin-text" rows="3" placeholder="${__("Write your reply… (Ctrl+Enter to send)")}"></textarea>
 						<div class="sin-actions"><input class="form-control input-sm sin-instr" placeholder="${__("Or tell the AI what to say")}">
@@ -213,7 +213,7 @@
 					<div class="sin-tags">${(c.tags || []).map((tg) => `<span class="sin-badge ${tg === "needs-human" ? "warn" : "tag"}">#${e(tg)} <a class="sin-untag" data-t="${e(tg)}" title="${__("Remove")}">×</a></span>`).join("")}</div>
 					<input class="form-control sin-tag-in" placeholder="${__("Add a tag and press Enter")}" maxlength="40"></div>
 				<div class="sin-card"><h4>${__("Channels")}</h4>
-					${t.channels.map((ch) => `<div class="sin-chan ${ch.ok ? "ok" : ""}"><span>${e(CHANNELS[ch.channel] || ch.channel)}</span><small>${e(ch.reason)}</small></div>`).join("")}</div>`);
+					${t.channels.map((ch) => `<div class="sin-chan ${ch.ok ? "ok" : ""}"><span>${e(CHANNELS[ch.channel] || ch.channel)}</span><small>${ch.from ? `${e(ch.from)} · ` : ""}${e(ch.reason)}</small></div>`).join("")}</div>`);
 
 			const refresh = () => { this.open(prospect); this.load(true); };
 			el.find(".sin-status").on("click", () => this.call("set_status", { prospect, status: resolved ? "Open" : "Resolved" }).then(refresh));

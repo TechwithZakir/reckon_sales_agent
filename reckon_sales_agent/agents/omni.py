@@ -356,12 +356,38 @@ def draft_reply(prospect_name: str, reason: str = "", instruction: str = "", all
     return message.name
 
 
+def _sender(channel: str, prospect, settings, company: str, wrote: bool) -> str:
+    """The account a reply on this channel goes out from, shown before the person sends it."""
+    import frappe
+
+    from reckon_sales_agent.agents.chat import ACCOUNT_PLATFORM
+
+    if channel == "Email":
+        return frappe.db.get_value("Email Account", {"enable_outgoing": 1, "default_outgoing": 1}, "email_id") or ""
+    if channel == "WhatsApp":
+        return settings.get("whatsapp_account") or ""
+    if channel == "SMS":
+        return settings.get("sms_provider") or ""
+    if channel in ACCOUNT_PLATFORM:
+        platform = ACCOUNT_PLATFORM[channel]
+        if wrote:  # Meta replies from the Page this person wrote to
+            account_id = frappe.db.get_value("Sales Chat Message", {"prospect": prospect.name, "channel": channel, "direction": "In"},
+                                             "account_id", order_by="sent_at desc")
+            name = frappe.db.get_value("Sales Social Account", {"company": company, "platform": platform, "account_id": account_id},
+                                       "account_name")
+            if name:
+                return name
+        return ", ".join(frappe.get_all("Sales Social Account", filters={"company": company, "platform": platform, "enabled": 1},
+                                        pluck="account_name"))
+    return ""
+
+
 def reply_channels(prospect_name: str) -> list[dict]:
     """Where a person can answer this lead now: [{channel, ok, reason, window_closed}], the lead's latest channel first."""
     import frappe
     from frappe.utils import now_datetime
 
-    from reckon_sales_agent.agents.chat import last_chat
+    from reckon_sales_agent.agents.chat import ACCOUNT_PLATFORM, last_chat
     from reckon_sales_agent.agents.engagement import within_service_window
     from reckon_sales_agent.providers.channels import reachability
     from reckon_sales_agent.usage import get_settings
@@ -376,9 +402,15 @@ def reply_channels(prospect_name: str) -> list[dict]:
         closed = False
         if ok and channel == "WhatsApp" and not within_service_window(prospect.get("whatsapp_last_inbound"), now_datetime()):
             ok, reason, closed = False, "Outside WhatsApp's 24-hour window: send an approved template.", True
-        if channel in CHAT_CHANNELS and not frappe.db.exists("Sales Chat Message", {"prospect": prospect_name, "channel": channel}):
-            continue  # never offered unless they wrote there
-        out.append({"channel": channel, "ok": bool(ok), "reason": reason, "window_closed": closed})
+        wrote = channel in CHAT_CHANNELS and bool(frappe.db.exists("Sales Chat Message", {"prospect": prospect_name, "channel": channel}))
+        if channel in CHAT_CHANNELS and not wrote:
+            # Meta lets a Page reply only to someone who wrote to it: a connected Page is listed, but cannot send yet.
+            if channel not in ACCOUNT_PLATFORM or not frappe.db.exists("Sales Social Account", {
+                    "company": prospect.company, "platform": ACCOUNT_PLATFORM[channel], "enabled": 1}):
+                continue  # not connected here, or never wrote there
+            ok, reason = False, "They have not messaged this Page yet. Meta lets a Page reply only after the person writes in."
+        out.append({"channel": channel, "ok": bool(ok), "reason": reason, "window_closed": closed,
+                    "from": _sender(channel, prospect, settings, prospect.company, wrote)})
     return out
 
 
