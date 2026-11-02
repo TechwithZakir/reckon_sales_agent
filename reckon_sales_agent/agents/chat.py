@@ -255,6 +255,8 @@ def _prospect_for(company, channel, contact_id, contact_name, email, phone):
     if known:
         doc = frappe.get_doc("Sales Prospect", known)
         updates = {k: v for k, v in (("email", email), ("phone", phone)) if v and not doc.get(k)}
+        if contact_name and " contact …" in (doc.business_name or ""):
+            updates["business_name"] = contact_name[:140]  # the name arrived after the lead was created
         if updates:
             doc.db_set(updates)
         return doc

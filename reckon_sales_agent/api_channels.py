@@ -70,9 +70,10 @@ def meta_webhook(**kwargs):
                              message=f"{event['channel']} account {event['account_id']} has no connected Company with messages on. "
                                      "Connect it in Integrations and keep Messages switched on.")
             continue  # a Page no Company has connected (or it switched messages off)
-        known = frappe.db.exists("Sales Chat Message", {"company": owner[0], "channel": event["channel"],
-                                                       "contact_id": event["contact_id"]})
-        if not known and not event.get("contact_name") and event.get("kind") != "Comment":
+        known = frappe.db.get_value("Sales Chat Message", {"company": owner[0], "channel": event["channel"],
+                                                           "contact_id": event["contact_id"]}, "prospect")
+        named = bool(known) and " contact …" not in (frappe.db.get_value("Sales Prospect", known, "business_name") or "")
+        if not named and not event.get("contact_name") and event.get("kind") != "Comment":
             event["contact_name"] = meta_profile_name(event["channel"], owner[1], event["contact_id"])  # their Meta name
         if event.get("kind") == "Comment" and not get_settings(owner[0]).get("comment_to_chat"):
             continue

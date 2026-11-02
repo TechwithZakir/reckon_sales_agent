@@ -31,3 +31,13 @@ class TimelineOrderTests(unittest.TestCase):
         source = (Path(__file__).parents[1] / "reckon_sales_agent" / "agents" / "omni.py").read_text(encoding="utf-8")
         timeline = source.split("def timeline(")[1].split("\ndef ")[0]
         self.assertIn('items.sort(key=lambda i: get_datetime(i["at"] or "1970-01-01"))', timeline)
+
+
+class LeadNameTests(unittest.TestCase):
+    def test_existing_placeholder_leads_get_their_name(self):
+        api = (Path(__file__).parents[1] / "reckon_sales_agent" / "api_channels.py").read_text(encoding="utf-8")
+        webhook = api.split("def meta_webhook(")[1].split("\ndef ")[0]
+        self.assertIn('" contact …" not in', webhook)
+        chat = (Path(__file__).parents[1] / "reckon_sales_agent" / "agents" / "chat.py").read_text(encoding="utf-8")
+        known = chat.split("def _prospect_for(")[1].split("\ndef ")[0]
+        self.assertIn('updates["business_name"] = contact_name[:140]', known)
