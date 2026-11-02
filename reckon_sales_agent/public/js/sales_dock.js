@@ -23,7 +23,7 @@
 	const waiting = () => state.rows.filter((r) => r.needs_reply).length;
 
 	const STYLE = `
-		#rsa-dock { position: fixed; right: 16px; bottom: 16px; z-index: 1030; font-size: 13px; line-height: 1.4; text-align: right; }
+		#rsa-dock { position: fixed; right: 16px; bottom: 64px; z-index: 1030; font-size: 13px; line-height: 1.4; text-align: right; }
 		#rsa-dock[hidden] { display: none; }
 		#rsa-dock .rd-launch { border: 0; border-radius: 999px; padding: 9px 16px; background: #0084ff; color: #fff; font-weight: 600; box-shadow: 0 4px 14px rgba(0,0,0,.2); }
 		#rsa-dock .rd-launch b { background: #fff; color: #0084ff; border-radius: 999px; padding: 0 7px; margin-left: 6px; }
@@ -51,6 +51,19 @@
 		#rsa-dock .rd-composer { display: flex; gap: 6px; align-items: flex-end; padding: 8px; border-top: 1px solid var(--border-color, #e3e5ea); }
 		#rsa-dock .rd-composer textarea { flex: 1; resize: none; border-radius: 18px; min-height: 36px; max-height: 96px; padding: 7px 12px; }
 		#rsa-dock .rd-composer select { max-width: 120px; font-size: 12px; }
+		#rsa-dock .rd-composer { align-items: center; }
+		#rsa-dock .rd-composer textarea { height: 34px; min-height: 34px; line-height: 20px; border-radius: 17px; padding: 6px 12px; }
+		#rsa-dock .rd-channel { height: 34px; max-width: 104px; font-size: 12px; border-radius: 17px; }
+		#rsa-dock .rd-send { width: 34px; height: 34px; border-radius: 50%; border: 0; background: #0084ff; color: #fff; flex: none; }
+		#rsa-dock .rd-head { position: relative; }
+		#rsa-dock .rd-more { border: 0; background: transparent; color: inherit; padding: 0 6px; border-radius: 6px; }
+		#rsa-dock .rd-menu-pop { position: absolute; top: 46px; right: 10px; z-index: 2; min-width: 220px; padding: 6px;
+			background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e3e5ea); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.2); text-align: left; }
+		#rsa-dock .rd-menu-pop[hidden] { display: none; }
+		#rsa-dock .rd-menu-title { font-size: 11px; color: #8a8d91; padding: 6px 8px 2px; text-transform: uppercase; letter-spacing: .04em; }
+		#rsa-dock .rd-menu-pop button { display: block; width: 100%; text-align: left; border: 0; background: transparent; color: inherit; padding: 6px 8px; border-radius: 8px; }
+		#rsa-dock .rd-menu-pop button:hover { background: rgba(127,127,127,.15); }
+		#rsa-dock .rd-menu-pop button.on { color: #0084ff; font-weight: 600; }
 		#rsa-dock .rd-hint { color: #8a8d91; font-size: 12px; padding: 8px 10px; }
 		@media (max-width: 480px) { #rsa-dock .rd-panel { width: calc(100vw - 32px); height: 60vh; } }
 	`;
@@ -141,13 +154,13 @@
 		const composer = t.prospect.do_not_contact
 			? `<div class="rd-hint">${esc(__("This lead asked not to be contacted."))}</div>`
 			: open.length
-				? `<div class="rd-composer"><select class="form-control rd-channel">${open.map((ch) => `<option value="${esc(ch.channel)}">${esc(ch.channel)}</option>`).join("")}</select>
-					<textarea class="form-control rd-text" rows="1" placeholder="${esc(__("Write a reply…"))}"></textarea>
-					<button class="btn btn-primary btn-sm rd-send">${esc(__("Send"))}</button></div>`
+				? `<div class="rd-composer"><select class="rd-channel">${open.map((ch) => `<option value="${esc(ch.channel)}">${esc(ch.channel)}</option>`).join("")}</select>
+					<textarea class="rd-text" rows="1" placeholder="${esc(__("Write a reply…"))}"></textarea>
+					<button class="rd-send" title="${esc(__("Send"))}">➤</button></div>`
 				: `<div class="rd-hint">${esc(__("No channel to reply on right now"))}: ${esc(reason || "")}</div>`;
 		panel.innerHTML = `
 			<div class="rd-head"><button class="rd-back" aria-label="${esc(__("Back"))}">‹</button>
-				<span class="rd-av">${esc(initials(name))}</span><span class="rd-title">${esc(name)}</span>
+				<span class="rd-av">${esc(initials(name))}</span><span class="rd-title">${esc(name)}</span><button class="rd-more" aria-label="${esc(__("More"))}" title="${esc(__("More"))}">⌄</button><div class="rd-menu-pop" hidden><div class="rd-menu-title">${esc(__("AI reply"))}</div>${[["Company default", __("Use the Company setting")], ["Autopilot", __("AI replies on its own")], ["Suggest only", __("AI drafts, you approve")], ["Human only", __("Only you reply")]].map(([m, label]) => `<button class="rd-mode ${m === (t.conversation.ai_mode || "Company default") ? "on" : ""}" data-mode="${esc(m)}">${esc(label)}</button>`).join("")}<div class="rd-menu-title">${esc(__("Conversation"))}</div><button class="rd-status">${esc(t.conversation.status === "Resolved" ? __("Reopen") : __("Resolve"))}</button><button class="rd-goto">${esc(__("Open in Conversations"))}</button></div>
 				<button class="rd-open" title="${esc(__("Open Conversations"))}">↗</button>
 				<button class="rd-close" aria-label="${esc(__("Close"))}">×</button></div>
 			<div class="rd-body">${messages || `<div class="rd-hint">${esc(__("No messages yet."))}</div>`}</div>
@@ -155,6 +168,16 @@
 		const body = panel.querySelector(".rd-body");
 		body.scrollTop = body.scrollHeight;
 		panel.querySelector(".rd-back").addEventListener("click", () => { state.list = true; show_list(); });
+		const pop = panel.querySelector(".rd-menu-pop");
+		panel.querySelector(".rd-more").addEventListener("click", () => { pop.hidden = !pop.hidden; });
+		pop.querySelectorAll(".rd-mode").forEach((btn) => btn.addEventListener("click", () => {
+			call("set_mode", { prospect: state.prospect, mode: btn.dataset.mode }).then(() => open_chat(state.prospect));
+		}));
+		panel.querySelector(".rd-status").addEventListener("click", () => {
+			call("set_status", { prospect: state.prospect, status: t.conversation.status === "Resolved" ? "Open" : "Resolved" })
+				.then(() => open_chat(state.prospect));
+		});
+		panel.querySelector(".rd-goto").addEventListener("click", () => frappe.set_route("sales-inbox"));
 		panel.querySelector(".rd-open").addEventListener("click", () => frappe.set_route("sales-inbox"));
 		panel.querySelector(".rd-close").addEventListener("click", () => root().classList.remove("open"));
 		const send = panel.querySelector(".rd-send");
