@@ -249,9 +249,8 @@ def overview() -> dict:
         "whatsapp": {"installed": "frappe_whatsapp" in frappe.get_installed_apps(),
                      "enabled": bool(settings.get("whatsapp_enabled")), "account": settings.get("whatsapp_account") or "",
                      "accounts": _wa_accounts(company), "webhook": frappe.utils.get_url("/api/method/frappe_whatsapp.utils.webhook.webhook")},
-        "email": {"account": settings.get("email_account") or frappe.db.get_value(
-            "Email Account", {"enable_outgoing": 1, "default_outgoing": 1}, "email_id") or "",
-            "choices": frappe.get_all("Email Account", filters={"enable_outgoing": 1}, pluck="name", order_by="name asc")},
+        "email": {"account": _outgoing_address(settings), "choices": frappe.get_all(
+            "Email Account", filters={"email_id": ["is", "set"]}, pluck="name", order_by="name asc")},
         "webchat": {"enabled": bool(settings.get("webchat_enabled")), "key": settings.get("webchat_key") or "",
                     "title": settings.get("webchat_title") or "", "welcome": settings.get("webchat_welcome") or "",
                     "origins": settings.get("webchat_allowed_origins") or "",
@@ -425,6 +424,8 @@ def save_settings(data: str | dict) -> dict:
         kind = EDITABLE.get(field)
         if not kind or (kind == "secret" and not str(value or "").strip()):
             continue
+        if field == "email_account" and value and not frappe.db.get_value("Email Account", str(value).strip(), "enable_outgoing"):
+            frappe.throw(_("Turn on Enable Outgoing for that Email Account first, then choose it here."))
         if field == "whatsapp_account" and value and not frappe.db.exists("WhatsApp Account", str(value).strip()):
             frappe.throw(_("No WhatsApp account has that name. Pick one from the list, or create it first."))
         if kind == "check":
@@ -508,6 +509,15 @@ def _wa_accounts(company: str) -> list[dict]:
                            pluck="whatsapp_account")
     return frappe.get_all("WhatsApp Account", filters={"name": ["not in", taken or [""]]},
                           fields=["name", "account_name", "status"], order_by="name asc", limit=50)
+
+
+def _outgoing_address(settings) -> str:
+    """The address the Company's email goes out from: its chosen account if that can send, else the default."""
+    if settings.get("email_account"):
+        address = frappe.db.get_value("Email Account", {"name": settings.get("email_account"), "enable_outgoing": 1}, "email_id")
+        if address:
+            return address
+    return frappe.db.get_value("Email Account", {"enable_outgoing": 1, "default_outgoing": 1}, "email_id") or ""
 
 
 def _quick_help() -> dict:
