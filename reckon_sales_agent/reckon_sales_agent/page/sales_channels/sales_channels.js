@@ -594,7 +594,9 @@ function social(d, platforms, onText) {
 				]))
 					+ this.section(__("Accounts available to you"), d.whatsapp.accounts.length
 						? d.whatsapp.accounts.map((a) => `<div class="sch-kv"><span>${e(a.account_name || a.name)}</span><b>${e(a.status || "")}</b></div>`).join("")
-						: `<div class="sch-muted">${__("No WhatsApp account is free for this Company. Add one in the WhatsApp Account list, with its phone number ID and token.")}</div>`)
+						: `<div class="sch-muted">${__("No WhatsApp account is free for this Company yet. Connect your number with the button above, or create one by hand:")}</div>`
+						+ `<ol class="sch-steps">${[__("Open New WhatsApp Account (button below)."), __("Account Name: any name, for example your company name."), __("Token: the permanent access token from Meta."), __("Phone ID: the phone number ID from Meta."), __("Business ID: the WhatsApp Business Account ID."), __("App ID: your Meta app ID."), __("Webhook Verify Token: the same random text you entered in Meta."), __("URL: https://graph.facebook.com and Version: v17.0."), __("Save, then come back here, choose the account above and press Save.")].map((t) => `<li><span>${t}</span></li>`).join("")}</ol>`
+						+ `<a class="btn btn-default btn-sm" href="/desk/whatsapp-account/new" target="_blank" rel="noopener">${__("New WhatsApp Account")} ↗</a>`)
 					+ this.section(__("Paste into Meta: WhatsApp, Configuration"), this.copy_row(__("Webhook callback URL"), d.whatsapp.webhook)
 						+ `<div class="sch-note small">${__("Subscribe to messages and message_template_status_update. The verify token is on the WhatsApp Account (Webhook Verify Token).")}</div>`)
 					+ this.section(__("Setup guide"), this.steps([

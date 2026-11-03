@@ -55,6 +55,12 @@ class SignupEndpointTests(unittest.TestCase):
 
 
 class SignupPanelTests(unittest.TestCase):
+    def test_no_account_yet_points_to_the_new_form_with_its_fields(self):
+        js = read("reckon_sales_agent", "page", "sales_channels", "sales_channels.js")
+        self.assertIn("/desk/whatsapp-account/new", js)
+        for field in ("Account Name", "Token", "Phone ID", "Business ID", "App ID", "Webhook Verify Token"):
+            self.assertIn(field, js, field)
+
     def test_panel_starts_the_signup_and_waits_for_both_parts(self):
         js = read("reckon_sales_agent", "page", "sales_channels", "sales_channels.js")
         self.assertIn("Connect WhatsApp with Facebook", js)
