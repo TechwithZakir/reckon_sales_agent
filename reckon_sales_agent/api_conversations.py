@@ -194,3 +194,13 @@ def delete_chat(prospect: str) -> dict:
     frappe.db.delete("Sales Chat Message", {"prospect": prospect, "company": doc.company})
     return _changed(prospect)
 
+
+@frappe.whitelist()
+def copilot_summary(prospect: str) -> dict:
+    """The CRM copilot's read on this lead: where it stands and the next step. Read-only: it changes nothing."""
+    from reckon_sales_agent.agents.crm_copilot import summarize
+    from reckon_sales_agent.usage import assert_entitled
+
+    doc = get_tenant_doc("Sales Prospect", prospect, "read")
+    assert_entitled(doc.company)
+    return summarize(doc.name, doc.company)

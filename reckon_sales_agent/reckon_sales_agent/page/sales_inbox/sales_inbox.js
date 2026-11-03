@@ -186,6 +186,12 @@
 			}).join("");
 		}
 
+		copilot_html(g) {
+			const risks = (g.risks || []).map((r) => `<li>${e(r)}</li>`).join("");
+			return `<p>${e(g.summary)}</p><p><b>${e(__("Next step"))}:</b> ${e(g.next_step)}</p>${risks ? `<b>${e(__("Watch out"))}</b><ul>${risks}</ul>` : ""}`
+				+ `<div class="sin-muted small">${e(g.source === "ai" ? __("AI summary, read-only") : __("Summary from CRM facts, read-only"))}</div>`;
+		}
+
 		render_thread(prospect, t) {
 			const el = this.$root.find(".sin-thread"), ctx = this.$root.find(".sin-ctx");
 			const p = t.prospect, c = t.conversation;
@@ -195,7 +201,7 @@
 			const waTemplates = waClosed && (t.wa_templates || []).length ? `<div class="sin-reply-row sin-wa"><span class="sin-muted">${__("24-hour window closed: send an approved template")}</span><select class="form-control input-sm sin-wa-tpl">${t.wa_templates.map((w) => `<option value="${e(w.name)}">${e(w.template_name)}</option>`).join("")}</select><button class="btn btn-default btn-sm sin-wa-send">${__("Send template")}</button></div>` : "";
 			el.html(`<div class="sin-head"><button class="btn btn-default btn-xs sin-m-back" aria-label="${__("Back")}">‹</button><div><h3>${e(p.business_name)}</h3>
 					<div class="sin-muted">${[p.email ? e(p.email) : "", p.phone ? `<a href="tel:${e(p.phone)}">${e(p.phone)}</a>` : "", e(p.city || "")].filter(Boolean).join(" · ")}</div></div>
-					<div class="sin-links"><button class="btn btn-xs ${resolved ? "btn-default" : "btn-primary"} sin-status">${resolved ? __("Reopen") : __("Resolve")}</button></div></div>
+					<div class="sin-links"><button class="btn btn-default btn-xs sin-copilot">${__("Copilot")}</button><button class="btn btn-xs ${resolved ? "btn-default" : "btn-primary"} sin-status">${resolved ? __("Reopen") : __("Resolve")}</button></div></div>
 				${c.handoff_reason && !resolved ? `<div class="sin-warn">${__("Needs a person")}: ${e(c.handoff_reason)}</div>` : ""}
 				<div class="sin-timeline">${this.timeline_html(t.timeline, p.business_name)}</div>
 				<div class="sin-drafts">${t.drafts.map((d) => `<div class="sin-draft" data-m="${e(d.name)}">
@@ -235,6 +241,7 @@
 					${t.channels.map((ch) => `<div class="sin-chan ${ch.ok ? "ok" : ""}"><span>${e(CHANNELS[ch.channel] || ch.channel)}</span><small>${ch.from ? `${e(ch.from)} · ` : ""}${e(ch.reason)}</small></div>`).join("")}</div>`);
 
 			const refresh = () => { this.open(prospect); this.load(true); };
+			el.find(".sin-copilot").on("click", () => this.call("copilot_summary", { prospect }).then((g) => frappe.msgprint({ title: __("Copilot"), indicator: "blue", message: this.copilot_html(g) })));
 			el.find(".sin-status").on("click", () => this.call("set_status", { prospect, status: resolved ? "Open" : "Resolved" }).then(refresh));
 			ctx.find(".sin-assign").on("change", (ev) => this.call("assign", { prospect, user: ev.target.value }).then(refresh));
 			ctx.find(".sin-mode").on("change", (ev) => this.call("set_mode", { prospect, mode: ev.target.value }).then(refresh));
