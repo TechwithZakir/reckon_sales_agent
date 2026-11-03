@@ -173,6 +173,6 @@ def decide(name: str, approve: bool, decided_by: str) -> dict:
     except Exception as exc:  # the record stays as it was; the reason is kept on the action
         row.status, row.result = "Failed", str(exc)[:500]
     row.save(ignore_permissions=True)
-    log_activity(row.company, "crm_decided", None, f"{row.status}: {row.summary}", actor_type="person",
+    log_activity(row.company, "crm_decided", None, f"{row.status}: {row.summary}", actor_type="user",
                  agent="CRM", policy_outcome="approved" if approve else "rejected")
     return {"status": row.status, "summary": row.summary}

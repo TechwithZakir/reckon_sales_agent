@@ -62,7 +62,7 @@
    "label": "Agent",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "options": "\nResearch\nContent\nEngagement\nAnalytics\nGovernance\nConversations\nMeetings\nData Quality\nSocial\nDeals\nCustomers\nCompliance"
+   "options": "\nResearch\nContent\nEngagement\nAnalytics\nGovernance\nConversations\nMeetings\nData Quality\nSocial\nDeals\nCustomers\nCompliance\nCRM"
   },
   {
    "fieldname": "policy_outcome",

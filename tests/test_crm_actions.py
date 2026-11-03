@@ -1,4 +1,5 @@
 """CRM actions, Phase B: what the copilot may propose, what runs now, and what waits for approval (no bench)."""
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -65,6 +66,19 @@ class RulesTests(unittest.TestCase):
         self.assertEqual(field_change("CRM Deal", "set_stage", {"stage": "Negotiation"}), {"status": "Negotiation"})
         self.assertEqual(field_change("CRM Lead", "reassign", {"user": "a@b.co"}), {"lead_owner": "a@b.co"})
         self.assertEqual(field_change("CRM Deal", "reassign", {"user": "a@b.co"}), {"deal_owner": "a@b.co"})
+
+
+class ActivityLogTests(unittest.TestCase):
+    def test_every_value_the_crm_actions_log_is_allowed_by_the_activity_log(self):
+        # The log's Select fields reject unknown values, so a wrong value fails the whole action.
+        source = (APP / "agents" / "crm_actions.py").read_text(encoding="utf-8")
+        activity = json.loads((APP / "reckon_sales_agent" / "doctype" / "sales_agent_activity"
+                               / "sales_agent_activity.json").read_text(encoding="utf-8"))
+        fields = {f["fieldname"]: (f.get("options") or "").split(chr(10)) for f in activity["fields"]}
+        self.assertIn('actor_type="user"', source)
+        self.assertIn("user", fields["actor_type"])
+        self.assertIn('agent="CRM"', source)
+        self.assertIn("CRM", fields["agent"])
 
 
 class PlannerTests(unittest.TestCase):
