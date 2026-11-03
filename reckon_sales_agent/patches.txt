@@ -2,3 +2,4 @@
 
 [post_model_sync]
 reckon_sales_agent.patches.reopen_unresearched_set_asides
+reckon_sales_agent.patches.rename_frappe_email_to_system_email
