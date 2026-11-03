@@ -83,16 +83,24 @@ def run() -> None:
     check("Conversation end to end", conversation)
 
     def isolation():
-        # Two Companies on one site: a lead of one Company must not be listed or opened from the other.
+        # Two Companies on one site. The check runs as a real user of the other Company (not Administrator, who sees
+        # everything): that user must neither list nor open a lead of the first Company.
         other = "CI Smoke Other Ltd"
         if not frappe.db.exists("Company", other):
             frappe.get_doc({"doctype": "Company", "company_name": other, "abbr": "CIO", "default_currency": "BDT",
                             "country": "Bangladesh"}).insert(ignore_permissions=True)
-        get_settings(other)  # the other Company's own settings
+        get_settings(other)
+        user = "ci-other-company@example.com"
+        if not frappe.db.exists("User", user):
+            frappe.get_doc({"doctype": "User", "email": user, "first_name": "CI Other", "send_welcome_email": 0,
+                            "roles": [{"role": "Reckon Sales Agent User"}]}).insert(ignore_permissions=True)
+        if not frappe.db.exists("Tenant User Assignment", {"user": user}):
+            frappe.get_doc({"doctype": "Tenant User Assignment", "user": user, "company": other, "active": 1,
+                            "is_default": 1}).insert(ignore_permissions=True)
         name = receive_chat(company, "Web Chat", "web", "d" * 32, "Who are you?",
                             f"web:iso:{frappe.generate_hash(length=8)}", contact_name="Isolation Visitor")
         prospect = frappe.db.get_value("Sales Chat Message", name, "prospect")
-        frappe.form_dict["company"] = other
+        frappe.set_user(user)
         try:
             listed = [row["prospect"] for row in api_conversations.threads()]
             assert prospect not in listed, "another Company's lead is listed"
@@ -103,7 +111,7 @@ def run() -> None:
             else:
                 raise AssertionError("another Company's lead opened")
         finally:
-            frappe.form_dict["company"] = company
+            frappe.set_user("Administrator")
 
     check("Companies stay separate", isolation)
     frappe.db.rollback()  # leave the CI site as it was (the Company stays for the next run)
