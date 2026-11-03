@@ -81,6 +81,13 @@ class ReferenceTests(unittest.TestCase):
             self.assertTrue(help_["what"], key)
             self.assertTrue(help_["steps"], key)
 
+    def test_embedded_signup_setup_is_in_the_help(self):
+        from reckon_sales_agent.agents.channel_guide import CONFIG
+        meta = " ".join(CONFIG["platform_meta"])
+        self.assertIn("Embedded Signup configuration", meta)
+        self.assertIn("Platform Settings", meta)
+        self.assertIn("Tech Provider", meta)
+
     def test_platform_keys_are_the_platform_tiles(self):
         self.assertTrue(PLATFORM_KEYS)
         self.assertTrue(all(key.startswith("platform_") for key in PLATFORM_KEYS))

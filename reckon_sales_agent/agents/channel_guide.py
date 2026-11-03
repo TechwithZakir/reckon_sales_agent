@@ -37,6 +37,7 @@ REFERENCES = {
     "platform_ai": [["Anthropic docs", "https://docs.anthropic.com"], ["OpenAI docs", "https://platform.openai.com/docs"],
                     ["Ollama", "https://github.com/ollama/ollama"], ["vLLM", "https://docs.vllm.ai"]],
     "platform_meta": [["Messenger platform", "https://developers.facebook.com/docs/messenger-platform/overview"],
+                      ["WhatsApp Embedded Signup", "https://developers.facebook.com/docs/whatsapp/embedded-signup/"],
                       ["Facebook Login", "https://developers.facebook.com/docs/facebook-login"],
                       ["App review", "https://developers.facebook.com/docs/app-review"],
                       ["Business verification", "https://www.facebook.com/business/help/2058515294227817"]],
@@ -166,6 +167,7 @@ CONFIG = {
         "WhatsApp Account: create it in the frappe_whatsapp app with the Meta access token, phone number ID, business account ID and app ID.",
         "Webhook: in the Meta app, set the callback URL to the address shown here and the webhook verify token from the WhatsApp Account. Subscribe to messages and message_template_status_update.",
         "Company link: choose the WhatsApp Account here. One account belongs to one Company.",
+        "One-click connection: Connect WhatsApp with Facebook signs the customer in and connects their number. It needs the system provider's Embedded Signup configuration ID (in Sales Agent Platform Settings).",
         "Templates: a message sent more than 24 hours after the customer's last message needs an approved template. Submit templates from Message Templates.",
     ],
     "facebook": [
@@ -246,6 +248,8 @@ CONFIG = {
         "Verify token: any random string you choose. Enter the same value in the Meta webhook setup.",
         "Products: add Messenger, Instagram and Webhooks to the app.",
         "Review: app review and business verification must be complete before other businesses can connect.",
+        "WhatsApp: get Meta's approval for your app as a Tech Provider, then create an Embedded Signup configuration in the Meta app.",
+        "Enter the configuration ID in Sales Agent Platform Settings, in the Meta app section. Without it, the Connect WhatsApp button says it is not set up yet.",
     ],
     "platform_linkedin": [
         "Client ID and client secret: from the Auth tab of the LinkedIn app.",
@@ -418,7 +422,8 @@ def checks_for(company: str, key: str) -> list[tuple[str, bool]]:
                          setting(platform, "anthropic_api_key") or setting(platform, "openai_api_key")
                          or setting(platform, "local_ai_base_url"))],
         "platform_meta": [("App ID", setting(platform, "meta_app_id")), ("App secret", setting(platform, "meta_app_secret")),
-                          ("Webhook verify token", setting(platform, "meta_verify_token"))],
+                          ("Webhook verify token", setting(platform, "meta_verify_token")),
+                          ("WhatsApp Embedded Signup configuration ID", setting(platform, "whatsapp_signup_config_id"))],
         "platform_linkedin": [("Client ID", setting(platform, "linkedin_client_id")),
                               ("Client secret", setting(platform, "linkedin_client_secret"))],
         "platform_transcription": [("Turn transcription on", setting(platform, "transcription_enabled"))],
