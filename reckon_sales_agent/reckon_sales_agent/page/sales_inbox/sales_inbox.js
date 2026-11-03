@@ -167,7 +167,9 @@
 		open(prospect) {
 			this.$root.addClass("m-thread");  // on phones: show the thread, not the list
 			if (this.shown !== prospect) this.$root.find(".sin-thread").html(`<div class="sin-empty">${__("Loading…")}</div>`);
-			return this.call("thread", { prospect }).then((t) => { this.shown = prospect; this.render_thread(prospect, t); });
+			return this.call("thread", { prospect })
+				.then((t) => { this.shown = prospect; this.render_thread(prospect, t); })
+				.catch(() => this.$root.find(".sin-thread").html(`<div class="sin-empty">${__("This conversation could not be loaded. Pick it again from the list.")}</div>`));
 		}
 
 		timeline_html(items, name) {
