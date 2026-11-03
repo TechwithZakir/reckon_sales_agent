@@ -44,6 +44,9 @@ def plan(state: dict) -> list[Step]:
     if state.get("crm_stalled"):
         add(Step("CRM", "crm_next_steps", ASK, f"{state['crm_stalled']} deals need a next step",
                  "Open deals with no open task and no next step. The copilot suggests one; you decide."))
+    if state.get("crm_pending"):
+        add(Step("CRM", "crm_pending", ASK, f"{state['crm_pending']} CRM changes to approve",
+                 "The copilot proposed these changes to deals or leads. Approve or reject each one."))
     if state.get("ai_blocked"):
         add(Step("Governance", "ai_blocked", ASK, "AI is paused",
                  f"The AI provider says: {state['ai_blocked']} The agents use their rules until this is fixed."))
@@ -228,6 +231,12 @@ def _crm_stalled(company: str, settings) -> int:
     return crm_stalled(company)
 
 
+def _crm_pending(company: str) -> int:
+    import frappe
+
+    return frappe.db.count("Sales CRM Action", {"company": company, "status": "Pending"})
+
+
 def collect_state(company: str, deep: bool = False) -> dict:
     import frappe
     from frappe.utils import add_to_date, date_diff, now_datetime, nowdate
@@ -242,6 +251,7 @@ def collect_state(company: str, deep: bool = False) -> dict:
     profile = business_profile(company, create=False)
     state = {
         "crm_stalled": _crm_stalled(company, settings),
+        "crm_pending": _crm_pending(company),
         "autopilot": bool(settings.get("autopilot_enabled")),
         "auto_segments": bool(settings.get("autopilot_auto_segments")),
         "auto_approve": bool(settings.auto_approve_enabled),

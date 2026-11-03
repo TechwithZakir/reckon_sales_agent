@@ -594,8 +594,12 @@
 				panel.find(".lfs-leads").html(r.prospects.map((p) => `<div class="lfs-row"><div class="main">
 					<div><a href="/desk/sales-prospect/${encodeURIComponent(p.name)}">${e(p.business_name)}</a></div>
 					<div class="meta">${e([p.city, p.phone].filter(Boolean).join(" · "))}</div></div>
-					<span class="meta">${p.deal_probability ? e(Math.round(p.deal_probability)) + "%" : e(__(p.research_status || "New"))}</span></div>`).join("")
+					<span class="meta">${p.deal_probability ? e(Math.round(p.deal_probability)) + "%" : e(__(p.research_status || "New"))}</span>
+					<button class="btn btn-xs btn-default lfs-copilot" data-p="${e(p.name)}">${__("Copilot")}</button></div>`).join("")
 					|| `<div class="lfs-row meta">${__("Leads will appear here as they are found.")}</div>`);
+				panel.find(".lfs-copilot").on("click", (ev) => frappe.xcall("reckon_sales_agent.api_conversations.copilot_summary",
+					{ prospect: ev.currentTarget.dataset.p }).then((g) => frappe.msgprint({ title: __("Copilot"), indicator: "blue",
+						message: `<p>${e(g.summary)}</p><p><b>${e(__("Next step"))}:</b> ${e(g.next_step)}</p>` })));
 				if (running || r.prospects.some((p) => p.research_status === "Queued")) {
 					this.timer = setTimeout(() => this.poll(panel), 3000);
 				}

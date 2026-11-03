@@ -40,6 +40,7 @@ APPROVER_ROLES = frozenset({ADMIN_ROLE, MANAGER_ROLE, *VENDOR_ROLES})
 # Company-owned Sales Agent DocTypes (all have a ``company`` field).
 COMPANY_DOCTYPES = (
     "Sales Agent Settings",
+    "Sales CRM Action",
     "Sales Source Connector",
     "Sales Discovery Campaign",
     "Sales Discovery Job",

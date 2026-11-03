@@ -6,6 +6,14 @@ frappe.ui.form.on("Sales Prospect", {
 				if (message) frappe.show_alert({ message, indicator: "green" });
 				frm.reload_doc();
 			});
+		const frame_call = (v, key) => frappe.call({
+			method: "reckon_sales_agent.api_crm.propose_for_prospect",
+			args: { prospect: frm.doc.name, action: v.action, payload: JSON.stringify({ [key]: v.value }) }, freeze: true,
+		}).then((r) => {
+			const out = r.message || {};
+			frappe.show_alert({ message: out.status === "Pending" ? __("Sent for approval") : __("Done"), indicator: "green" });
+			frm.reload_doc();
+		});
 		const review = (action) =>
 			call("review_prospects", { prospects: [frm.doc.name], action }, __("Prospect updated"));
 
@@ -14,6 +22,15 @@ frappe.ui.form.on("Sales Prospect", {
 		}
 		frm.add_custom_button(__("CRM copilot"), () => frappe.call({ method: "reckon_sales_agent.api_conversations.copilot_summary", args: { prospect: frm.doc.name } })
 			.then((r) => frappe.msgprint({ title: __("CRM copilot"), indicator: "blue", message: `<p>${frappe.utils.escape_html(r.message.summary)}</p><p><b>${__("Next step")}:</b> ${frappe.utils.escape_html(r.message.next_step)}</p>` })));
+		frm.add_custom_button(__("Propose CRM change"), () => frappe.prompt([
+			{ fieldname: "action", fieldtype: "Select", label: __("Change"), reqd: 1,
+			  options: "set_stage\nset_deal_value\nset_probability\nset_close_date\nreassign\ncreate_task\nadd_note" },
+			{ fieldname: "value", fieldtype: "Data", label: __("Value: stage, number, date, user email, task title or note text"), reqd: 1 },
+		], (v) => {
+			const key = { set_stage: "stage", set_deal_value: "value", set_probability: "probability", set_close_date: "date",
+				reassign: "user", create_task: "title", add_note: "text" }[v.action];
+			frame_call(v, key);
+		}, __("Propose a CRM change"), __("Propose")), __("CRM"));
 		frm.add_custom_button(__("Defer"), () => review("defer"), __("Review"));
 		frm.add_custom_button(__("Reject"), () => review("reject"), __("Review"));
 		frm.add_custom_button(
