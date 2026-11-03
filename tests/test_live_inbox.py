@@ -68,6 +68,20 @@ class DockLayoutTests(unittest.TestCase):
         self.assertIn("try {", js)  # private browsing must not break the page
 
 
+class PhoneAndSurfaceTests(unittest.TestCase):
+    def test_phone_layout_is_one_column_and_hides_desktop_tools(self):
+        css = (PAGE / "sales_inbox.css").read_text(encoding="utf-8")
+        mobile = css.split("@media (max-width: 768px)")[1]
+        self.assertIn(".sin-tools { display: none; }", mobile)
+        self.assertIn("grid-template-columns: minmax(0, 1fr) !important;", mobile)
+
+    def test_surfaces_are_solid_not_translucent(self):
+        css = (PAGE / "sales_inbox.css").read_text(encoding="utf-8")
+        self.assertIn("--sin-surface: #ffffff;", css)
+        self.assertIn('--sin-card: var(--sin-surface);', css)
+        self.assertIn(':root[data-theme="dark"] .sin { --sin-surface: #15132b; }', css)
+
+
 class ChannelLabelTests(unittest.TestCase):
     def test_conversations_show_meta_and_whatsapp(self):
         js = (PAGE / "sales_inbox.js").read_text(encoding="utf-8")

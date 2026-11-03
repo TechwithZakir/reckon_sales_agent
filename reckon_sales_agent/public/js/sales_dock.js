@@ -31,7 +31,7 @@
 		#rsa-dock .rd-launch { border: 0; border-radius: 999px; padding: 9px 16px; background: #0084ff; color: #fff; font-weight: 600; box-shadow: 0 4px 14px rgba(0,0,0,.2); }
 		#rsa-dock .rd-launch b { background: #fff; color: #0084ff; border-radius: 999px; padding: 0 7px; margin-left: 6px; }
 		#rsa-dock .rd-panel { display: none; width: 340px; height: 470px; margin-bottom: 8px; text-align: left; flex-direction: column;
-			background: var(--card-bg, #fff); color: var(--text-color, #1f2937); border: 1px solid var(--border-color, #e3e5ea); border-radius: 14px; box-shadow: 0 8px 26px rgba(0,0,0,.2); overflow: hidden; }
+			background: #ffffff; color: #1f2937; border: 1px solid var(--border-color, #e3e5ea); border-radius: 14px; box-shadow: 0 8px 26px rgba(0,0,0,.2); overflow: hidden; }
 		#rsa-dock.open .rd-panel { display: flex; }
 		#rsa-dock .rd-head { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--border-color, #e3e5ea); }
 		#rsa-dock .rd-head .rd-title { flex: 1; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -68,7 +68,8 @@
 		#rsa-dock .rd-menu-pop button:hover { background: rgba(127,127,127,.15); }
 		#rsa-dock .rd-menu-pop button.on { color: #0084ff; font-weight: 600; }
 		#rsa-dock .rd-hint { color: #8a8d91; font-size: 12px; padding: 8px 10px; }
-		#rsa-dock .rd-panel { background-color: var(--card-bg, #fff); opacity: 1; }
+		#rsa-dock .rd-panel { background-color: #ffffff; opacity: 1; }
+		:root[data-theme="dark"] #rsa-dock .rd-panel { background-color: #15132b; color: #e5e7eb; }
 		@media (max-width: 480px) { #rsa-dock { left: 8px; right: 8px; bottom: 56px; }
 			#rsa-dock .rd-panel { width: 100%; height: 62vh; } #rsa-dock .rd-launch { margin-left: auto; display: block; } }
 	`;

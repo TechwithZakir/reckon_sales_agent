@@ -3,7 +3,8 @@
 .sin {
 	--sin-accent: var(--aura-accent, var(--primary, #2a78d6));
 	--sin-soft: color-mix(in srgb, var(--sin-accent) 12%, transparent);
-	--sin-card: var(--aura-surface, var(--card-bg, #fff));
+	--sin-surface: #ffffff;  /* solid: the theme's card colour is see-through */
+	--sin-card: var(--sin-surface);
 	--sin-line: var(--aura-line, var(--border-color, #e3e5ea));
 	--sin-muted: var(--aura-muted, var(--text-muted, #6b7280));
 	--sin-warn: #d97706;
@@ -116,5 +117,6 @@
 	.sin .dock-bl { position: static; width: auto; }
 	.sin-timeline { max-height: 60vh; }
 	.sin-reply textarea { width: 100%; }
+	.sin-tools { display: none; }  /* the desktop layout buttons do not apply on a phone */
 }
-
+:root[data-theme="dark"] .sin { --sin-surface: #15132b; }
