@@ -45,7 +45,8 @@ echo "Restarting services"
 sudo supervisorctl restart all
 
 # Verify the /crm build is served, not just built.
-code=$(curl -s -o /dev/null -w "%{http_code}" "https://$SITE/assets/reckon_crm/frontend/registerSW.js" || true)
+build_id=$(grep -o '"buildId": *"[^"]*"' apps/reckon_crm/reckon_crm/templates/reckon_crm.json | sed 's/.*"\([^"]*\)"$//')
+code=$(curl -s -o /dev/null -w "%{http_code}" "https://$SITE/assets/reckon_crm/frontend/$build_id/registerSW.js" || true)
 [ "$code" = "200" ] || echo "WARNING: /crm assets returned $code. Check the reckon_crm build output above."
 
 echo "Deployed $SITE"
