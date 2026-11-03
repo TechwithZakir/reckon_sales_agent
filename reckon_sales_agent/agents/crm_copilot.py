@@ -131,6 +131,7 @@ def summarize(prospect_name: str, company: str) -> dict:
 
     snap = snapshot(prospect_name)
     meeting = suggest_meeting(snap)
+    task = not snap["open_tasks"] and bool(snap.get("lead") or snap.get("deal"))  # nothing open: a task helps
     llm = get_llm(company) if get_settings(company).get("crm_copilot_enabled") else None
     if llm and remaining(company, USAGE_AI) > 0:
         try:
@@ -139,7 +140,8 @@ def summarize(prospect_name: str, company: str) -> dict:
                                                        json.dumps(snap, default=str)), SCHEMA, max_tokens=500)
             return {"source": "ai", "summary": str(data.get("summary") or "")[:400],
                     "next_step": str(data.get("next_step") or "")[:300],
-                    "risks": [str(r)[:200] for r in data.get("risks") or []][:3], "meeting_suggested": meeting}
+                    "risks": [str(r)[:200] for r in data.get("risks") or []][:3], "meeting_suggested": meeting,
+                    "task_suggested": task}
         except LLMError:
             pass  # the rules below still answer
-    return {**rules_summary(snap), "meeting_suggested": meeting}
+    return {**rules_summary(snap), "meeting_suggested": meeting, "task_suggested": task}

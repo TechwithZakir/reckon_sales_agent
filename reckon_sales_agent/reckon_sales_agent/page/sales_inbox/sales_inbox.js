@@ -189,6 +189,10 @@
 		copilot(prospect) {
 			return this.call("copilot_summary", { prospect }).then((g) => {
 				frappe.msgprint({ title: __("Copilot"), indicator: "blue", message: this.copilot_html(g) });
+				if (g.task_suggested) {
+					frappe.confirm(`${__("Create a follow-up task on the CRM lead?")} ${g.next_step}`, () => this.call("copilot_add_task", { prospect, title: g.next_step })
+						.then(() => frappe.show_alert({ message: __("Follow-up task created"), indicator: "green" })));
+				}
 				if (g.meeting_suggested) {
 					frappe.confirm(__("A meeting fits here. Draft a meeting proposal for you to approve?"), () => this.call("copilot_book_meeting", { prospect })
 						.then(() => frappe.show_alert({ message: __("Meeting proposal drafted in Meetings"), indicator: "green" })));

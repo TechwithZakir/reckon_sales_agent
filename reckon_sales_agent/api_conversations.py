@@ -215,3 +215,11 @@ def copilot_book_meeting(prospect: str) -> str:
     doc = get_tenant_doc("Sales Prospect", prospect, "write")
     assert_entitled(doc.company)
     return start_meeting(doc.name, "CRM copilot") or ""
+
+
+@frappe.whitelist(methods=["POST"])
+def copilot_add_task(prospect: str, title: str) -> dict:
+    """The copilot's suggested follow-up: an internal task on the CRM lead, which needs no approval."""
+    from reckon_sales_agent.api_crm import propose_for_prospect
+
+    return propose_for_prospect(prospect, "create_task", {"title": title})
