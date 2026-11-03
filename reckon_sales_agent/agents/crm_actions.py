@@ -56,7 +56,7 @@ def validate_payload(action: str, payload: dict) -> dict:
     if action == "set_close_date":
         return {"date": _date(str(payload.get("date") or ""))}
     user = str(payload.get("user") or "").strip()
-    if "@" not in user:
+    if not user:
         raise ValueError("Pick the person to assign to.")
     return {"user": user}
 
@@ -116,14 +116,21 @@ def propose(company: str, ref_doctype: str, ref_name: str, action: str, payload:
 
     if not allowed_for(ref_doctype, action):
         frappe.throw(_("This action cannot be proposed for that record."))
-    clean = validate_payload(action, payload)
+    try:
+        clean = validate_payload(action, payload)
+    except ValueError as exc:
+        frappe.throw(str(exc))
     doc = get_tenant_doc(ref_doctype, ref_name, "write")
     if doc.get("rsa_company") != company:
         frappe.throw(_("That record belongs to another Company."), frappe.PermissionError)
     if action == "set_stage" and not frappe.db.exists("CRM Deal Status", clean["stage"]):
         frappe.throw(_("No such deal stage: {0}.").format(clean["stage"]))
-    if action == "reassign" and not frappe.db.get_value("User", clean["user"], "enabled"):
-        frappe.throw(_("That user is not active."))
+    if action == "reassign":
+        # Users are named by their ID (Administrator) or by their email; store the ID the CRM uses.
+        user = frappe.db.get_value("User", clean["user"], "name") or frappe.db.get_value("User", {"email": clean["user"]}, "name")
+        if not user or not frappe.db.get_value("User", user, "enabled"):
+            frappe.throw(_("That user is not active."))
+        clean["user"] = user
     summary = describe(ref_doctype, ref_name, action, clean)
     prospect = frappe.db.get_value("Sales Prospect", {"crm_lead": doc.name if ref_doctype == "CRM Lead" else doc.get("lead")},
                                    "name") if ref_doctype in RECORDS else None

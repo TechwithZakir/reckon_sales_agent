@@ -40,7 +40,8 @@ class ValidationTests(unittest.TestCase):
 
     def test_reassign_needs_a_user(self):
         with self.assertRaises(ValueError):
-            validate_payload("reassign", {"user": "sales"})
+            validate_payload("reassign", {"user": " "})
+        self.assertEqual(validate_payload("reassign", {"user": "Administrator"}), {"user": "Administrator"})
 
     def test_unknown_actions_are_refused(self):
         with self.assertRaises(ValueError):
