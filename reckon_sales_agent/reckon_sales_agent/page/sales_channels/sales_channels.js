@@ -270,6 +270,53 @@ function social(d, platforms, onText) {
 			}).catch(() => out.html(`<div class="sch-muted">${__("The AI guide is not available right now. The quick help above still applies.")}</div>`));
 		}
 
+		// WhatsApp Embedded Signup: Meta's sign-in and number picker. Meta sends the code and the account and number IDs
+		// separately, in either order, so the connect runs once both are in.
+		load_fb(cfg) {
+			return new Promise((resolve) => {
+				const init = () => { window.FB.init({ appId: cfg.app_id, autoLogAppEvents: true, xfbml: false, version: cfg.version }); resolve(); };
+				if (window.FB) return init();
+				window.fbAsyncInit = init;
+				$.getScript("https://connect.facebook.net/en_US/sdk.js");
+				return null;
+			});
+		}
+
+		wa_signup() {
+			const pending = { code: null, waba: null, phone: null, busy: false };
+			const onMessage = (event) => {
+				if (!/(^|\.)facebook\.com$/.test(new URL(event.origin).hostname)) return;
+				let data = event.data;
+				if (typeof data === "string") { try { data = JSON.parse(data); } catch (err) { return; } }
+				if (!data || data.type !== "WA_EMBEDDED_SIGNUP" || data.event !== "FINISH") return;
+				pending.waba = data.data.waba_id;
+				pending.phone = data.data.phone_number_id;
+				finish();
+			};
+			const finish = () => {
+				if (pending.busy || !pending.code || !pending.waba || !pending.phone) return;
+				pending.busy = true;
+				window.removeEventListener("message", onMessage);
+				this.call("whatsapp_signup_finish", { code: pending.code, waba_id: pending.waba, phone_number_id: pending.phone })
+					.then((d) => this.refresh(d, __("WhatsApp connected")))
+					.catch(() => { pending.busy = false; });
+			};
+			window.addEventListener("message", onMessage);
+			this.call("whatsapp_signup_setup").then((cfg) => {
+				if (!cfg.app_id || !cfg.config_id) {
+					window.removeEventListener("message", onMessage);
+					frappe.msgprint(__("The system provider has not set up WhatsApp Embedded Signup yet."));
+					return;
+				}
+				this.load_fb(cfg).then(() => {
+					window.FB.login((response) => {
+						if (response.authResponse && response.authResponse.code) { pending.code = response.authResponse.code; finish(); }
+					}, { config_id: cfg.config_id, response_type: "code", override_default_response_type: true,
+						extras: { setup: {}, featureType: "", sessionInfoVersion: "3" } });
+				});
+			});
+		}
+
 		guides(key) {
 			const links = (this.data.references || {})[key];
 			if (!links || !links.length) return "";
@@ -396,6 +443,7 @@ function social(d, platforms, onText) {
 					{ f: "meta_app_id", label: __("App ID") },
 					{ f: "meta_app_secret", type: "secret", label: __("App secret"), help: __("Also checks every webhook's signature.") },
 					{ f: "meta_verify_token", type: "secret", label: __("Webhook verify token"), help: __("Paste the same text in the Meta app's webhook settings.") },
+					{ f: "whatsapp_signup_config_id", label: __("WhatsApp Embedded Signup configuration ID"), help: __("From the WhatsApp Embedded Signup configuration in your Meta app. Lets each customer connect their own number in one step.") },
 				], d.platform, "platform"))
 					+ this.section(__("Addresses for the Meta app"), this.copy_row(__("OAuth redirect URI"), d.vendor.redirect_uri)
 						+ this.copy_row(__("Webhook callback URL"), d.vendor.meta_webhook)
@@ -538,7 +586,9 @@ function social(d, platforms, onText) {
 						${this.copy_row(__("Script tag"), `<script src="${d.webchat.script}" data-site="${d.webchat.site}" data-key="${d.webchat.key}" defer><\/script>`)}`) : "");
 			case "whatsapp":
 				if (!d.whatsapp.installed) return `<div class="sch-note small">${__("Install the Frappe WhatsApp app (frappe_whatsapp) on this site to use WhatsApp.")}</div>`;
-				return this.section(__("Account"), this.fields([
+				return this.section(__("Connect"), `<button class="btn btn-primary btn-sm sch-wa-signup">${__("Connect WhatsApp with Facebook")}</button>`
+					+ `<div class="sch-note small">${__("Sign in, pick or create your number in Meta, then return here. Each customer connects its own number.")}</div>`)
+					+ this.section(__("Account"), this.fields([
 					{ f: "whatsapp_enabled", type: "check", label: __("Send and receive WhatsApp messages") },
 					{ f: "whatsapp_account", type: "select", label: __("WhatsApp account"), options: ["", ...d.whatsapp.accounts.map((a) => a.name)] },
 				]))
@@ -632,6 +682,7 @@ function social(d, platforms, onText) {
 		}
 
 		bind(p, key, d) {
+			p.find(".sch-wa-signup").on("click", () => this.wa_signup());
 			p.find(".sch-copy-url").on("click", (ev) => frappe.utils.copy_to_clipboard(ev.currentTarget.dataset.url));
 			p.find(".sch-connect").on("click", (ev) => {
 				$(ev.currentTarget).prop("disabled", true);

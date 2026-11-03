@@ -39,6 +39,7 @@
   "meta_app_id",
   "meta_app_secret",
   "meta_verify_token",
+  "whatsapp_signup_config_id",
   "linkedin_section",
   "linkedin_client_id",
   "linkedin_client_secret",
@@ -257,6 +258,12 @@
    "fieldtype": "Password",
    "label": "Webhook verify token",
    "description": "Any long random text; enter the same in the Meta app's Webhooks settings."
+  },
+  {
+   "fieldname": "whatsapp_signup_config_id",
+   "fieldtype": "Data",
+   "label": "WhatsApp Embedded Signup configuration ID",
+   "description": "From Meta: your app's WhatsApp Embedded Signup configuration."
   },
   {
    "fieldname": "linkedin_section",

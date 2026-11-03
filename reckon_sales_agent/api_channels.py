@@ -442,6 +442,7 @@ PLATFORM_EDITABLE = {
     "local_ai_base_url": "text", "local_ai_model": "text", "local_ai_api_key": "secret",
     "allow_company_ai_override": "check", "allow_company_ai_endpoints": "check",
     "meta_app_id": "text", "meta_app_secret": "secret", "meta_verify_token": "secret",
+    "whatsapp_signup_config_id": "text",
     "linkedin_client_id": "text", "linkedin_client_secret": "secret",
     "transcription_enabled": "check", "transcription_provider": "text", "transcription_model": "text",
     # Lead sources: Brave, Google Places, Google Maps and Search providers, and how leads are routed between them.
@@ -526,4 +527,24 @@ def guide(key: str, refresh: int = 0) -> dict:
     if key in PLATFORM_KEYS and not _is_vendor():
         frappe.throw(_("Only the system provider can open this guide."), frappe.PermissionError)
     return build_guide(current_company(), key, bool(int(refresh or 0)))
+
+
+@frappe.whitelist()
+def whatsapp_signup_setup() -> dict:
+    """What the Integrations page needs to start WhatsApp Embedded Signup: the Meta app and its signup configuration."""
+    _require_manager()
+    platform = platform_settings()
+    return {"app_id": platform.get("meta_app_id") or "", "config_id": platform.get("whatsapp_signup_config_id") or "",
+            "version": "v23.0"}
+
+
+@frappe.whitelist(methods=["POST"])
+def whatsapp_signup_finish(code: str, waba_id: str, phone_number_id: str) -> dict:
+    """Connect the WhatsApp number Meta returned to this Company, then show the updated channels."""
+    from reckon_sales_agent.agents.whatsapp_signup import finish
+
+    _require_manager()
+    finish(current_company(), code, str(waba_id or ""), str(phone_number_id or ""))
+    frappe.db.commit()
+    return overview()
 
