@@ -178,3 +178,19 @@ def _wa_templates(company: str) -> list[dict]:
         filters["whatsapp_account"] = account
     return frappe.get_all("WhatsApp Templates", filters=filters, fields=["name", "template_name", "language"], limit=200)
 
+
+@frappe.whitelist(methods=["POST"])
+def block(prospect: str, blocked: int = 1) -> dict:
+    """Stop messaging this lead, or undo it. Reversible: it only sets the lead's do-not-contact flag."""
+    get_tenant_doc("Sales Prospect", prospect, "write")
+    frappe.db.set_value("Sales Prospect", prospect, "do_not_contact", 1 if int(blocked) else 0)
+    return _changed(prospect)
+
+
+@frappe.whitelist(methods=["POST"])
+def delete_chat(prospect: str) -> dict:
+    """Delete this conversation's chat messages. The lead, its email and its records stay. Cannot be undone."""
+    doc = get_tenant_doc("Sales Prospect", prospect, "write")
+    frappe.db.delete("Sales Chat Message", {"prospect": prospect, "company": doc.company})
+    return _changed(prospect)
+

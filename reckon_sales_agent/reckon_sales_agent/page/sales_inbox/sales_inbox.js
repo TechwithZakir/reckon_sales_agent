@@ -165,6 +165,7 @@
 		}
 
 		open(prospect) {
+			this.$root.addClass("m-thread");  // on phones: show the thread, not the list
 			if (this.shown !== prospect) this.$root.find(".sin-thread").html(`<div class="sin-empty">${__("Loading…")}</div>`);
 			return this.call("thread", { prospect }).then((t) => { this.shown = prospect; this.render_thread(prospect, t); });
 		}
@@ -192,7 +193,7 @@
 			const resolved = c.status === "Resolved";
 			const waClosed = t.channels.some((ch) => ch.channel === "WhatsApp" && ch.window_closed);
 			const waTemplates = waClosed && (t.wa_templates || []).length ? `<div class="sin-reply-row sin-wa"><span class="sin-muted">${__("24-hour window closed: send an approved template")}</span><select class="form-control input-sm sin-wa-tpl">${t.wa_templates.map((w) => `<option value="${e(w.name)}">${e(w.template_name)}</option>`).join("")}</select><button class="btn btn-default btn-sm sin-wa-send">${__("Send template")}</button></div>` : "";
-			el.html(`<div class="sin-head"><div><h3>${e(p.business_name)}</h3>
+			el.html(`<div class="sin-head"><button class="btn btn-default btn-xs sin-m-back" aria-label="${__("Back")}">‹</button><div><h3>${e(p.business_name)}</h3>
 					<div class="sin-muted">${[p.email ? e(p.email) : "", p.phone ? `<a href="tel:${e(p.phone)}">${e(p.phone)}</a>` : "", e(p.city || "")].filter(Boolean).join(" · ")}</div></div>
 					<div class="sin-links"><button class="btn btn-xs ${resolved ? "btn-default" : "btn-primary"} sin-status">${resolved ? __("Reopen") : __("Resolve")}</button></div></div>
 				${c.handoff_reason && !resolved ? `<div class="sin-warn">${__("Needs a person")}: ${e(c.handoff_reason)}</div>` : ""}
@@ -213,6 +214,7 @@
 							<button class="btn btn-primary btn-sm sin-write">${__("Send")}</button></div>`
 						: `<div class="sin-warn">${__("No channel to reply on right now")}: ${e(t.channels.map((ch) => `${ch.channel}: ${ch.reason}`).join(" · ") || __("no email, phone or chat"))}</div>`}</div>`}`);
 			el.find(".sin-timeline").scrollTop(1e6);
+			el.find(".sin-m-back").on("click", () => this.$root.removeClass("m-thread"));
 
 			ctx.html(`<div class="sin-card"><h4>${__("Lead")}</h4>
 					<div class="sin-kv"><span>${__("Source")}</span><b>${e(CHANNELS[this.channel_of({ conversation: c })] || SOURCES[p.source_type] || p.source_type || "–")}</b>

@@ -10,6 +10,9 @@
 	const SOUND_KEY = "rsa_sound";
 	const sound_on = () => { try { return localStorage.getItem(SOUND_KEY) !== "off"; } catch (err) { return true; } };
 	const set_sound = (on) => { try { localStorage.setItem(SOUND_KEY, on ? "on" : "off"); } catch (err) { /* private browsing */ } };
+	const MUTED_KEY = "rsa_muted";
+	const muted = (prospect) => { try { return !!JSON.parse(localStorage.getItem(MUTED_KEY) || "{}")[prospect]; } catch (err) { return false; } };
+	const set_muted = (prospect, on) => { try { const map = JSON.parse(localStorage.getItem(MUTED_KEY) || "{}"); if (on) map[prospect] = 1; else delete map[prospect]; localStorage.setItem(MUTED_KEY, JSON.stringify(map)); } catch (err) { /* private browsing */ } };
 	const ring = () => { try { frappe.utils.play_sound("notification"); } catch (err) { /* no audio here */ } };
 
 	const store = {
@@ -65,7 +68,9 @@
 		#rsa-dock .rd-menu-pop button:hover { background: rgba(127,127,127,.15); }
 		#rsa-dock .rd-menu-pop button.on { color: #0084ff; font-weight: 600; }
 		#rsa-dock .rd-hint { color: #8a8d91; font-size: 12px; padding: 8px 10px; }
-		@media (max-width: 480px) { #rsa-dock .rd-panel { width: calc(100vw - 32px); height: 60vh; } }
+		#rsa-dock .rd-panel { background-color: var(--card-bg, #fff); opacity: 1; }
+		@media (max-width: 480px) { #rsa-dock { left: 8px; right: 8px; bottom: 56px; }
+			#rsa-dock .rd-panel { width: 100%; height: 62vh; } #rsa-dock .rd-launch { margin-left: auto; display: block; } }
 	`;
 
 	function root() {
@@ -89,6 +94,15 @@
 	function launch_label() {
 		const count = waiting();
 		return `${frappe.utils.escape_html(__("Conversations"))}${count ? `<b>${count}</b>` : ""}`;
+	}
+
+	function minimize() { root().classList.remove("open"); }  // keeps the chat; the launch button brings it back
+	function close_all() {  // forgets the open chat as well
+		state.prospect = null;
+		state.thread = null;
+		store.set({});
+		state.list = true;
+		root().classList.remove("open");
 	}
 
 	function render_launch() {
@@ -117,12 +131,13 @@
 			<div class="rd-head"><span class="rd-title">${esc(__("Conversations"))}</span>
 				<button class="rd-sound" title="${esc(__("New message sound"))}">${sound_on() ? "🔔" : "🔕"}</button>
 				<button class="rd-open" title="${esc(__("Open Conversations"))}">↗</button>
-				<button class="rd-close" aria-label="${esc(__("Close"))}">×</button></div>
+				<button class="rd-min" aria-label="${esc(__("Minimize"))}" title="${esc(__("Minimize"))}">−</button><button class="rd-close" aria-label="${esc(__("Close"))}" title="${esc(__("Close"))}">×</button></div>
 			<div class="rd-body">${rows || `<div class="rd-hint">${esc(__("No conversations yet."))}</div>`}</div>`;
 		panel.querySelectorAll(".rd-row").forEach((row) => row.addEventListener("click", () => open_chat(row.dataset.p)));
 		panel.querySelector(".rd-open").addEventListener("click", () => frappe.set_route("sales-inbox"));
 		panel.querySelector(".rd-sound").addEventListener("click", () => { set_sound(!sound_on()); render_list(); });
-		panel.querySelector(".rd-close").addEventListener("click", () => root().classList.remove("open"));
+		panel.querySelector(".rd-min").addEventListener("click", minimize);
+		panel.querySelector(".rd-close").addEventListener("click", close_all);
 	}
 
 	function open_chat(prospect) {
@@ -160,9 +175,9 @@
 				: `<div class="rd-hint">${esc(__("No channel to reply on right now"))}: ${esc(reason || "")}</div>`;
 		panel.innerHTML = `
 			<div class="rd-head"><button class="rd-back" aria-label="${esc(__("Back"))}">‹</button>
-				<span class="rd-av">${esc(initials(name))}</span><span class="rd-title">${esc(name)}</span><button class="rd-more" aria-label="${esc(__("More"))}" title="${esc(__("More"))}">⌄</button><div class="rd-menu-pop" hidden><div class="rd-menu-title">${esc(__("AI reply"))}</div>${[["Company default", __("Use the Company setting")], ["Autopilot", __("AI replies on its own")], ["Suggest only", __("AI drafts, you approve")], ["Human only", __("Only you reply")]].map(([m, label]) => `<button class="rd-mode ${m === (t.conversation.ai_mode || "Company default") ? "on" : ""}" data-mode="${esc(m)}">${esc(label)}</button>`).join("")}<div class="rd-menu-title">${esc(__("Conversation"))}</div><button class="rd-status">${esc(t.conversation.status === "Resolved" ? __("Reopen") : __("Resolve"))}</button><button class="rd-goto">${esc(__("Open in Conversations"))}</button></div>
+				<span class="rd-av">${esc(initials(name))}</span><span class="rd-title">${esc(name)}</span><button class="rd-more" aria-label="${esc(__("More"))}" title="${esc(__("More"))}">⌄</button><div class="rd-menu-pop" hidden><div class="rd-menu-title">${esc(__("AI reply"))}</div>${[["Company default", __("Use the Company setting")], ["Autopilot", __("AI replies on its own")], ["Suggest only", __("AI drafts, you approve")], ["Human only", __("Only you reply")]].map(([m, label]) => `<button class="rd-mode ${m === (t.conversation.ai_mode || "Company default") ? "on" : ""}" data-mode="${esc(m)}">${esc(label)}</button>`).join("")}<div class="rd-menu-title">${esc(__("Conversation"))}</div><button class="rd-mute">${esc(muted(state.prospect) ? __("Unmute notifications") : __("Mute notifications"))}</button><button class="rd-block">${esc(t.prospect.do_not_contact ? __("Unblock this lead") : __("Block this lead"))}</button><button class="rd-delete">${esc(__("Delete chat"))}</button><button class="rd-status">${esc(t.conversation.status === "Resolved" ? __("Reopen") : __("Resolve"))}</button><button class="rd-goto">${esc(__("Open in Conversations"))}</button></div>
 				<button class="rd-open" title="${esc(__("Open Conversations"))}">↗</button>
-				<button class="rd-close" aria-label="${esc(__("Close"))}">×</button></div>
+				<button class="rd-min" aria-label="${esc(__("Minimize"))}" title="${esc(__("Minimize"))}">−</button><button class="rd-close" aria-label="${esc(__("Close"))}" title="${esc(__("Close"))}">×</button></div>
 			<div class="rd-body">${messages || `<div class="rd-hint">${esc(__("No messages yet."))}</div>`}</div>
 			${composer}`;
 		const body = panel.querySelector(".rd-body");
@@ -178,8 +193,19 @@
 				.then(() => open_chat(state.prospect));
 		});
 		panel.querySelector(".rd-goto").addEventListener("click", () => frappe.set_route("sales-inbox"));
+		panel.querySelector(".rd-mute").addEventListener("click", () => { set_muted(state.prospect, !muted(state.prospect)); render_chat(); });
+		panel.querySelector(".rd-block").addEventListener("click", () => {
+			const blocking = !t.prospect.do_not_contact;
+			const go = () => call("block", { prospect: state.prospect, blocked: blocking ? 1 : 0 }).then(() => open_chat(state.prospect));
+			if (!blocking) return go();
+			return frappe.confirm(__("Block this lead? We stop messaging them. You can unblock later."), go);
+		});
+		panel.querySelector(".rd-delete").addEventListener("click", () => frappe.confirm(
+			__("Delete this chat? Its messages are removed for good. The lead itself stays."),
+			() => call("delete_chat", { prospect: state.prospect }).then(() => { close_all(); return load_rows(); })));
 		panel.querySelector(".rd-open").addEventListener("click", () => frappe.set_route("sales-inbox"));
-		panel.querySelector(".rd-close").addEventListener("click", () => root().classList.remove("open"));
+		panel.querySelector(".rd-min").addEventListener("click", minimize);
+		panel.querySelector(".rd-close").addEventListener("click", close_all);
 		const send = panel.querySelector(".rd-send");
 		if (send) send.addEventListener("click", () => send_reply(panel));
 		const text = panel.querySelector(".rd-text");
@@ -200,7 +226,7 @@
 	// A bell when a lead writes in: a lead that needs a reply and has a newer message than we announced before.
 	// The first load only records what is already there, so opening a page never rings.
 	function announce(rows) {
-		const fresh = rows.filter((r) => r.needs_reply && (!(r.prospect in seen) || String(r.last) > String(seen[r.prospect])));
+		const fresh = rows.filter((r) => r.needs_reply && !muted(r.prospect) && (!(r.prospect in seen) || String(r.last) > String(seen[r.prospect])));
 		rows.forEach((r) => { seen[r.prospect] = r.last; });
 		if (state.primed && fresh.length && sound_on()) ring();
 		state.primed = true;
