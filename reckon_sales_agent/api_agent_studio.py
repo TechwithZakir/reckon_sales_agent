@@ -18,7 +18,7 @@ from reckon_sales_agent.tenant import current_company, get_tenant_doc
 from reckon_sales_agent.usage import assert_entitled, get_settings, log_activity
 
 AGENTS = ("Research", "Data Quality", "Content", "Governance", "Compliance", "Engagement", "Conversations",
-          "Meetings", "Deals", "Customers", "Social", "Analytics")
+          "Meetings", "Deals", "Customers", "Social", "Analytics", "CRM")
 LANE_TITLES = {
     "Research": "Finds and qualifies leads",
     "Data Quality": "Fixes phones, duplicates and bounced emails",
@@ -32,6 +32,7 @@ LANE_TITLES = {
     "Deals": "Pushes stuck deals and drafts proposals",
     "Customers": "Finds late re-orders and growing customers",
     "Analytics": "Measures pilots and recommends",
+    "CRM": "Keeps CRM deals moving: next steps, summaries and follow-ups",
 }
 
 
@@ -68,6 +69,8 @@ def state() -> dict:
     metrics = {
         "Research": [(_("leads"), funnel[0][1]), (_("qualified"), funnel[2][1]),
                      (_("searching"), snapshot.get("running_jobs", 0))],
+        "CRM": [(_("open deals"), frappe.db.count("CRM Deal", {"rsa_company": company, "status": ["not in", ["Won", "Lost"]]})),
+                (_("need a next step"), snapshot.get("crm_stalled", 0))],
         "Content": [(_("campaigns"), count("Sales Campaign")),
                     (_("facts approved"), count("Sales Knowledge Item", status="Approved"))],
         "Governance": [(_("awaiting you"), len(snapshot.get("campaigns_pending") or [])),

@@ -96,6 +96,9 @@ def sync_to_crm(prospect) -> str | None:
         })
         lead.insert()
         lead_name = lead.name
+        from reckon_sales_agent.agents.crm_copilot import add_summary_note
+
+        add_summary_note(lead_name, prospect.company)
         frappe.get_doc({
             "doctype": "FCRM Note",
             "title": _("Sales Agent research"),

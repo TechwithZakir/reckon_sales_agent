@@ -43,6 +43,7 @@
   "fast_answers_section",
   "chat_auto_answer",
   "conversations_autopilot",
+  "crm_copilot_enabled",
   "autopilot_whatsapp",
   "chat_agents",
   "call_routing",
@@ -310,6 +311,13 @@
    "fieldtype": "Check",
    "label": "Conversations agent on autopilot",
    "description": "The agent answers routine messages on its own; anything unusual waits for a person."
+  },
+  {
+   "fieldname": "crm_copilot_enabled",
+   "fieldtype": "Check",
+   "default": "1",
+   "label": "CRM copilot on",
+   "description": "Summaries, next steps and the CRM lane. AI is used only when it is set up."
   },
   {
    "fieldname": "autopilot_whatsapp",

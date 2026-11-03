@@ -41,6 +41,9 @@ def plan(state: dict) -> list[Step]:
     steps: list[Step] = []
     add = steps.append
 
+    if state.get("crm_stalled"):
+        add(Step("CRM", "crm_next_steps", ASK, f"{state['crm_stalled']} deals need a next step",
+                 "Open deals with no open task and no next step. The copilot suggests one; you decide."))
     if state.get("ai_blocked"):
         add(Step("Governance", "ai_blocked", ASK, "AI is paused",
                  f"The AI provider says: {state['ai_blocked']} The agents use their rules until this is fixed."))
@@ -217,6 +220,14 @@ def pick_segments(segments: list[dict], limit: int = 3) -> list[str]:
 # --------------------------------------------------------------------------- Frappe side
 
 
+def _crm_stalled(company: str, settings) -> int:
+    if not settings.get("crm_copilot_enabled"):
+        return 0
+    from reckon_sales_agent.agents.crm_copilot import crm_stalled
+
+    return crm_stalled(company)
+
+
 def collect_state(company: str, deep: bool = False) -> dict:
     import frappe
     from frappe.utils import add_to_date, date_diff, now_datetime, nowdate
@@ -230,6 +241,7 @@ def collect_state(company: str, deep: bool = False) -> dict:
     platform = platform_settings()
     profile = business_profile(company, create=False)
     state = {
+        "crm_stalled": _crm_stalled(company, settings),
         "autopilot": bool(settings.get("autopilot_enabled")),
         "auto_segments": bool(settings.get("autopilot_auto_segments")),
         "auto_approve": bool(settings.auto_approve_enabled),

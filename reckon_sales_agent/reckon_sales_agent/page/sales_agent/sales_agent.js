@@ -23,6 +23,7 @@
 		Engagement: '<path d="M4 5h16v11H8l-4 4z"/><path d="M8 9h8M8 12h5"/>',
 		Analytics: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
 		"Data Quality": '<path d="M4 6h16M4 12h10M4 18h6"/><path d="m15 17 2 2 4-4"/>',
+		CRM: '<path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/>',
 		Conversations: '<path d="M3 5h12v8H7l-4 3z"/><path d="M9 16v1h8l4 3V9h-4"/>',
 		Meetings: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
 		Compliance: '<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="M9 9l6 6M15 9l-6 6"/>',

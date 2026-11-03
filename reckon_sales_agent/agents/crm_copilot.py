@@ -1,6 +1,8 @@
-"""CRM copilot, Phase A: read-only. Summarises a lead's CRM record and conversations and suggests the next step.
+"""CRM copilot: summarises a lead's CRM record and conversations, suggests the next step, and says when a meeting fits.
 
-It writes nothing. ``rules_summary`` is pure; ``summarize`` adds AI when it is available and falls back to the rules.
+It reads the CRM and writes only one internal note (when a lead is created in CRM, if the copilot is on). It never
+changes a stage, value, owner or task. ``rules_summary`` and ``suggest_meeting`` are pure; ``summarize`` adds AI when
+it is switched on for the Company, set up, and has budget, and falls back to the rules.
 Contact details are left out of what the AI sees: stages, owners, dates, tasks and the last few messages only.
 """
 
@@ -29,6 +31,7 @@ DEAL_FIELDS = ["name", "status", "probability", "deal_value", "expected_closure_
                "lost_reason"]
 LEAD_FIELDS = ["name", "status", "lead_owner", "source", "organization_name"]
 OPEN_TASK_STATUSES = ["Backlog", "Todo", "In Progress"]
+MEETING_WORDS = ("call", "meet", "demo", "meeting", "visit")
 
 
 def rules_summary(snap: dict) -> dict:
@@ -60,6 +63,15 @@ def rules_summary(snap: dict) -> dict:
     return {"source": "rules", "summary": summary, "next_step": next_step, "risks": risks[:3]}
 
 
+def suggest_meeting(snap: dict) -> bool:
+    """A meeting fits when the deal is in demo, or the lead's last message asks for a call, a demo or a visit."""
+    if (snap.get("deal") or {}).get("status") == "Demo/Making":
+        return True
+    last_in = next((m for m in reversed(snap.get("timeline") or []) if m.get("direction") == "in"), None)
+    text = (last_in or {}).get("text", "").lower()
+    return bool(last_in) and any(word in text for word in MEETING_WORDS)
+
+
 def snapshot(prospect_name: str) -> dict:
     """The facts the copilot works from. Read-only."""
     import frappe
@@ -79,15 +91,47 @@ def snapshot(prospect_name: str) -> dict:
     return {"lead": lead, "deal": deal, "open_tasks": tasks, "timeline": messages}
 
 
+def crm_stalled(company: str) -> int:
+    """Open CRM deals of this Company with no open task and no next step: the ones that need a decision."""
+    import frappe
+
+    deals = frappe.get_all("CRM Deal", filters={"rsa_company": company, "status": ["not in", ["Won", "Lost"]]},
+                           fields=["name", "next_step"], limit=500)
+    if not deals:
+        return 0
+    with_task = set(frappe.get_all("CRM Task", filters={"reference_docname": ["in", [d.name for d in deals]],
+                                                        "status": ["in", OPEN_TASK_STATUSES]},
+                                   pluck="reference_docname"))
+    return sum(1 for d in deals if d.name not in with_task and not d.next_step)
+
+
+def add_summary_note(lead_name: str, company: str) -> None:
+    """When a lead is created in CRM: one internal note with the copilot's first read (no AI, nothing changed)."""
+    import frappe
+
+    from reckon_sales_agent.usage import get_settings
+
+    if not get_settings(company).get("crm_copilot_enabled"):
+        return
+    status = frappe.db.get_value("CRM Lead", lead_name, "status")
+    summary = rules_summary({"deal": None, "lead": {"status": status}, "open_tasks": [], "timeline": []})
+    frappe.get_doc({
+        "doctype": "FCRM Note", "title": "Copilot summary",
+        "content": frappe.utils.escape_html(f"{summary['summary']} Next step: {summary['next_step']}"),
+        "reference_doctype": "CRM Lead", "reference_docname": lead_name,
+    }).insert(ignore_permissions=True)
+
+
 def summarize(prospect_name: str, company: str) -> dict:
-    """The copilot's read on one lead. AI when it is set up and has budget; else the plain rules."""
+    """The copilot's read on one lead. AI when it is on for the Company, set up and has budget; else the rules."""
     from reckon_sales_agent.constants import USAGE_AI
     from reckon_sales_agent.providers.factory import get_llm
     from reckon_sales_agent.providers.llm import LLMError, untrusted
-    from reckon_sales_agent.usage import remaining, reserve
+    from reckon_sales_agent.usage import get_settings, remaining, reserve
 
     snap = snapshot(prospect_name)
-    llm = get_llm(company)
+    meeting = suggest_meeting(snap)
+    llm = get_llm(company) if get_settings(company).get("crm_copilot_enabled") else None
     if llm and remaining(company, USAGE_AI) > 0:
         try:
             reserve(company, USAGE_AI, 1, None)
@@ -95,7 +139,7 @@ def summarize(prospect_name: str, company: str) -> dict:
                                                        json.dumps(snap, default=str)), SCHEMA, max_tokens=500)
             return {"source": "ai", "summary": str(data.get("summary") or "")[:400],
                     "next_step": str(data.get("next_step") or "")[:300],
-                    "risks": [str(r)[:200] for r in data.get("risks") or []][:3]}
+                    "risks": [str(r)[:200] for r in data.get("risks") or []][:3], "meeting_suggested": meeting}
         except LLMError:
             pass  # the rules below still answer
-    return rules_summary(snap)
+    return {**rules_summary(snap), "meeting_suggested": meeting}

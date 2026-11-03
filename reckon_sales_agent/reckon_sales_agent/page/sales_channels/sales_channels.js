@@ -413,7 +413,7 @@ function social(d, platforms, onText) {
 						<label class="sch-switch"><input type="checkbox" class="sch-auto" ${d.fast.auto_answer ? "checked" : ""}><span></span>${__("Answer simple chat questions at once")}</label>
 						<small class="sch-muted">${__("Only facts from your approved knowledge. Prices it cannot find, discounts, complaints and anything unsure go to a person.")}</small>
 						<label class="sch-switch"><input type="checkbox" class="sch-wa" ${d.fast.whatsapp ? "checked" : ""}><span></span>${__("Also answer WhatsApp (inside the 24-hour window)")}</label>
-						<label class="sch-switch"><input type="checkbox" class="sch-comments" ${d.fast.comment_to_chat ? "checked" : ""}><span></span>${__("Answer buying comments on our posts with one private message")}</label></div>`)
+						<label class="sch-switch"><input type="checkbox" class="sch-comments" ${d.fast.comment_to_chat ? "checked" : ""}><span></span>${__("Answer buying comments on our posts with one private message")}</label><label class="sch-switch"><input type="checkbox" class="sch-crm" ${d.values.crm_copilot_enabled ? "checked" : ""}><span></span>${__("CRM copilot: summaries, next steps and the CRM lane (AI when set up)")}</label></div>`)
 					+ this.section(__("Your team"), `<div class="sch-fields">
 						<label>${__("Sales team (one email per line)")}<textarea class="form-control sch-agents" rows="3" placeholder="sales1@yourcompany.com">${e(d.fast.agents)}</textarea>
 							<small>${__("They answer conversations; each lead keeps one owner across its calls, follow-ups and chats.")}</small></label>
@@ -712,7 +712,7 @@ function social(d, platforms, onText) {
 				auto_answer: p.find(".sch-auto").is(":checked") ? 1 : 0, comment_to_chat: p.find(".sch-comments").is(":checked") ? 1 : 0,
 				sla_minutes: Number(p.find(".sch-sla").val() || 0), whatsapp: p.find(".sch-wa").is(":checked") ? 1 : 0,
 				agents: p.find(".sch-agents").val(), auto_assign: p.find(".sch-assign").is(":checked") ? 1 : 0,
-				call_routing: p.find(".sch-routing").val(),
+				call_routing: p.find(".sch-routing").val(), crm_copilot: p.find(".sch-crm").is(":checked") ? 1 : 0,
 			}) }).then((r) => this.refresh(r, __("Saved"))));
 			p.find(".sch-token").on("click", () => frappe.confirm(__("Make a new verify token? The old one stops working in the Meta app."),
 				() => this.call("new_verify_token").then((token) => frappe.msgprint({ title: __("Paste this into the Meta app's webhook settings"),

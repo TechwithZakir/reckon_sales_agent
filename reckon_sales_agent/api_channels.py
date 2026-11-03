@@ -312,6 +312,8 @@ def set_fast_answers(data: str | dict) -> dict:
         doc.auto_assign = 1 if data.get("auto_assign") else 0
     if "whatsapp" in data:
         doc.autopilot_whatsapp = 1 if data.get("whatsapp") else 0
+    if "crm_copilot" in data:
+        doc.crm_copilot_enabled = 1 if data.get("crm_copilot") else 0
     if data.get("call_routing") in ("One salesperson", "Share across the team"):
         doc.call_routing = data["call_routing"]
     doc.save()
@@ -404,7 +406,7 @@ EDITABLE = {
     "twilio_messaging_service_sid": "text", "twilio_record_calls": "check", "voice_ai_enabled": "check",
     "voice_ai_greeting": "text", "voice_ai_language": "text", "voice_forward_to": "text",
     "email_provider": "text", "sendgrid_api_key": "secret", "sendgrid_from_email": "text",
-    "sendgrid_webhook_key": "text", "email_account": "text",
+    "sendgrid_webhook_key": "text", "email_account": "text", "crm_copilot_enabled": "check",
 }
 
 

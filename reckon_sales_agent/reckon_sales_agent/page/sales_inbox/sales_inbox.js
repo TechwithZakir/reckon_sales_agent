@@ -186,6 +186,16 @@
 			}).join("");
 		}
 
+		copilot(prospect) {
+			return this.call("copilot_summary", { prospect }).then((g) => {
+				frappe.msgprint({ title: __("Copilot"), indicator: "blue", message: this.copilot_html(g) });
+				if (g.meeting_suggested) {
+					frappe.confirm(__("A meeting fits here. Draft a meeting proposal for you to approve?"), () => this.call("copilot_book_meeting", { prospect })
+						.then(() => frappe.show_alert({ message: __("Meeting proposal drafted in Meetings"), indicator: "green" })));
+				}
+			});
+		}
+
 		copilot_html(g) {
 			const risks = (g.risks || []).map((r) => `<li>${e(r)}</li>`).join("");
 			return `<p>${e(g.summary)}</p><p><b>${e(__("Next step"))}:</b> ${e(g.next_step)}</p>${risks ? `<b>${e(__("Watch out"))}</b><ul>${risks}</ul>` : ""}`
@@ -241,7 +251,7 @@
 					${t.channels.map((ch) => `<div class="sin-chan ${ch.ok ? "ok" : ""}"><span>${e(CHANNELS[ch.channel] || ch.channel)}</span><small>${ch.from ? `${e(ch.from)} · ` : ""}${e(ch.reason)}</small></div>`).join("")}</div>`);
 
 			const refresh = () => { this.open(prospect); this.load(true); };
-			el.find(".sin-copilot").on("click", () => this.call("copilot_summary", { prospect }).then((g) => frappe.msgprint({ title: __("Copilot"), indicator: "blue", message: this.copilot_html(g) })));
+			el.find(".sin-copilot").on("click", () => this.copilot(prospect));
 			el.find(".sin-status").on("click", () => this.call("set_status", { prospect, status: resolved ? "Open" : "Resolved" }).then(refresh));
 			ctx.find(".sin-assign").on("change", (ev) => this.call("assign", { prospect, user: ev.target.value }).then(refresh));
 			ctx.find(".sin-mode").on("change", (ev) => this.call("set_mode", { prospect, mode: ev.target.value }).then(refresh));

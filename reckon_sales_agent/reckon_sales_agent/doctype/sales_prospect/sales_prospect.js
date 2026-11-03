@@ -12,6 +12,8 @@ frappe.ui.form.on("Sales Prospect", {
 		if (frm.doc.review_status !== "Approved") {
 			frm.add_custom_button(__("Approve"), () => review("approve"), __("Review"));
 		}
+		frm.add_custom_button(__("CRM copilot"), () => frappe.call({ method: "reckon_sales_agent.api_conversations.copilot_summary", args: { prospect: frm.doc.name } })
+			.then((r) => frappe.msgprint({ title: __("CRM copilot"), indicator: "blue", message: `<p>${frappe.utils.escape_html(r.message.summary)}</p><p><b>${__("Next step")}:</b> ${frappe.utils.escape_html(r.message.next_step)}</p>` })));
 		frm.add_custom_button(__("Defer"), () => review("defer"), __("Review"));
 		frm.add_custom_button(__("Reject"), () => review("reject"), __("Review"));
 		frm.add_custom_button(

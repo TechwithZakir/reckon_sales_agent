@@ -43,10 +43,13 @@ class RulesSummaryTests(unittest.TestCase):
 
 
 class ReadOnlyTests(unittest.TestCase):
-    def test_the_copilot_writes_nothing(self):
+    def test_the_copilot_writes_only_its_internal_note(self):
         source = MODULE.read_text(encoding="utf-8")
-        for write in (".insert(", ".save(", "set_value(", "db_set(", "delete(", "new_doc("):
+        for write in (".save(", "set_value(", "db_set(", "delete(", "new_doc("):
             self.assertNotIn(write, source, write)
+        self.assertEqual(source.count(".insert("), 1)
+        note = source.split("def add_summary_note(")[1].split(chr(10) + "def ")[0]
+        self.assertIn(".insert(", note)  # the one write: an FCRM Note
 
     def test_the_endpoint_checks_read_access_first(self):
         api = (Path(__file__).parents[1] / "reckon_sales_agent" / "api_conversations.py").read_text(encoding="utf-8")

@@ -204,3 +204,14 @@ def copilot_summary(prospect: str) -> dict:
     doc = get_tenant_doc("Sales Prospect", prospect, "read")
     assert_entitled(doc.company)
     return summarize(doc.name, doc.company)
+
+
+@frappe.whitelist(methods=["POST"])
+def copilot_book_meeting(prospect: str) -> str:
+    """Draft a meeting proposal for this lead (slots and invitation), for a person to approve. Returns its name."""
+    from reckon_sales_agent.agents.meetings import start_meeting
+    from reckon_sales_agent.usage import assert_entitled
+
+    doc = get_tenant_doc("Sales Prospect", prospect, "write")
+    assert_entitled(doc.company)
+    return start_meeting(doc.name, "CRM copilot") or ""
