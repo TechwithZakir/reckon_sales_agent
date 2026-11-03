@@ -449,8 +449,13 @@ def record_event(message, event_type: str, key: str, provider_message_id=None, d
 
 
 def handle_communication(doc, method=None) -> None:
-    """``Communication.after_insert``: an email reply to an outreach message."""
-    if doc.reference_doctype != "Sales Outreach Message" or doc.sent_or_received != "Received":
+    """``Communication.after_insert``: an email to or from a lead. Replies to outreach are recorded as sequence replies;
+    any other email from the Company's sending account goes onto the lead's Conversations thread."""
+    if doc.reference_doctype != "Sales Outreach Message":
+        from reckon_sales_agent.agents.email_threads import file_email
+
+        return file_email(doc)
+    if doc.sent_or_received != "Received":
         return
     import hashlib
 

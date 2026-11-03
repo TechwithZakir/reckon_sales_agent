@@ -76,7 +76,7 @@
   {
    "fieldname": "channel",
    "fieldtype": "Select",
-   "options": "Messenger\nInstagram\nWeb Chat\nSMS\nVoice\nWhatsApp",
+   "options": "Messenger\nInstagram\nWeb Chat\nSMS\nVoice\nWhatsApp\nEmail",
    "label": "Channel",
    "in_list_view": 1,
    "in_standard_filter": 1,

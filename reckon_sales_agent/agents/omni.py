@@ -173,8 +173,15 @@ def timeline(prospect_name: str, limit: int = 40) -> list[dict]:
                                     fields=["name", "message", "creation"], limit=100):
                 items.append({"at": w.creation, "direction": "out", "channel": "WhatsApp", "status": "Sent",
                               "subject": "", "text": (w.message or "")[:1500], "ref": w.name})
-    for c in frappe.get_all("Sales Chat Message", filters={"prospect": prospect_name, "direction": "In"},
-                            fields=["name", "channel", "text", "sent_at", "kind"], limit=200):
+    for c in frappe.get_all("Sales Chat Message", filters={"prospect": prospect_name},
+                            fields=["name", "channel", "text", "sent_at", "kind", "direction", "outreach_message"], limit=200):
+        if c.direction == "Out":
+            # Email sent from the CRM (no outreach record): shown here so the thread is complete.
+            if c.outreach_message or c.channel != "Email":
+                continue
+            items.append({"at": c.sent_at, "direction": "out", "channel": "Email", "status": "Sent", "subject": "",
+                          "text": (c.text or "")[:1500], "ref": c.name})
+            continue
         items.append({"at": c.sent_at, "direction": "in", "channel": c.channel,
                       "status": "Comment on a post" if c.kind == "Comment" else "Received", "subject": "",
                       "text": (c.text or "")[:1500], "ref": c.name})
