@@ -9,6 +9,14 @@ APP = Path(__file__).parents[1] / "reckon_sales_agent"
 DOCK = APP / "public" / "js" / "sales_dock.js"
 
 
+class SolidSurfaceTests(unittest.TestCase):
+    def test_the_dock_has_no_see_through_surfaces(self):
+        # The theme's card colour is 4-5% white: a panel using it shows the page through it.
+        js = DOCK.read_text(encoding="utf-8")
+        self.assertNotIn("var(--card-bg", js)
+        self.assertIn(':root[data-theme="dark"] #rsa-dock .rd-menu-pop', js)
+
+
 class DockTests(unittest.TestCase):
     def test_loaded_on_every_desk_page(self):
         hooks = (APP / "hooks.py").read_text(encoding="utf-8")
