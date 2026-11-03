@@ -408,8 +408,8 @@
    "fieldname": "email_provider",
    "fieldtype": "Select",
    "label": "Send email through",
-   "options": "Frappe email account\nTwilio SendGrid",
-   "default": "Frappe email account"
+   "options": "System Email\nTwilio SendGrid",
+   "default": "System Email"
   },
   {
    "fieldname": "email_account",

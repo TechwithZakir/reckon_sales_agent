@@ -668,14 +668,14 @@ function social(d, platforms, onText) {
 						{ f: "calling_hours", label: __("Calling hours (Bangladesh time)"), placeholder: "09:00-20:00" }]));
 			case "email":
 				return this.section(__("Sending"), this.fields([
-						{ f: "email_provider", type: "select", label: __("Send email through"), options: ["Frappe email account", "Twilio SendGrid"] },
+						{ f: "email_provider", type: "select", label: __("Send email through"), options: ["System Email", "Twilio SendGrid"] },
 						{ f: "email_account", type: "link", label: __("Send from Email Account"), options: d.email.choices || [], create: "/desk/email-account/new", create_label: __("New Email Account") },
 					]))
 					+ (d.email.choices && d.email.choices.length ? "" : `<div class="sch-note small">${__("Add an outgoing Email Account, or use Twilio SendGrid.")}</div>`)
 					+ `<a class="btn btn-default btn-sm" href="/desk/sales-templates">${__("Check email health (SPF, DKIM, DMARC)")}</a>`;
 			case "sendgrid":
 				return this.section(__("Account"), this.fields([
-						{ f: "email_provider", type: "select", label: __("Send email through"), options: ["Frappe email account", "Twilio SendGrid"] },
+						{ f: "email_provider", type: "select", label: __("Send email through"), options: ["System Email", "Twilio SendGrid"] },
 						{ f: "sendgrid_api_key", type: "secret", label: __("API key") },
 						{ f: "sendgrid_from_email", label: __("From address (verified in SendGrid)") },
 						{ f: "sendgrid_webhook_key", type: "textarea", label: __("Signed Event Webhook public key"), help: __("Bounces and spam reports then reach your do-not-contact list.") }]))

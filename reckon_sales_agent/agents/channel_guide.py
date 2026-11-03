@@ -101,7 +101,7 @@ QUICK_HELP = {
                       "Send one test SMS to your own number."]},
     "asterisk": {"what": "Calls through your own Asterisk server, using its ARI interface.",
                  "steps": ["Enter the ARI address. It must be HTTPS.", "Enter the ARI user and password.", "Set the caller ID and place a test call."]},
-    "email": {"what": "Sending from your own mailbox through a Frappe email account.",
+    "email": {"what": "Sending from your own mailbox through your System Email account.",
               "steps": ["Create an outgoing Email Account in Frappe.", "Mark it as the default outgoing account.", "Send a test email to yourself."]},
     "sendgrid": {"what": "Bulk email through SendGrid, with delivery and bounce events sent back to Reckon.",
                  "steps": ["Paste the SendGrid API key.", "Use a sender address verified in SendGrid.",
