@@ -249,8 +249,9 @@ def overview() -> dict:
         "whatsapp": {"installed": "frappe_whatsapp" in frappe.get_installed_apps(),
                      "enabled": bool(settings.get("whatsapp_enabled")), "account": settings.get("whatsapp_account") or "",
                      "accounts": _wa_accounts(company), "webhook": frappe.utils.get_url("/api/method/frappe_whatsapp.utils.webhook.webhook")},
-        "email": {"account": frappe.db.get_value("Email Account", {"enable_outgoing": 1, "default_outgoing": 1},
-                                                 "email_id")},
+        "email": {"account": settings.get("email_account") or frappe.db.get_value(
+            "Email Account", {"enable_outgoing": 1, "default_outgoing": 1}, "email_id") or "",
+            "choices": frappe.get_all("Email Account", filters={"enable_outgoing": 1}, pluck="name", order_by="name asc")},
         "webchat": {"enabled": bool(settings.get("webchat_enabled")), "key": settings.get("webchat_key") or "",
                     "title": settings.get("webchat_title") or "", "welcome": settings.get("webchat_welcome") or "",
                     "origins": settings.get("webchat_allowed_origins") or "",
@@ -404,7 +405,7 @@ EDITABLE = {
     "twilio_messaging_service_sid": "text", "twilio_record_calls": "check", "voice_ai_enabled": "check",
     "voice_ai_greeting": "text", "voice_ai_language": "text", "voice_forward_to": "text",
     "email_provider": "text", "sendgrid_api_key": "secret", "sendgrid_from_email": "text",
-    "sendgrid_webhook_key": "text",
+    "sendgrid_webhook_key": "text", "email_account": "text",
 }
 
 

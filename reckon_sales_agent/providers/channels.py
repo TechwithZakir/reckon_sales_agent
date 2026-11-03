@@ -101,12 +101,15 @@ def _email(message, settings) -> SendResult:
         return SendResult(send_email(message, settings))
     from frappe.core.doctype.communication.email import make
 
+    account = settings.get("email_account") or frappe.db.get_value(
+        "Email Account", {"enable_outgoing": 1, "default_outgoing": 1}, "email_id")
     result = make(
         doctype="Sales Outreach Message",
         name=message.name,
         content=message.body,
         subject=message.subject,
         recipients=message.recipient,
+        sender=account,
         sender_full_name=settings.sender_name or message.company,
         send_email=True,
         communication_medium="Email",

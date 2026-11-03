@@ -59,6 +59,7 @@
   "voice_forward_to",
   "email_section",
   "email_provider",
+  "email_account",
   "sendgrid_api_key",
   "sendgrid_from_email",
   "sendgrid_webhook_key",
@@ -409,6 +410,13 @@
    "label": "Send email through",
    "options": "Frappe email account\nTwilio SendGrid",
    "default": "Frappe email account"
+  },
+  {
+   "fieldname": "email_account",
+   "fieldtype": "Link",
+   "options": "Email Account",
+   "label": "Send from Email Account",
+   "depends_on": "eval:doc.email_provider!='Twilio SendGrid'"
   },
   {
    "fieldname": "sendgrid_api_key",

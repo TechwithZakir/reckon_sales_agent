@@ -407,7 +407,7 @@ def checks_for(company: str, key: str) -> list[tuple[str, bool]]:
                      ("ARI user", setting(settings, "ari_username")),
                      ("ARI password", setting(settings, "ari_password")),
                      ("Caller ID", setting(settings, "sip_caller_id"))],
-        "email": [("A default outgoing email account", email)],
+        "email": [("An outgoing Email Account to send from", bool(settings.get("email_account") or email))],
         "sendgrid": [("SendGrid API key", setting(settings, "sendgrid_api_key")),
                      ("Verified from address", setting(settings, "sendgrid_from_email")),
                      ("Signed event webhook key", setting(settings, "sendgrid_webhook_key"))],
