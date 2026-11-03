@@ -89,7 +89,7 @@
 /* Bottom-left dock (Omni-Channel style): the conversation list floats over the bottom-left corner. */
 .sin.dock-bl { grid-template-columns: minmax(0, 1fr) var(--sin-right); }
 .sin.dock-bl.no-right { grid-template-columns: minmax(0, 1fr); }
-.sin.dock-bl .sin-left { position: fixed; left: 16px; bottom: 16px; width: 340px; max-height: 62vh; z-index: 1020;
+.sin.dock-bl .sin-left { position: fixed; left: 236px; bottom: 16px;  /* clear of Desk's sidebar */ width: 340px; max-height: 62vh; z-index: 1020;
 	box-shadow: 0 10px 30px rgba(15, 23, 42, .18); }
 .sin.dock-bl.folded .sin-left { width: 280px; max-height: none; }
 .sin.folded .sin-list > *:not(.sin-dock-head) { display: none; }

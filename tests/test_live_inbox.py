@@ -60,7 +60,7 @@ class DockLayoutTests(unittest.TestCase):
         self.assertIn("bl: true, folded: false", js)
         self.assertIn('toggleClass("dock-bl", !!p.bl)', js)
         css = (PAGE / "sales_inbox.css").read_text(encoding="utf-8")
-        self.assertIn("position: fixed; left: 16px; bottom: 16px;", css)
+        self.assertIn("position: fixed; left: 236px; bottom: 16px;", css)  # right of the sidebar
 
     def test_layout_is_remembered_safely(self):
         js = (PAGE / "sales_inbox.js").read_text(encoding="utf-8")
