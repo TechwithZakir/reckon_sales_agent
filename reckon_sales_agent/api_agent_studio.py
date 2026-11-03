@@ -129,6 +129,7 @@ def state() -> dict:
             "last_run": settings.get("autopilot_last_run"),
             "summary": settings.get("autopilot_summary"),
         },
+        "conversations_autopilot": bool(settings.get("conversations_autopilot")),
         "lanes": [{
             "agent": agent, "title": _(LANE_TITLES[agent]), "status": lane_status(steps, agent),
             "now": [s.title for s in steps if s.agent == agent and s.kind in (DO, WAIT)],
@@ -433,3 +434,15 @@ def _forecast_label(settings) -> str:
         d90 = {}
     return f"{d90['expected']:,.0f}" if d90.get("expected") is not None else "–"
 
+
+@frappe.whitelist(methods=["POST"])
+def set_conversations_autopilot(on: int = 0) -> dict:
+    """Turn the Conversations agent on autopilot for this Company. Anything unusual still waits for a person."""
+    _require_manager()
+    company = current_company()
+    doc = frappe.get_doc("Sales Agent Settings", company)
+    doc.conversations_autopilot = 1 if int(on or 0) else 0
+    doc.save(ignore_permissions=True)  # the manager check above is the permission
+    log_activity(company, "conversations_autopilot", doc, f"autopilot {'on' if doc.conversations_autopilot else 'off'}",
+                 agent="Conversations")
+    return state()

@@ -115,6 +115,7 @@
 			this.render_hero(s);
 			this.render_setup(s);
 			this.render_lanes(s);
+			this.render_conv_auto(s);
 			this.render_funnel(s);
 			this.render_feed(s);
 			// Re-draw the inbox only when its content changed, so ticks and typing survive the poll.
@@ -225,6 +226,13 @@
 				this.setupKey = null;
 				this.refresh();
 			});
+		}
+
+		render_conv_auto(s) {
+			this.$root.find(".ags-auto").remove();
+			this.$root.find(".ags-lanes").before(`<label class="ags-auto sch-switch"><input type="checkbox" ${s.conversations_autopilot ? "checked" : ""}><span></span>${__("Conversations on autopilot: the agent answers routine messages on its own, and waits for you on anything unusual")}</label>`);
+			this.$root.find(".ags-auto input").on("change", (ev) => this.call("set_conversations_autopilot", { on: ev.currentTarget.checked ? 1 : 0 })
+				.then((d) => { this.data = d; this.render(); }));
 		}
 
 		render_lanes(s) {

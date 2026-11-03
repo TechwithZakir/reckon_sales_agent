@@ -70,7 +70,9 @@ def mode_for(company: str, prospect: str) -> str:
     from reckon_sales_agent.usage import get_settings
 
     doc = get(company, prospect, create=False)
-    return effective_mode(doc.ai_mode if doc else None, bool(get_settings(company).get("chat_auto_answer")))
+    settings = get_settings(company)
+    on_autopilot = bool(settings.get("chat_auto_answer") or settings.get("conversations_autopilot"))
+    return effective_mode(doc.ai_mode if doc else None, on_autopilot)
 
 
 def touch_inbound(company: str, prospect: str, channel: str, at=None) -> str:

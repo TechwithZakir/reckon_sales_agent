@@ -400,7 +400,8 @@ def auto_draft(prospect: str) -> str | None:
     mode = mode_for(doc.company, prospect)
     if mode == "Human only":
         return None  # a person has this conversation
-    if not (settings.get("autopilot_enabled") or settings.get("chat_auto_answer") or settings.get("comment_to_chat")):
+    if not (settings.get("autopilot_enabled") or settings.get("chat_auto_answer") or settings.get("comment_to_chat")
+            or settings.get("conversations_autopilot")):
         return None
     if frappe.db.exists("Sales Outreach Message", {"prospect": prospect, "status": "Draft", "is_reply": 1}):
         return None
