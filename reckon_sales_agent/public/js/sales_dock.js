@@ -61,7 +61,8 @@
 		#rsa-dock .rd-head { position: relative; }
 		#rsa-dock .rd-more { border: 0; background: transparent; color: inherit; padding: 0 6px; border-radius: 6px; }
 		#rsa-dock .rd-menu-pop { position: absolute; top: 46px; right: 10px; z-index: 2; min-width: 220px; padding: 6px;
-			background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e3e5ea); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.2); text-align: left; }
+			background: #ffffff; border: 1px solid #e3e5ea; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.2); text-align: left; }
+		:root[data-theme="dark"] #rsa-dock .rd-menu-pop { background: #15132b; border-color: #374151; color: #e5e7eb; }
 		#rsa-dock .rd-menu-pop[hidden] { display: none; }
 		#rsa-dock .rd-menu-title { font-size: 11px; color: #8a8d91; padding: 6px 8px 2px; text-transform: uppercase; letter-spacing: .04em; }
 		#rsa-dock .rd-menu-pop button { display: block; width: 100%; text-align: left; border: 0; background: transparent; color: inherit; padding: 6px 8px; border-radius: 8px; }
