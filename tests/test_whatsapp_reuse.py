@@ -75,7 +75,7 @@ class IntegrationsPageTests(unittest.TestCase):
         js = read("reckon_sales_agent", "page", "sales_channels", "sales_channels.js")
         self.assertIn("frappe_whatsapp.utils.webhook.webhook", read("api_channels.py"))
         self.assertIn("d.whatsapp.accounts.map", js)
-        self.assertIn('{ f: "whatsapp_account", type: "select"', js)
+        self.assertIn('{ f: "whatsapp_account", type: "link"', js)
 
     def test_setup_guide_links_the_app_docs(self):
         self.assertIn("shridarpatil.github.io/frappe_whatsapp/#configuration", read("agents", "channel_guide.py"))

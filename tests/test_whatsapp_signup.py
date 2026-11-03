@@ -61,6 +61,13 @@ class SignupPanelTests(unittest.TestCase):
         for field in ("Account Name", "Token", "Phone ID", "Business ID", "App ID", "Webhook Verify Token"):
             self.assertIn(field, js, field)
 
+    def test_account_field_is_a_link_field(self):
+        js = read("reckon_sales_agent", "page", "sales_channels", "sales_channels.js")
+        self.assertIn('type: "link", label: __("WhatsApp account")', js)
+        self.assertIn('list="sch-link-${f.f}"', js)  # search the list, like a Frappe Link field
+        api = read("api_channels.py")
+        self.assertIn('if field == "whatsapp_account" and value and not frappe.db.exists("WhatsApp Account"', api)
+
     def test_panel_starts_the_signup_and_waits_for_both_parts(self):
         js = read("reckon_sales_agent", "page", "sales_channels", "sales_channels.js")
         self.assertIn("Connect WhatsApp with Facebook", js)

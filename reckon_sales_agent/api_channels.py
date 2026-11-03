@@ -424,6 +424,8 @@ def save_settings(data: str | dict) -> dict:
         kind = EDITABLE.get(field)
         if not kind or (kind == "secret" and not str(value or "").strip()):
             continue
+        if field == "whatsapp_account" and value and not frappe.db.exists("WhatsApp Account", str(value).strip()):
+            frappe.throw(_("No WhatsApp account has that name. Pick one from the list, or create it first."))
         if kind == "check":
             value = 1 if value in (1, "1", True, "true") else 0
         elif doc.meta.get_field(field) and doc.meta.get_field(field).fieldtype == "Select":

@@ -374,6 +374,7 @@ function social(d, platforms, onText) {
 				const val = v[f.f];
 				if (f.type === "check") return `<label class="sch-switch"><input type="checkbox" data-f="${f.f}" ${val ? "checked" : ""} ${dis}><span></span>${e(f.label)}</label>`;
 				const help = f.help ? `<small>${e(f.help)}</small>` : "";
+				if (f.type === "link") return `<label>${e(f.label)}<input class="form-control" list="sch-link-${f.f}" data-f="${f.f}" value="${e(val || "")}" placeholder="${e(__("Search or pick…"))}" autocomplete="off" ${dis}><datalist id="sch-link-${f.f}">${(f.options || []).map((o) => `<option value="${e(o)}">`).join("")}</datalist>${f.create ? `<a class="sch-link-new" href="${e(f.create)}" target="_blank" rel="noopener">+ ${e(f.create_label || __("New"))}</a>` : ""}${help}</label>`;
 				if (f.type === "select") return `<label>${e(f.label)}<select class="form-control" data-f="${f.f}" ${dis}>${f.options.map((o) => `<option ${o === val ? "selected" : ""}>${e(o)}</option>`).join("")}</select>${help}</label>`;
 				if (f.type === "secret") return `<label>${e(f.label)}<input class="form-control" type="password" autocomplete="new-password" data-f="${f.f}" placeholder="${val ? __("Saved · type to replace") : ""}" ${dis}>${help}</label>`;
 				if (f.type === "textarea") return `<label>${e(f.label)}<textarea class="form-control" rows="3" data-f="${f.f}" ${dis}>${e(val || "")}</textarea>${help}</label>`;
@@ -590,7 +591,7 @@ function social(d, platforms, onText) {
 					+ `<div class="sch-note small">${__("Sign in, pick or create your number in Meta, then return here. Each customer connects its own number.")}</div>`)
 					+ this.section(__("Account"), this.fields([
 					{ f: "whatsapp_enabled", type: "check", label: __("Send and receive WhatsApp messages") },
-					{ f: "whatsapp_account", type: "select", label: __("WhatsApp account"), options: ["", ...d.whatsapp.accounts.map((a) => a.name)] },
+					{ f: "whatsapp_account", type: "link", label: __("WhatsApp account"), options: d.whatsapp.accounts.map((a) => a.name), create: "/desk/whatsapp-account/new", create_label: __("New WhatsApp Account") },
 				]))
 					+ this.section(__("Accounts available to you"), d.whatsapp.accounts.length
 						? d.whatsapp.accounts.map((a) => `<div class="sch-kv"><span>${e(a.account_name || a.name)}</span><b>${e(a.status || "")}</b></div>`).join("")
