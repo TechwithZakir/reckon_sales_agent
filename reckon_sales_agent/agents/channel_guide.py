@@ -165,7 +165,9 @@ CONFIG = {
     ],
     "whatsapp": [
         "WhatsApp Account: create it in the frappe_whatsapp app with the Meta access token, phone number ID, business account ID and app ID.",
-        "Webhook: in the Meta app, set the callback URL to the address shown here and the webhook verify token from the WhatsApp Account. Subscribe to messages and message_template_status_update.",
+        "Token: a permanent access token for this number, from Meta (a system-user token is best). It is not the Meta app secret.",
+        "Webhook Verify Token: the same text as the Webhook verify token in Sales Agent Platform Settings. Get it from Integrations, System provider, Meta app, Make a new verify token.",
+        "Webhook: in Meta, open WhatsApp, Configuration. Paste the callback URL shown above and the same verify token, then subscribe to messages and message_template_status_update.",
         "Company link: choose the WhatsApp Account here. One account belongs to one Company.",
         "One-click connection: Connect WhatsApp with Facebook signs the customer in and connects their number. It needs the system provider's Embedded Signup configuration ID (in Sales Agent Platform Settings).",
         "Templates: a message sent more than 24 hours after the customer's last message needs an approved template. Submit templates from Message Templates.",

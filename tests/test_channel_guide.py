@@ -88,6 +88,12 @@ class ReferenceTests(unittest.TestCase):
         self.assertIn("Platform Settings", meta)
         self.assertIn("Tech Provider", meta)
 
+    def test_whatsapp_help_explains_the_verify_token(self):
+        from reckon_sales_agent.agents.channel_guide import CONFIG
+        text = " ".join(CONFIG["whatsapp"])
+        self.assertIn("Make a new verify token", text)
+        self.assertIn("not the Meta app secret", text)
+
     def test_platform_keys_are_the_platform_tiles(self):
         self.assertTrue(PLATFORM_KEYS)
         self.assertTrue(all(key.startswith("platform_") for key in PLATFORM_KEYS))
