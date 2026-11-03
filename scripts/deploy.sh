@@ -44,9 +44,14 @@ bench --site "$SITE" clear-cache
 echo "Restarting services"
 sudo supervisorctl restart all
 
-# Verify the /crm build is served, not just built.
+# Verify the /crm build is served, not just built. Retry briefly: the web workers were just restarted.
 build_id=$(grep -o '"buildId": *"[^"]*"' apps/reckon_crm/reckon_crm/templates/reckon_crm.json | sed 's/.*"\([^"]*\)"$/\1/')
-code=$(curl -s -o /dev/null -w "%{http_code}" "https://$SITE/assets/reckon_crm/frontend/$build_id/registerSW.js" || true)
+code=000
+for _ in 1 2 3 4 5; do
+  code=$(curl -s -o /dev/null -w "%{http_code}" "https://$SITE/assets/reckon_crm/frontend/$build_id/registerSW.js" || true)
+  [ "$code" = "200" ] && break
+  sleep 3
+done
 [ "$code" = "200" ] || echo "WARNING: /crm assets returned $code. Check the reckon_crm build output above."
 
 echo "Deployed $SITE"
