@@ -57,5 +57,16 @@ class ReadOnlyTests(unittest.TestCase):
         self.assertIn('get_tenant_doc("Sales Prospect", prospect, "read")', body)
 
 
+
+class CrmFieldTests(unittest.TestCase):
+    def test_lead_fields_are_the_crm_lead_fields(self):
+        # CRM Lead names its company field "organization"; "organization_name" exists only on CRM Deal.
+        from reckon_sales_agent.agents.crm_copilot import DEAL_FIELDS, LEAD_FIELDS
+
+        self.assertIn("organization", LEAD_FIELDS)
+        self.assertNotIn("organization_name", LEAD_FIELDS)
+        self.assertIn("deal_value", DEAL_FIELDS)
+
+
 if __name__ == "__main__":
     unittest.main()

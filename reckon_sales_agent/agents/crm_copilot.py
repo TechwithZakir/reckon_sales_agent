@@ -29,7 +29,7 @@ SCHEMA = {
 }
 DEAL_FIELDS = ["name", "status", "probability", "deal_value", "expected_closure_date", "next_step", "deal_owner",
                "lost_reason"]
-LEAD_FIELDS = ["name", "status", "lead_owner", "source", "organization_name"]
+LEAD_FIELDS = ["name", "status", "lead_owner", "source", "organization"]
 OPEN_TASK_STATUSES = ["Backlog", "Todo", "In Progress"]
 MEETING_WORDS = ("call", "meet", "demo", "meeting", "visit")
 
