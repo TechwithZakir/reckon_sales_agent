@@ -25,6 +25,12 @@ for app in reckon_sales_agent reckon_crm; do
   git -C "apps/$app" pull --ff-only || fail "git pull failed for $app (uncommitted changes or no network)."
 done
 
+# reckon_crm must be installed on the site, not just present in the bench, or its /crm override never loads.
+if ! bench --site "$SITE" list-apps | grep -q '^reckon_crm'; then
+  echo "Installing reckon_crm on $SITE"
+  bench --site "$SITE" install-app reckon_crm || fail "install-app reckon_crm failed on $SITE."
+fi
+
 echo "Migrating $SITE"
 bench --site "$SITE" migrate
 
