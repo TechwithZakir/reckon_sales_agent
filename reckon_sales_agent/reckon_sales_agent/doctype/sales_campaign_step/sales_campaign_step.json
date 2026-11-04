@@ -21,6 +21,8 @@
   "message_template",
   "delay_days",
   "subject_template",
+  "subject_variants",
+  "send_window",
   "body_template",
   "use_ai_personalisation",
   "whatsapp_template",
@@ -64,6 +66,18 @@
    "in_list_view": 1,
    "mandatory_depends_on": "eval:doc.channel=='Email'",
    "description": "Email only; SMS, WhatsApp and tasks have no subject."
+  },
+  {
+   "fieldname": "subject_variants",
+   "fieldtype": "Small Text",
+   "label": "Subject variants (A/B test)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "send_window",
+   "fieldtype": "Data",
+   "label": "Sending hours",
+   "description": "For example 09:00-21:00 (server time). Empty means any time."
   },
   {
    "fieldname": "body_template",

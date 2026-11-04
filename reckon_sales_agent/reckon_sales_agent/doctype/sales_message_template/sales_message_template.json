@@ -94,7 +94,7 @@
    "fieldname": "channel",
    "fieldtype": "Select",
    "label": "Channel",
-   "options": "Email\nWhatsApp\nSMS",
+   "options": "Email\nWhatsApp\nSMS\nLinkedIn",
    "default": "Email",
    "in_list_view": 1,
    "in_standard_filter": 1
@@ -172,6 +172,78 @@
    "description": "The block-builder source for this template (JSON). Edit it with the builder."
   },
   {
+   "fieldname": "preheader",
+   "fieldtype": "Data",
+   "label": "Preheader",
+   "description": "The line mail apps show after the subject (email)."
+  },
+  {
+   "fieldname": "subject_variants",
+   "fieldtype": "Small Text",
+   "label": "Subject variants (A/B test)",
+   "description": "JSON list of up to two alternative subject lines. The campaign splits the audience between them."
+  },
+  {
+   "fieldname": "opt_out_keyword",
+   "fieldtype": "Data",
+   "label": "Opt-out keyword",
+   "default": "STOP"
+  },
+  {
+   "fieldname": "sms_send_window",
+   "fieldtype": "Data",
+   "label": "SMS sending hours",
+   "description": "For example 09:00-21:00 (server time). The SMS waits outside these hours."
+  },
+  {
+   "fieldname": "whatsapp_header_type",
+   "fieldtype": "Select",
+   "label": "WhatsApp header",
+   "options": "None\nText\nImage\nDocument",
+   "default": "None"
+  },
+  {
+   "fieldname": "whatsapp_header",
+   "fieldtype": "Data",
+   "label": "WhatsApp header text or sample address"
+  },
+  {
+   "fieldname": "whatsapp_footer",
+   "fieldtype": "Data",
+   "label": "WhatsApp footer"
+  },
+  {
+   "fieldname": "whatsapp_buttons",
+   "fieldtype": "Small Text",
+   "label": "WhatsApp buttons (JSON)"
+  },
+  {
+   "fieldname": "whatsapp_samples",
+   "fieldtype": "Small Text",
+   "label": "WhatsApp sample values (JSON)",
+   "description": "A sample for each variable: Meta reviews these."
+  },
+  {
+   "fieldname": "agent_actions",
+   "fieldtype": "Small Text",
+   "label": "Agent actions (JSON)"
+  },
+  {
+   "fieldname": "ai_brief",
+   "fieldtype": "Small Text",
+   "label": "What this message should achieve"
+  },
+  {
+   "fieldname": "ai_goal",
+   "fieldtype": "Data",
+   "label": "Goal"
+  },
+  {
+   "fieldname": "ai_tone",
+   "fieldtype": "Data",
+   "label": "Tone"
+  },
+  {
    "fieldname": "check_section",
    "fieldtype": "Section Break",
    "label": "Checks and approval"
@@ -236,6 +308,19 @@
   "whatsapp_category",
   "whatsapp_params",
   "builder_content",
+  "preheader",
+  "subject_variants",
+  "opt_out_keyword",
+  "sms_send_window",
+  "whatsapp_header_type",
+  "whatsapp_header",
+  "whatsapp_footer",
+  "whatsapp_buttons",
+  "whatsapp_samples",
+  "agent_actions",
+  "ai_brief",
+  "ai_goal",
+  "ai_tone",
   "check_section",
   "content_status",
   "content_issues",

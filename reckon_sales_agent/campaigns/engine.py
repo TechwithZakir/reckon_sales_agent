@@ -15,8 +15,15 @@ import frappe
 from frappe import _
 from frappe.utils import add_days, get_url, getdate, now_datetime, nowdate
 
+from reckon_sales_agent.campaigns import variants
 from reckon_sales_agent.campaigns.suppression import is_suppressed, suppress
-from reckon_sales_agent.campaigns.templates import footer, is_builder_html, render, text_to_html
+from reckon_sales_agent.campaigns.templates import (
+    footer,
+    is_builder_html,
+    render,
+    resolve_dynamic,
+    text_to_html,
+)
 from reckon_sales_agent.constants import TASK_CHANNELS, USAGE_AI, USAGE_MESSAGE
 from reckon_sales_agent.discovery.normalize import normalize_phone
 from reckon_sales_agent.providers.channels import ChannelUnavailable, reachability, send
@@ -187,10 +194,16 @@ def draft_due_messages(campaign) -> int:
 def draft_message(campaign, member, step, key: str) -> str:
     settings = get_settings(campaign.company)
     prospect = frappe.get_doc("Sales Prospect", member.prospect)
+    contact = " ".join((prospect.get("contact_name") or "").split())
+    owner = prospect.get("sales_owner")
     values = {
         "business_name": prospect.business_name,
         "city": prospect.city,
         "industry": prospect.industry,
+        "website": prospect.get("domain") or prospect.get("website") or "",
+        "contact_name": contact,
+        "first_name": contact.split(" ")[0] if contact else "",
+        "owner_name": (frappe.db.get_value("User", owner, "full_name") if owner else "") or "",
         "sender_name": settings.sender_name or campaign.company,
         "offer": campaign.offer or "",
         "company": campaign.company,
@@ -212,10 +225,13 @@ def draft_message(campaign, member, step, key: str) -> str:
         if not values["personal_line"]:
             values["personal_line"] = prospect.get("ai_triage_reason") or "No research yet: ask how they work today."
     _ok, _reason, recipient = reachability(channel, prospect, settings)
-    subject = render(step.subject_template, values, escape=False)[:140]
+    # A/B test: each person gets one of the template's subject lines, the same one every time it is asked.
+    letter, chosen_subject = variants.choose(key, step.subject_template or "", step.get("subject_variants"))
+    subject = render(chosen_subject, values, escape=False)[:140]
     unsubscribe_url = get_url(f"/api/method/reckon_sales_agent.api.unsubscribe?token={member.unsubscribe_token}")
     if channel == "Email":
-        rendered = render(step.body_template, values)
+        # Dynamic blocks pick their content for this person first, then the fields are filled.
+        rendered = render(resolve_dynamic(step.body_template, values), values)
         body = rendered if is_builder_html(rendered) else text_to_html(rendered)  # builder email is already HTML
         body += footer(values["sender_name"], settings.physical_address, unsubscribe_url)
     elif channel in ("SMS", "WhatsApp"):
@@ -242,6 +258,7 @@ def draft_message(campaign, member, step, key: str) -> str:
         "channel": channel,
         "recipient": recipient,
         "subject": subject,
+        "variant": letter or None,
         "body": body,
         "ai_generated": ai_generated,
         "whatsapp_template": step.get("whatsapp_template") if channel == "WhatsApp" else None,
@@ -385,8 +402,10 @@ def send_message(message) -> bool:
         from reckon_sales_agent.campaigns.autopilot import in_window
 
         now = now_datetime()
-        if not in_window(settings.get("campaign_send_window"), now.hour * 60 + now.minute):
-            return False  # outside the sending window: it waits, approved, until the window opens
+        minutes = now.hour * 60 + now.minute
+        step_window = next((s.get("send_window") for s in campaign.steps if s.step_no == message.get("step_no")), "")
+        if not in_window(settings.get("campaign_send_window"), minutes) or not in_window(step_window, minutes):
+            return False  # outside the sending hours (the Company's, or this step's): it waits, approved, until they open
     if _sent_today(message.company) >= (settings.daily_message_limit or 0):
         return False
     if _sent_today(message.company, campaign.name) >= (campaign.daily_limit or 0):

@@ -5,15 +5,53 @@ menu (**Campaign Studio**) and its own page (`/desk/campaign-studio`).
 
 ## The flow
 
-1. **Template**: build the message for each channel on **Message Templates** (a block builder for email, a counter for
-   SMS, Meta's components for WhatsApp). A manager approves it.
+1. **Template**: build the message for each channel in the template builder (see below). A manager approves it.
 2. **Audience**: say who it goes to (see below).
-3. **Campaign**: pick the audience and the approved templates, with the days to wait between steps. It is created as a
-   draft.
+3. **Campaign**: the campaign wizard has four steps: **Setup** (name, goal, language, offer), **Audience**, **Content**
+   (an approved template for each step, with the days to wait, and each template's pre-send checks) and **Schedule and
+   review** (start date, daily limit, an optional pilot). It is created as a draft, or created and submitted for approval.
 4. **Approval**: a person submits and approves the campaign. This is the one human decision for the whole sequence.
 5. **Run**: the engine drafts each step when it is due, checks every safety rule, sends, and records what happens.
 6. **Learn**: opens, clicks, replies, bounces and opt-outs flow into the funnel, each person's timeline and the copilot's
    suggestions.
+
+## Template builder
+
+**Message Templates** is a library of templates and a builder with three panes: **Blocks, Fields and Templates** on the
+left, the editor in the middle, and the AI panel, agent actions and pre-send checks on the right.
+
+* **Channels.** Email, SMS, WhatsApp and LinkedIn, each with its own editor and phone or email preview.
+* **Email blocks.** Heading, text, image, button, columns, divider, product card, dynamic content, signature and social
+  links. Drag them in, or click; move, duplicate, rewrite with AI or delete the selected block; save a block as a section to
+  reuse. The email is plain, email-safe HTML with a plain-text version.
+* **Fields with fallbacks.** `{{first_name|there}}`: the word after the bar is used when a person has no value, so nobody gets
+  a blank greeting. Fields: business name, city, industry, website, first name, full name, sender, record owner, company,
+  offer and the AI opening line. A pre-send check lists any field without a fallback.
+* **Dynamic content.** A block that shows one paragraph to people matching a rule (for example industry contains pharma) and
+  another to everyone else. The rules never reach the customer; every alternative is content-checked.
+* **SMS.** GSM-7 or Unicode part counting, an opt-out line, sending hours, and a phone preview.
+* **WhatsApp.** Category, header (none, text, image or document), body with Meta's rules, sample values for each variable,
+  footer and buttons (quick replies, or a link and a phone). Approving submits it to Meta through `frappe_whatsapp` with the
+  numbered variables, header, footer, samples and buttons. A sample image or document still has to be attached on the
+  WhatsApp Template in Frappe, and the page says so.
+* **LinkedIn.** A message a person sends: as a campaign step it becomes a task, never an automatic message.
+* **A/B subject lines.** Up to two alternative subjects. The campaign gives each person one (the same one every time), and
+  the campaign page shows opens, clicks and replies per subject. The copilot says when one is clearly ahead.
+* **AI drafting.** A brief, a goal and a tone become a first draft for the channel, from approved knowledge only, with three
+  subject suggestions for email. Rewrite a block, or make an SMS or WhatsApp message shorter or Bangla. Undo restores the
+  previous content. Nothing is saved or sent by the AI.
+* **Autosave and approval.** Changes are checked as you type and saved a moment later. A template is a draft until a manager
+  approves it; editing an approved template sends it back to draft.
+* **Preview and test.** Preview in a sandbox with sample values (desktop or mobile). **Send test** emails the template to the
+  signed-in person only.
+* **Checks.** What stops approval (a missing subject, a link that is not https, a rule with no value, a placeholder such as
+  `[BOOKING LINK]` still to fill) is listed above the editor. Advice before a send (footer address, subject length, fallbacks,
+  alt text, a button) is the pre-send list.
+* **Agent actions.** Only *personalize each message from CRM data* is a switch, because it is the one that works today.
+  Interested replies always create a task for the owner. Best-time sending and automatic follow-ups are shown as not
+  available yet.
+
+Older templates open in the builder too: their text becomes one block.
 
 ## Audiences
 
@@ -93,7 +131,7 @@ Run `scripts/deploy.sh` as usual. The migration adds the new doctypes and settin
 
 ## Not built yet
 
-* A/B testing of subject lines and content.
+* A/B testing of anything except the subject line, and picking a winner automatically.
 * Branching journeys (a different next step for people who clicked, or did not open).
 * One-off scheduled sends outside a campaign sequence.
 * Per-person send-time optimisation (the copilot only suggests a window for the whole campaign).

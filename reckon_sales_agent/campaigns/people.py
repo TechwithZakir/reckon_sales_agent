@@ -21,7 +21,7 @@ def events(company: str, campaign: str | None = None, since: str | None = None, 
         conditions.append("e.event_time >= %s")
         values.append(since)
     rows = frappe.db.sql(
-        f"""select e.event_type, coalesce(m.channel, e.channel) as channel, m.step_no, e.message, e.member, e.campaign,
+        f"""select e.event_type, coalesce(m.channel, e.channel) as channel, m.step_no, m.variant, e.message, e.member, e.campaign,
                    e.event_time, e.detail, mem.prospect
             from `tabSales Communication Event` e
             left join `tabSales Outreach Message` m on m.name = e.message

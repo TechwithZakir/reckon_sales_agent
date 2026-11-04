@@ -63,3 +63,19 @@
 	.cst-row > :first-child { grid-column: 1 / -1; }
 	.cst-event { grid-template-columns: 1fr; }
 }
+
+.cst-stepper { list-style: none; margin: 0 0 12px; padding: 0; display: flex; gap: 10px; flex-wrap: wrap; font-size: 13px; }
+.cst-stepper li { display: flex; align-items: center; gap: 6px; color: var(--cst-muted); }
+.cst-stepper li span { width: 22px; height: 22px; border-radius: 50%; background: var(--cst-line); color: var(--cst-muted); font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+.cst-stepper li.on { color: inherit; font-weight: 700; }
+.cst-stepper li.on span { background: var(--cst-accent); color: #fff; }
+.cst-stepper li.done span { background: color-mix(in srgb, var(--cst-ok) 18%, transparent); color: var(--cst-ok); }
+.cst-wl { font-size: 12px; font-weight: 700; display: block; margin-bottom: 4px; }
+.cst-wgrid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 8px; }
+.cst-wgrid { display: grid; grid-template-columns: 1fr 200px; gap: 10px; align-items: end; }
+.cst-wstep { border: 1px solid var(--cst-line); border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+.cst-wprev { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--cst-line); }
+.cst-wcard { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--cst-line); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; cursor: pointer; }
+.cst-wcard.on { border-color: var(--cst-accent); box-shadow: 0 0 0 2px var(--cst-soft); }
+.cst-wcard input { margin-top: 4px; }
+@media (max-width: 700px) { .cst-wgrid2, .cst-wgrid { grid-template-columns: 1fr; } }

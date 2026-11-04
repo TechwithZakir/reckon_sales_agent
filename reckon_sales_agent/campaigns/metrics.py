@@ -26,6 +26,7 @@ def funnel(events: list[dict]) -> dict:
              "complained")
     seen = {step: set() for step in steps}
     per_channel: dict[str, dict] = {}
+    per_variant: dict[str, dict] = {}
     by_day: dict[str, dict] = {}
     open_hours: dict[str, int] = {}
     totals = {"opens": 0, "clicks": 0}
@@ -38,9 +39,13 @@ def funnel(events: list[dict]) -> dict:
         channel = event.get("channel") or "Email"
         chan = per_channel.setdefault(channel, {name: set() for name in steps})
         targets = [step] + (["positive"] if kind in POSITIVE_EVENTS else [])
+        variant = event.get("variant")
+        var = per_variant.setdefault(variant, {name: set() for name in steps}) if variant else None
         for target in targets:
             seen[target].add(key)
             chan[target].add(key)
+            if var is not None:
+                var[target].add(key)
         day = str(event.get("event_time") or "")[:10]
         if day:
             bucket = by_day.setdefault(day, {"sent": 0, "opened": 0, "clicked": 0, "replied": 0})
@@ -71,7 +76,11 @@ def funnel(events: list[dict]) -> dict:
     for channel, source in per_channel.items():
         c = counts(source)
         by_channel[channel] = {**c, **rates(c)}
-    return {"counts": overall, "rates": rates(overall), "totals": totals, "by_channel": by_channel,
+    by_variant = {}
+    for letter, source in sorted(per_variant.items()):
+        c = counts(source)
+        by_variant[letter] = {**c, **rates(c)}
+    return {"counts": overall, "rates": rates(overall), "totals": totals, "by_channel": by_channel, "by_variant": by_variant,
             "by_day": dict(sorted(by_day.items())), "open_hours": dict(sorted(open_hours.items()))}
 
 

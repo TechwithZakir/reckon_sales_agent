@@ -16,7 +16,7 @@ from frappe.utils import add_days, nowdate
 
 from reckon_sales_agent.api_studio import _can_manage
 from reckon_sales_agent.campaigns import audience as audience_rules
-from reckon_sales_agent.campaigns import autopilot, builder, copilot, timeline
+from reckon_sales_agent.campaigns import autopilot, builder, copilot, timeline, variants
 from reckon_sales_agent.campaigns.audience_resolve import preview as resolve_preview
 from reckon_sales_agent.campaigns.audience_resolve import refresh as refresh_size
 from reckon_sales_agent.campaigns.metrics import funnel, rate
@@ -162,8 +162,9 @@ def campaign(name: str) -> dict:
         "top_links": links, "unreached": unreached,
         "top_recipients": [{**details.get(p, {"name": p}), **summary, "prospect": p} for summary, p in top
                            if summary["score"] > 0],
-        "steps": [{"step_no": s.step_no, "channel": s.channel, "delay_days": s.delay_days,
-                   "subject": s.subject_template, "template": s.get("message_template")} for s in doc.steps],
+        "steps": [{"step_no": s.step_no, "channel": s.channel, "delay_days": s.delay_days, "subject": s.subject_template,
+                   "template": s.get("message_template"), "variants": variants.parse(s.get("subject_variants"))}
+                  for s in doc.steps],
     }
 
 
@@ -192,16 +193,26 @@ def create_campaign(data) -> str:
     audience = values.get("audience") or None
     if audience:
         get_tenant_doc("Sales Audience", audience, "read")
+    pilot = bool(values.get("pilot"))
+    goal = values.get("goal") if values.get("goal") in ("Book a meeting", "Re-engage", "Upsell", "Event invite") else None
     doc = frappe.get_doc({
-        "doctype": "Sales Campaign", "company": company, "campaign_name": name, "audience": audience,
+        "doctype": "Sales Campaign", "company": company, "campaign_name": name, "audience": audience, "goal": goal,
         "offer": str(values.get("offer") or "")[:500],
         "language": values.get("language") if values.get("language") in ("English", "Bangla") else "English",
         "daily_limit": int(values.get("daily_limit") or 50), "status": "Draft",
+        "start_date": values.get("start_date") or None,
+        "pilot_mode": 1 if pilot else 0,
+        "pilot_max_members": max(1, min(int(values.get("pilot_max") or 50), 1000)) if pilot else 0,
+        "holdout_percent": max(0, min(int(values.get("holdout") or 20), 50)) if pilot else 0,
         "steps": [{"step_no": i, "message_template": s["template"], "delay_days": int(s.get("delay_days") or 0)}
                   for i, s in enumerate(steps, start=1)],
     })
     doc.insert()  # the template's exact wording is copied in on validate
     log_activity(company, "campaign_created", doc, f"{len(steps)} steps")
+    if values.get("submit"):
+        from reckon_sales_agent.api import submit_campaign
+
+        submit_campaign(doc.name)  # waits for a person's approval; nothing is sent
     return doc.name
 
 

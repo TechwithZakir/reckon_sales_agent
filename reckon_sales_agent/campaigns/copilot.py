@@ -7,6 +7,8 @@ nothing here changes a campaign, a message or a recipient. Small samples are not
 
 from __future__ import annotations
 
+from reckon_sales_agent.campaigns import variants as ab
+
 HIGH, WARN, INFO = "high", "warn", "info"
 ORDER = {HIGH: 0, WARN: 1, INFO: 2}
 
@@ -62,6 +64,11 @@ def suggest(metrics: dict, context: dict | None = None) -> list[dict]:
     if int(counts.get("opened") or 0) >= 20 and rates.get("click_to_open_rate", 100) < CLICK_TO_OPEN_FLOOR:
         add("opens_without_clicks", INFO, "People open but do not click",
             "Use one clear button near the top and say what happens when they click.", "edit_template")
+    ahead = ab.winner(engagement.get("by_variant") or {})
+    if ahead:
+        letter, best, worst = ahead
+        add("ab_winner", INFO, f"Subject {letter} is opening more ({best}% against {worst}%)",
+            "Keep that subject and remove the weaker one, so the rest of the audience gets the better one.", "edit_template")
     hours = best_hours(engagement.get("open_hours") or {})
     if hours:
         add("send_window", INFO, "Most opens happen around " + " and ".join(f"{h:02d}:00" for h in hours),

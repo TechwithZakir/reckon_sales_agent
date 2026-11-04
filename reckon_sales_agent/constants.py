@@ -69,6 +69,7 @@ COMPANY_DOCTYPES = (
     "Sales Conversation",
     "Sales Audience",
     "Sales Tracked Link",
+    "Sales Template Section",
 )
 CHILD_DOCTYPES = ("Sales Planned Query", "Sales Research Fact", "Sales Campaign Step", "Sales Target Location",
                   "Sales Market Segment", "Sales Provider Budget", "Sales Social Post Target",

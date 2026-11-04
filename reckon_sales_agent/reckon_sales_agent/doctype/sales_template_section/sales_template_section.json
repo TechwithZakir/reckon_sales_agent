@@ -1,0 +1,115 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Template Section",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-11-05 12:00:00.000000",
+ "modified": "2026-11-05 12:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 0,
+ "issingle": 0,
+ "editable_grid": 0,
+ "track_changes": 0,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "field_order": [
+  "company",
+  "section_name",
+  "channel",
+  "blocks"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "search_index": 1,
+   "remember_last_selected_value": 1
+  },
+  {
+   "fieldname": "section_name",
+   "fieldtype": "Data",
+   "label": "Section name",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "channel",
+   "fieldtype": "Select",
+   "label": "Channel",
+   "options": "Email",
+   "default": "Email",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "blocks",
+   "fieldtype": "Long Text",
+   "label": "Blocks (JSON)",
+   "description": "Email blocks saved from the builder. Edit them in the builder."
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Vendor Superuser",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Admin",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  },
+  {
+   "role": "Reckon Sales Agent User",
+   "read": 1,
+   "report": 1,
+   "export": 1
+  }
+ ],
+ "autoname": "hash",
+ "naming_rule": "Random",
+ "title_field": "section_name",
+ "show_title_field_in_link": 1
+}

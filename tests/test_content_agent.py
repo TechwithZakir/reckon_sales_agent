@@ -56,7 +56,7 @@ class CheckTests(unittest.TestCase):
         self.assertTrue(any("20% off" in i for i in self.issues("Get 20% off this month.")))  # not approved
 
     def test_placeholders_and_channel_limits(self):
-        self.assertTrue(any("first_name" in i for i in self.issues("Hi {{first_name}}")))
+        self.assertTrue(any("nickname" in i for i in self.issues("Hi {{nickname}}")))
         self.assertTrue(any("WhatsApp under 1000" in i for i in self.issues("x" * 1200, channel="WhatsApp", subject="")))
         self.assertTrue(any("subject" in i for i in self.issues("Hello", subject="S" * 90)))
         self.assertTrue(any("empty" in i for i in self.issues("   ")))
@@ -72,7 +72,7 @@ class PlanAndCleanTests(unittest.TestCase):
     def test_ai_output_is_fitted_to_the_plan(self):
         plan = default_plan(3, ["Email", "WhatsApp"])
         data = {"notes": "", "steps": [
-            {"step_no": 1, "subject": "Idea for {{business_name}}", "body": "{{personal_line}}\nHi {{owner_name}}"},
+            {"step_no": 1, "subject": "Idea for {{business_name}}", "body": "{{personal_line}}\nHi {{nickname}}"},
             {"step_no": 2, "subject": "ignored on WhatsApp", "body": "আসসালামু আলাইকুম, {{business_name}}"},
             {"step_no": 9, "subject": "x", "body": "not planned"},
         ]}

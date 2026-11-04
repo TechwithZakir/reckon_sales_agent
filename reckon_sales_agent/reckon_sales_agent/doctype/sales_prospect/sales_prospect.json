@@ -18,6 +18,7 @@
  "field_order": [
   "company",
   "business_name",
+  "contact_name",
   "review_status",
   "qualification_status",
   "fit_score",
@@ -112,6 +113,12 @@
    "reqd": 1,
    "in_list_view": 1,
    "in_global_search": 1
+  },
+  {
+   "fieldname": "contact_name",
+   "fieldtype": "Data",
+   "label": "Contact person",
+   "description": "Who to address. Used for {{first_name}} and {{contact_name}} in messages."
   },
   {
    "fieldname": "review_status",

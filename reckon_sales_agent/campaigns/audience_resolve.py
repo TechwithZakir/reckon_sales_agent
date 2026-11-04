@@ -199,6 +199,8 @@ def _create_prospect(a, item: dict) -> str:
     values = {
         "doctype": "Sales Prospect", "company": a.company,
         "business_name": item["name"] or item["email"] or item["phone"],
+        # A lead, contact or customer is a person: their name is who to greet ({{first_name}}).
+        "contact_name": item["name"] if item["kind"] != "Prospect" and item["name"] else None,
         "email": item["email"] or None, "phone": item["phone"] or None, "source_type": "audience",
         "review_status": "Approved", "external_id": _external_id(item) or None, "first_seen": now_datetime(),
         "last_seen": now_datetime(), "review_notes": f"Added from the audience {a.audience_name}.",

@@ -29,7 +29,7 @@ INSIGHT_SCHEMA = {
 }
 def campaign_metrics(campaign_name: str) -> dict:
     events = frappe.db.sql(
-        """select e.event_type, coalesce(m.channel, e.channel) as channel, m.step_no, e.message, e.event_time
+        """select e.event_type, coalesce(m.channel, e.channel) as channel, m.step_no, m.variant, e.message, e.event_time
         from `tabSales Communication Event` e
         left join `tabSales Outreach Message` m on m.name = e.message
         where e.campaign = %s""",

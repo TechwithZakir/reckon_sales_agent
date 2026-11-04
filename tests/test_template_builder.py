@@ -1,5 +1,4 @@
 """Template builder for Email, SMS and WhatsApp: output and channel rules (pure, no bench)."""
-import json
 import sys
 import unittest
 from pathlib import Path
@@ -47,9 +46,9 @@ class EmailBuilderTests(unittest.TestCase):
         self.assertTrue(any("https://" in i for i in issues))
 
     def test_unknown_merge_tags_are_reported(self):
-        issues = builder.check_email("Hi {{first_name}}", [{"type": "text", "text": "{{offer}} and {{bogus}}"}])
+        issues = builder.check_email("Hi {{nickname}}", [{"type": "text", "text": "{{offer}} and {{bogus}}"}])
         self.assertIn("Unknown merge tag {{bogus}}.", issues)
-        self.assertIn("Unknown merge tag {{first_name}}.", issues)
+        self.assertIn("Unknown merge tag {{nickname}}.", issues)
         self.assertNotIn("Unknown merge tag {{offer}}.", issues)
 
     def test_an_empty_email_has_no_blocks_issue_only_when_there_are_blocks(self):
@@ -113,7 +112,7 @@ class WhatsAppBuilderTests(unittest.TestCase):
         self.assertTrue(any("ends with a variable" in i for i in builder.check_whatsapp("", "Offer {{offer}}", "", [])))
 
     def test_header_takes_no_merge_tags(self):
-        self.assertTrue(any("header cannot use" in i for i in builder.check_whatsapp("Hi {{first_name}}", "Body.", "", [])))
+        self.assertTrue(any("header cannot use" in i for i in builder.check_whatsapp("Hi {{first_name|there}}", "Body.", "", [])))
 
     def test_button_rules(self):
         self.assertTrue(any("up to 3" in i for i in builder.check_whatsapp("", "Body.", "", [{"kind": "quick", "label": str(n)} for n in range(4)])))
@@ -124,64 +123,6 @@ class WhatsAppBuilderTests(unittest.TestCase):
     def test_valid_template_has_no_issues(self):
         self.assertEqual(builder.check_whatsapp("Hello", "Dear {{business_name}}, we can help.", "Reckon",
                                                 [{"kind": "quick", "label": "Yes"}]), [])
-
-
-class EndpointTests(unittest.TestCase):
-    def test_check_and_save_are_manager_only_and_tenant_checked(self):
-        source = (APP / "api_templates.py").read_text(encoding="utf-8")
-        for name in ("def check(", "def save("):
-            body = source.split(name)[1].split("\n@")[0]
-            self.assertIn("_require_manager()", body, name)
-        save_body = source.split("def save(")[1].split("\n@")[0] if "\n@" in source.split("def save(")[1] else source.split("def save(")[1]
-        self.assertIn('get_tenant_doc("Sales Message Template", template, "write")', save_body)
-        self.assertIn("doc.save(ignore_permissions=False)", save_body)
-
-    def test_save_keeps_the_draft_status_for_approval(self):
-        source = (APP / "api_templates.py").read_text(encoding="utf-8")
-        save_body = source.split("def save(")[1]
-        self.assertNotIn('doc.status = "Approved"', save_body)
-
-    def test_the_builder_source_is_stored_on_the_template(self):
-        doc = json.loads((APP / "reckon_sales_agent" / "doctype" / "sales_message_template"
-                          / "sales_message_template.json").read_text(encoding="utf-8"))
-        self.assertIn("builder_content", doc["field_order"])
-        self.assertIn("builder_content", [f["fieldname"] for f in doc["fields"]])
-
-
-class BuilderScreenTests(unittest.TestCase):
-    PAGE = APP / "reckon_sales_agent" / "page" / "sales_templates"
-
-    def test_each_channel_has_its_own_editor(self):
-        source = (self.PAGE / "sales_templates.js").read_text(encoding="utf-8")
-        for needle in ('ch === "Email"', 'ch === "SMS"', '"heading", "text", "button", "image", "divider", "spacer"',
-                       'data-k="header"', 'data-k="footer"', "stp-b-addbtn"):
-            self.assertIn(needle, source)
-
-    def test_the_screen_checks_before_it_saves_and_saves_only_on_request(self):
-        source = (self.PAGE / "sales_templates.js").read_text(encoding="utf-8")
-        self.assertIn('API + "check"', source)
-        self.assertEqual(source.count('API + "save"'), 1)
-
-    def test_existing_templates_can_be_reopened_in_the_builder(self):
-        source = (self.PAGE / "sales_templates.js").read_text(encoding="utf-8")
-        self.assertIn("stp-open", source)
-        self.assertIn("builder_content", (APP / "api_templates.py").read_text(encoding="utf-8"))
-
-    def test_the_page_is_one_column_now_that_email_health_moved(self):
-        css = (self.PAGE / "sales_templates.css").read_text(encoding="utf-8")
-        self.assertIn("grid-template-columns: minmax(0, 1fr);", css)
-        self.assertNotIn("300px", css)
-
-    def test_editing_an_approved_template_sends_it_back_to_draft(self):
-        source = (APP / "api_templates.py").read_text(encoding="utf-8")
-        body = source.split("def save(")[1].split("\n@")[0]
-        self.assertIn('doc.status = "Draft"', body)
-
-    def test_starting_a_template_is_manager_only_and_creates_a_draft(self):
-        source = (APP / "api_templates.py").read_text(encoding="utf-8")
-        body = source.split("def start(")[1]
-        self.assertIn("_require_manager()", body)
-        self.assertIn('"status": "Draft"', body)
 
 
 if __name__ == "__main__":

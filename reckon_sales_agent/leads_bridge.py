@@ -27,7 +27,7 @@ def prospect_fields(lead: dict, form: str = "Meta") -> dict:
                 "attribution": f"Submitted by the person on a {form} lead form"}
     fields = {"business_name": name[:140], "email": lead.get("email"), "phone": lead.get("mobile_no") or lead.get("phone"),
               "website": lead.get("website"), "industry": lead.get("industry"),
-              "contact_person": person or None}
+              "contact_name": person or None}
     return {**{k: v for k, v in fields.items() if v},
             "provenance_json": json.dumps({k: provided for k, v in fields.items() if v}, sort_keys=True)}
 

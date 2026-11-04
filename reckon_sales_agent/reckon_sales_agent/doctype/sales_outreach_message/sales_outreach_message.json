@@ -31,6 +31,7 @@
   "idempotency_key",
   "content_section",
   "subject",
+  "variant",
   "body",
   "ai_generated",
   "is_reply",
@@ -143,6 +144,12 @@
    "fieldtype": "Data",
    "label": "Subject",
    "reqd": 1
+  },
+  {
+   "fieldname": "variant",
+   "fieldtype": "Data",
+   "label": "Subject variant",
+   "read_only": 1
   },
   {
    "fieldname": "body",

@@ -121,7 +121,7 @@ class EngineTests(unittest.TestCase):
         body = self.engine.split("def send_message(")[1]
         window = body.split("if not in_window(")[0][-300:]
         self.assertIn("if not is_reply:", window)
-        after = body.split("in_window(")[1].split("\n    if _sent_today")[0]
+        after = body.split("if not in_window(")[1].split("\n    if _sent_today")[0]
         self.assertIn("return False", after)
         self.assertNotIn("_cancel(", after)
 

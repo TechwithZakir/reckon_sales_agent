@@ -125,8 +125,12 @@
 
 		tab_campaigns() {
 			return frappe.xcall(API + "campaigns").then((rows) => {
+				let draft = null;
+				try { draft = JSON.parse(store.get("cst_wizard", "{}")); } catch (err) { draft = null; }
+				const unfinished = draft && draft.name ? draft : null;
 				this.$body.html(`<div class="cst-bar"><h3>${__("Campaigns")}</h3>
 					${can_manage() ? `<button class="btn btn-primary btn-sm cst-new-campaign">${__("New campaign")}</button>` : ""}</div>
+					${unfinished && can_manage() ? `<div class="cst-note">${__("You have an unfinished campaign: {0}.", [`<b>${e(unfinished.name)}</b>`])} <a class="cst-link cst-w-resume">${__("Continue")}</a></div>` : ""}
 					<div class="cst-card"><div class="cst-row head"><span>${__("Campaign")}</span><span>${__("Sent")}</span><span>${__("Opened")}</span>
 						<span>${__("Clicked")}</span><span>${__("Replied")}</span><span>${__("Bounced")}</span><span>${__("People")}</span></div>
 					${rows.map((r) => `<div class="cst-row click" data-name="${e(r.name)}">
@@ -138,6 +142,8 @@
 						|| `<div class="cst-empty">${__("No campaigns yet. Make an audience, then start one.")}</div>`}</div>`);
 				this.$body.find(".cst-row.click").on("click", (ev) => this.campaign_detail(ev.currentTarget.dataset.name));
 				this.$body.find(".cst-new-campaign").on("click", () => this.campaign_dialog());
+				this.$body.find(".cst-w-resume").on("click", () => this.campaign_dialog());
+				if (store.get("cst_use_template", "") && can_manage()) this.campaign_dialog();  // "Use in campaign" from the builder
 			});
 		}
 
@@ -177,6 +183,7 @@
 					<div class="cst-grid"><section class="cst-card"><h3>${__("Funnel")}</h3>${funnel_html(en)}</section>
 						<section class="cst-card"><h3>${__("Activity by day")}</h3>${days_html(en.by_day)}</section></div>
 					<section class="cst-card"><h3>${__("Copilot suggests")}</h3>${suggestions_html(d.suggestions)}</section>
+					${this.ab_card(d, en)}
 					<div class="cst-grid">
 						<section class="cst-card"><h3>${__("By channel")}</h3>${channel_rows.map(([channel, v]) => `<div class="cst-row">
 							<span><b>${e(channel)}</b></span><span>${num(v.sent)} ${__("sent")}</span><span>${pct(v.open_rate)} ${__("opened")}</span>
@@ -197,6 +204,16 @@
 				this.$body.find(".cst-person").on("click", (ev) => this.timeline_dialog(ev.currentTarget.dataset.prospect));
 				this.$body.find(".cst-do").on("click", (ev) => this.campaign_action(ev.currentTarget.dataset.do, d));
 			});
+		}
+
+		ab_card(d, en) {
+			const letters = Object.keys(en.by_variant || {});
+			if (!letters.length) return "";
+			const subjects = {};
+			d.steps.forEach((s) => { if (s.variants && s.variants.length) [s.subject, ...s.variants].forEach((text, i) => { subjects["ABC"[i]] = subjects["ABC"[i]] || text; }); });
+			return `<section class="cst-card"><h3>${__("Subject lines · A/B test")}</h3>${letters.map((l) => { const v = en.by_variant[l]; return `<div class="cst-row" style="grid-template-columns:30px 2fr repeat(4, 1fr)">
+				<b>${e(l)}</b><span>${e(subjects[l] || "")}</span><span>${num(v.sent)} ${__("sent")}</span><span>${pct(v.open_rate)} ${__("opened")}</span><span>${pct(v.click_rate)} ${__("clicked")}</span><span>${pct(v.reply_rate)} ${__("replied")}</span></div>`; }).join("")}
+				<div class="cst-muted">${__("Each person gets one subject line. Keep the better one once every subject has enough sends to compare.")}</div></section>`;
 		}
 
 		campaign_action(action, d) {
@@ -223,46 +240,195 @@
 			}
 		}
 
-		campaign_dialog() {
-			Promise.all([frappe.xcall(API + "audiences"), frappe.xcall(API + "templates")]).then(([audiences, templates]) => {
-				if (!templates.length) {
-					return frappe.msgprint(__("Approve at least one message template first. Templates are built on the Message Templates page."));
-				}
-				if (!audiences.length) return frappe.msgprint(__("Make an audience first: it says who the campaign goes to."));
-				const dialog = new frappe.ui.Dialog({
-					title: __("New campaign"),
-					fields: [
-						{ fieldname: "campaign_name", fieldtype: "Data", label: __("Name"), reqd: 1 },
-						{ fieldname: "audience", fieldtype: "Select", label: __("Audience"), reqd: 1,
-							options: [{ value: "", label: "" }, ...audiences.map((a) => ({ value: a.name, label: `${a.audience_name} (${a.size || 0})` }))] },
-						{ fieldname: "offer", fieldtype: "Small Text", label: __("Offer") },
-						{ fieldname: "language", fieldtype: "Select", label: __("Language"), options: "English\nBangla", default: "English" },
-						{ fieldname: "daily_limit", fieldtype: "Int", label: __("Daily limit"), default: 50 },
-						{ fieldname: "steps", fieldtype: "HTML" },
-					],
-					primary_action_label: __("Create draft"),
-					primary_action: (values) => {
-						const steps = [];
-						dialog.$wrapper.find(".cst-step").each((_, row) => {
-							steps.push({ template: $(row).find(".cst-s-tpl").val(), delay_days: Number($(row).find(".cst-s-delay").val() || 0) });
-						});
-						frappe.xcall(API + "create_campaign", { data: JSON.stringify({ ...values, steps }) }).then((name) => {
-							dialog.hide();
-							frappe.show_alert({ message: __("Draft created. Submit it for approval when you are ready."), indicator: "green" });
-							this.open("campaigns").then(() => this.campaign_detail(name));
-						});
-					},
+		// The campaign wizard: Setup, Audience, Content, Schedule and review ------------------------------
+
+		campaign_dialog() { return this.wizard(); }
+
+		wizard(preset) {
+			let saved = {};
+			try { saved = JSON.parse(store.get("cst_wizard", "{}")) || {}; } catch (err) { saved = {}; }
+			const wanted = store.get("cst_use_template", "");
+			store.set("cst_use_template", "");
+			return Promise.all([frappe.xcall(API + "audiences"), frappe.xcall(API + "templates")]).then(([audiences, templates]) => {
+				this.wz = Object.assign({ step: 1, name: "", goal: "", language: "English", offer: "", audience: "", daily_limit: 50,
+					start_date: frappe.datetime.get_today(), pilot: false, pilot_max: 50, holdout: 20, steps: [{ template: "", delay_days: 0 }] }, saved, preset || {});
+				if (wanted) this.wz.steps = [{ template: wanted, delay_days: 0 }];
+				this.wz.audiences = audiences;
+				this.wz.templates = templates;
+				this.wz.checks = {};
+				this.wz.state = null;
+				this.paint_wizard();
+			});
+		}
+
+		wz_persist() {
+			const w = this.wz;
+			store.set("cst_wizard", JSON.stringify({ step: w.step, name: w.name, goal: w.goal, language: w.language, offer: w.offer, audience: w.audience,
+				daily_limit: w.daily_limit, start_date: w.start_date, pilot: w.pilot, pilot_max: w.pilot_max, holdout: w.holdout, steps: w.steps }));
+		}
+
+		wz_template(name) { return this.wz.templates.find((t) => t.name === name); }
+
+		wz_audience() { return this.wz.audiences.find((a) => a.name === this.wz.audience); }
+
+		paint_wizard() {
+			const w = this.wz;
+			const labels = [__("Setup"), __("Audience"), __("Content"), __("Schedule & review")];
+			const stepper = `<ol class="cst-stepper">${labels.map((label, i) => `<li class="${w.step === i + 1 ? "on" : w.step > i + 1 ? "done" : ""}"><span>${w.step > i + 1 ? "✓" : i + 1}</span>${label}</li>`).join("")}</ol>`;
+			const body = [null, () => this.wz_setup(), () => this.wz_audience_step(), () => this.wz_content(), () => this.wz_review()][w.step]();
+			this.$body.html(`<div class="cst-bar"><div><a class="cst-link cst-w-cancel">&larr; ${__("All campaigns")}</a><h3 style="margin-top:6px">${__("New campaign")}</h3></div>
+				<a class="cst-link cst-w-reset">${__("Start over")}</a></div>${stepper}<section class="cst-card">${body}</section>
+				<div class="cst-actions" style="justify-content:space-between">
+					<button class="btn btn-default cst-w-back" ${w.step === 1 ? "disabled" : ""}>${__("Back")}</button>
+					<span class="cst-actions">${w.step === 4 ? `<button class="btn btn-default cst-w-create" data-submit="0">${__("Create draft")}</button>
+						<button class="btn btn-primary cst-w-create" data-submit="1">${__("Create and submit for approval")}</button>` : `<button class="btn btn-primary cst-w-next">${__("Next")}</button>`}</span></div>`);
+			const $b = this.$body;
+			$b.find(".cst-w-cancel").on("click", () => this.open("campaigns"));
+			$b.find(".cst-w-reset").on("click", () => { store.set("cst_wizard", "{}"); this.wizard({ step: 1, name: "", goal: "", offer: "", audience: "", steps: [{ template: "", delay_days: 0 }] }); });
+			$b.find(".cst-w-back").on("click", () => { w.step -= 1; this.wz_persist(); this.paint_wizard(); });
+			$b.find(".cst-w-next").on("click", () => this.wz_next());
+			$b.find(".cst-w-create").on("click", (ev) => this.wz_create(ev.currentTarget.dataset.submit === "1"));
+			$b.find("[data-w]").on("input change", (ev) => {
+				const el = ev.currentTarget;
+				w[el.dataset.w] = el.type === "checkbox" ? el.checked : (el.type === "number" ? Number(el.value || 0) : el.value);
+				this.wz_persist();
+				if (el.type === "checkbox" || el.tagName === "SELECT") this.paint_wizard();
+			});
+			if (w.step === 2) {
+				$b.find(".cst-w-aud").on("change", (ev) => { w.audience = ev.currentTarget.value; this.wz_persist(); this.paint_wizard(); });
+				$b.find(".cst-w-newaud").on("click", () => this.audience_dialog(null, (saved) => frappe.xcall(API + "audiences").then((list) => {
+					w.audiences = list;
+					w.audience = saved.name;
+					this.wz_persist();
+					this.paint_wizard();
+				})));
+			}
+			if (w.step === 3) this.wz_bind_content();
+			if (w.step === 4) this.wz_load_state();
+		}
+
+		wz_setup() {
+			const w = this.wz;
+			return `<h3>${__("What is this campaign for?")}</h3>
+				<div class="cst-wgrid2"><div><label class="cst-wl">${__("Name")}</label><input class="form-control" data-w="name" value="${e(w.name)}" placeholder="${__("For example: Q4 re-engagement")}"></div>
+					<div><label class="cst-wl">${__("Goal")}</label><select class="form-control" data-w="goal"><option value=""></option>${["Book a meeting", "Re-engage", "Upsell", "Event invite"].map((g) => `<option ${w.goal === g ? "selected" : ""}>${__(g)}</option>`).join("")}</select></div>
+					<div><label class="cst-wl">${__("Language")}</label><select class="form-control" data-w="language">${["English", "Bangla"].map((l) => `<option ${w.language === l ? "selected" : ""}>${l}</option>`).join("")}</select></div>
+					<div><label class="cst-wl">${__("Offer or next step")}</label><textarea class="form-control" rows="2" data-w="offer" placeholder="${__("What you are asking people to do")}">${e(w.offer)}</textarea></div></div>`;
+		}
+
+		wz_audience_step() {
+			const w = this.wz;
+			return `<div class="cst-bar"><h3>${__("Who should receive it?")}</h3>${can_manage() ? `<button class="btn btn-default btn-sm cst-w-newaud">${__("New audience")}</button>` : ""}</div>
+				${w.audiences.map((a) => `<label class="cst-wcard ${w.audience === a.name ? "on" : ""}"><input type="radio" name="aud" class="cst-w-aud" value="${e(a.name)}" ${w.audience === a.name ? "checked" : ""}>
+					<span><b>${e(a.audience_name)}</b> <span class="cst-badge">${e(__(a.audience_type))}</span>${a.sms_opt_in || a.whatsapp_opt_in ? ` <span class="cst-badge ok">${__("Permission recorded")}</span>` : ""}
+					<div class="cst-muted">${num(a.size)} ${__("people")} · ${num(a.size_email)} ${__("with email")} · ${num(a.size_phone)} ${__("with phone")}</div></span></label>`).join("")
+					|| `<div class="cst-empty">${__("No audiences yet. Make one to continue.")}</div>`}`;
+		}
+
+		wz_content() {
+			const w = this.wz;
+			if (!w.templates.length) {
+				return `<div class="cst-empty">${__("No approved templates yet.")}<br><button class="btn btn-primary btn-sm cst-w-tplpage" style="margin-top:8px">${__("Build a template")}</button></div>`;
+			}
+			const groups = {};
+			w.templates.forEach((t) => { (groups[t.channel] = groups[t.channel] || []).push(t); });
+			const options = (current) => `<option value="">${__("Choose a template")}</option>${Object.entries(groups).map(([channel, list]) => `<optgroup label="${e(channel)}">${list.map((t) =>
+				`<option value="${e(t.name)}" ${t.name === current ? "selected" : ""}>${e(t.template_name)}</option>`).join("")}</optgroup>`).join("")}`;
+			const rows = w.steps.map((s, i) => {
+				const t = this.wz_template(s.template);
+				return `<div class="cst-wstep" data-i="${i}"><div class="cst-bar"><b>${__("Step")} ${i + 1}</b>${t ? `<span class="cst-badge">${e(t.channel)}</span>` : ""}
+						<span style="flex:1"></span>${w.steps.length > 1 ? `<button class="btn btn-default btn-xs cst-w-del" data-i="${i}">${__("Remove")}</button>` : ""}</div>
+					<div class="cst-wgrid"><select class="form-control cst-w-tpl" data-i="${i}">${options(s.template)}</select>
+						<label class="cst-wl" style="margin:0">${i === 0 ? __("Starts") : __("Wait (days after the previous step)")}
+							<input type="number" min="0" class="form-control cst-w-delay" data-i="${i}" value="${s.delay_days || 0}" ${i === 0 ? "disabled" : ""}></label></div>
+					${t ? `<div class="cst-wprev"><b>${e(t.subject || t.template_name)}</b><div class="cst-muted">${e((t.language || ""))}</div>
+						<div class="cst-wchecks" data-i="${i}">${this.wz_checks_html(s.template)}</div>
+						<div class="cst-actions"><button class="btn btn-default btn-xs cst-w-edit" data-i="${i}">${__("Open in the builder")}</button></div></div>` : ""}</div>`;
+			}).join("");
+			return `<h3>${__("What will you send?")}</h3><div class="cst-muted" style="margin-bottom:8px">${__("Each step is an approved template. Build or change templates in the builder, then come back.")}</div>${rows}
+				<div class="cst-actions"><button class="btn btn-default btn-sm cst-w-add">${__("Add a step")}</button><button class="btn btn-default btn-sm cst-w-tplpage">${__("Build a new template")}</button></div>${this.wz_reach_html()}`;
+		}
+
+		wz_checks_html(name) {
+			const c = this.wz.checks[name];
+			if (!c) return `<span class="cst-muted">${__("Checking…")}</span>`;
+			const open = c.checks.filter((k) => !k.ok);
+			return open.length ? `<span class="cst-badge warn">${open.length} ${__("pre-send checks open")}</span>${open.map((k) => `<div class="cst-muted">! ${e(k.label)}</div>`).join("")}`
+				: `<span class="cst-badge ok">${__("All pre-send checks pass")}</span>`;
+		}
+
+		wz_reach_html() {
+			const w = this.wz;
+			const aud = this.wz_audience();
+			const channels = [...new Set(w.steps.map((s) => (this.wz_template(s.template) || {}).channel).filter(Boolean))];
+			if (!aud || !channels.length) return "";
+			const line = (c) => c === "Email" ? `${__("Email reaches {0} of {1} people (those with an email).", [num(aud.size_email), num(aud.size)])}`
+				: c === "LinkedIn" ? __("LinkedIn steps become tasks for your team.")
+				: `${c}: ${__("{0} of {1} have a phone. Only people with recorded permission are messaged.", [num(aud.size_phone), num(aud.size)])}`;
+			return `<div class="cst-note" style="margin-top:12px"><b>${__("Who each step can reach")}</b>${channels.map((c) => `<div>${e(line(c))}</div>`).join("")}</div>`;
+		}
+
+		wz_bind_content() {
+			const w = this.wz;
+			const $b = this.$body;
+			const load = (name) => {
+				if (!name || w.checks[name]) return;
+				frappe.xcall("reckon_sales_agent.api_templates.get", { template: name }).then((t) => {
+					w.checks[name] = t.result;
+					$b.find(".cst-wchecks").each((_, el) => { if (w.steps[Number(el.dataset.i)].template === name) $(el).html(this.wz_checks_html(name)); });
 				});
-				const options = templates.map((t) => `<option value="${e(t.name)}">${e(t.template_name)} · ${e(t.channel)}</option>`).join("");
-				const row = (first) => `<div class="cst-step"><select class="form-control cst-s-tpl">${options}</select>
-					<input type="number" min="0" class="form-control cst-s-delay" value="${first ? 0 : 2}" title="${__("Days after the previous step")}">
-					<button type="button" class="btn btn-xs btn-default cst-s-del">&times;</button></div>`;
-				const wrap = dialog.fields_dict.steps.$wrapper;
-				wrap.html(`<label class="control-label">${__("Steps: a template and the days to wait after the previous step")}</label>
-					<div class="cst-steps">${row(true)}</div><button type="button" class="btn btn-xs btn-default cst-s-add">${__("Add step")}</button>`);
-				wrap.on("click", ".cst-s-add", () => wrap.find(".cst-steps").append(row(false)));
-				wrap.on("click", ".cst-s-del", (ev) => { if (wrap.find(".cst-step").length > 1) $(ev.currentTarget).closest(".cst-step").remove(); });
-				dialog.show();
+			};
+			w.steps.forEach((s) => load(s.template));
+			$b.find(".cst-w-tpl").on("change", (ev) => { w.steps[Number(ev.currentTarget.dataset.i)].template = ev.currentTarget.value; this.wz_persist(); this.paint_wizard(); });
+			$b.find(".cst-w-delay").on("input", (ev) => { w.steps[Number(ev.currentTarget.dataset.i)].delay_days = Number(ev.currentTarget.value || 0); this.wz_persist(); });
+			$b.find(".cst-w-add").on("click", () => { w.steps.push({ template: "", delay_days: 3 }); this.wz_persist(); this.paint_wizard(); });
+			$b.find(".cst-w-del").on("click", (ev) => { w.steps.splice(Number(ev.currentTarget.dataset.i), 1); this.wz_persist(); this.paint_wizard(); });
+			$b.find(".cst-w-edit").on("click", (ev) => { this.wz_persist(); frappe.set_route("sales-templates", w.steps[Number(ev.currentTarget.dataset.i)].template); });
+			$b.find(".cst-w-tplpage").on("click", () => { this.wz_persist(); frappe.set_route("sales-templates"); });
+		}
+
+		wz_review() {
+			const w = this.wz;
+			const aud = this.wz_audience() || {};
+			const st = w.state;
+			const rows = w.steps.map((s, i) => { const t = this.wz_template(s.template) || {}; return `<div class="cst-row" style="grid-template-columns:70px 1fr 110px 120px"><span><b>${__("Step")} ${i + 1}</b></span>
+				<span>${e(t.template_name || "")}</span><span><span class="cst-badge">${e(t.channel || "")}</span></span><span>${i === 0 ? __("At the start") : `+${s.delay_days || 0} ${__("days")}`}</span></div>`; }).join("");
+			return `<h3>${__("Schedule and review")}</h3>
+				<div class="cst-wgrid2"><div><label class="cst-wl">${__("Start date")}</label><input type="date" class="form-control" data-w="start_date" value="${e(w.start_date)}"></div>
+					<div><label class="cst-wl">${__("Most messages per day")}</label><input type="number" min="1" class="form-control" data-w="daily_limit" value="${w.daily_limit}"></div></div>
+				<label style="margin-top:10px;display:block"><input type="checkbox" data-w="pilot" ${w.pilot ? "checked" : ""}> ${__("Start with a pilot: only the first people, and hold some back to measure the effect")}</label>
+				${w.pilot ? `<div class="cst-wgrid2"><div><label class="cst-wl">${__("Pilot size")}</label><input type="number" min="1" class="form-control" data-w="pilot_max" value="${w.pilot_max}"></div>
+					<div><label class="cst-wl">${__("Held back, percent")}</label><input type="number" min="1" max="50" class="form-control" data-w="holdout" value="${w.holdout}"></div></div>` : ""}
+				<h4>${__("Summary")}</h4>
+				<div class="cst-muted"><b>${e(w.name)}</b>${w.goal ? ` · ${e(__(w.goal))}` : ""} · ${e(w.language)} · ${__("Audience")}: <b>${e(aud.audience_name || "")}</b> (${num(aud.size)} ${__("people")})</div>
+				<div class="cst-card" style="margin-top:8px">${rows}</div>
+				${st ? `<div class="cst-note">${st.outbound_enabled ? __("Sending is on.") : __("Sending is switched off, so the campaign runs as a test and reaches nobody until you turn it on in Sales Agent Settings.")}
+					<br>${__("Autopilot")}: <b>${e(__(st.level))}</b>. ${e(st.descriptions[st.level])}</div>` : ""}
+				<div class="cst-note">${__("Creating it does not send anything. A person approves the campaign first; that is the one decision for the whole sequence.")}</div>`;
+		}
+
+		wz_load_state() {
+			if (this.wz.state) return;
+			frappe.xcall(API + "overview").then((d) => { this.wz.state = d.autopilot; if (this.wz.step === 4) this.paint_wizard(); });
+		}
+
+		wz_next() {
+			const w = this.wz;
+			if (w.step === 1 && !(w.name || "").trim()) return frappe.msgprint(__("Give the campaign a name."));
+			if (w.step === 2 && !w.audience) return frappe.msgprint(__("Choose who should receive it."));
+			if (w.step === 3 && (!w.steps.length || w.steps.some((s) => !s.template))) return frappe.msgprint(__("Choose a template for every step."));
+			w.step += 1;
+			this.wz_persist();
+			this.paint_wizard();
+		}
+
+		wz_create(submit) {
+			const w = this.wz;
+			frappe.xcall(API + "create_campaign", { data: JSON.stringify({ campaign_name: w.name, goal: w.goal, language: w.language, offer: w.offer, audience: w.audience,
+				daily_limit: w.daily_limit, start_date: w.start_date, pilot: w.pilot, pilot_max: w.pilot_max, holdout: w.holdout, steps: w.steps, submit }) }).then((name) => {
+				store.set("cst_wizard", "{}");
+				frappe.show_alert({ message: submit ? __("Created and submitted. A manager approves it before anything is sent.") : __("Draft created. Submit it for approval when you are ready."), indicator: "green" });
+				this.open("campaigns").then(() => this.campaign_detail(name));
 			});
 		}
 
@@ -291,7 +457,7 @@
 			});
 		}
 
-		audience_dialog(existing) {
+		audience_dialog(existing, after) {
 			const load = existing ? frappe.xcall(API + "audience", { name: existing }) : Promise.resolve({});
 			load.then((a) => {
 				const only = (types) => `eval:${JSON.stringify(types)}.includes(doc.audience_type)`;
@@ -340,9 +506,10 @@
 					],
 					primary_action_label: __("Save"),
 					primary_action: (values) => {
-						frappe.xcall(API + "save_audience", { config: JSON.stringify(config(values)) }).then(() => {
+						frappe.xcall(API + "save_audience", { config: JSON.stringify(config(values)) }).then((saved) => {
 							dialog.hide();
-							this.open("audiences");
+							if (after) after(saved);
+							else this.open("audiences");
 						});
 					},
 				});

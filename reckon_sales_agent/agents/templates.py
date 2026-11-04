@@ -14,9 +14,10 @@
 
 from __future__ import annotations
 
+import json
 import re
 
-from reckon_sales_agent.campaigns.templates import PLACEHOLDER_RE
+from reckon_sales_agent.campaigns.templates import PLACEHOLDER_RE, is_builder_html, strip_html
 
 TEMPLATE_SCHEMA = {
     "type": "object",
@@ -56,10 +57,14 @@ def template_issues(channel: str, body: str, params: str | None) -> list[str]:
     if channel == "WhatsApp":
         numbers = sorted({int(n) for n in NUMBERED.findall(body or "")})
         mapped = [p.strip() for p in (params or "").split(",") if p.strip()]
-        if numbers and numbers != list(range(1, len(numbers) + 1)):
-            issues.append("WhatsApp variables must be numbered {{1}}, {{2}}… without gaps.")
-        if len(mapped) != len(numbers):
-            issues.append(f"WhatsApp template has {len(numbers)} variable(s) but {len(mapped)} mapped.")
+        named = list(dict.fromkeys(match.group(1) for match in PLACEHOLDER_RE.finditer(body or "")))
+        if numbers:  # Meta's form: {{1}}, {{2}} with the field behind each number in ``params``
+            if numbers != list(range(1, len(numbers) + 1)):
+                issues.append("WhatsApp variables must be numbered {{1}}, {{2}}… without gaps.")
+            if len(mapped) != len(numbers):
+                issues.append(f"WhatsApp template has {len(numbers)} variable(s) but {len(mapped)} mapped.")
+        elif named != mapped:  # the builder's form: named fields, numbered only when sent to Meta
+            issues.append(f"WhatsApp template has {len(named)} variable(s) but {len(mapped)} mapped.")
         if len(body or "") > 1024:
             issues.append("WhatsApp template bodies are limited to 1024 characters.")
     return issues
@@ -71,16 +76,38 @@ def template_issues(channel: str, body: str, params: str | None) -> list[str]:
 def check_template(doc) -> dict:
     from reckon_sales_agent.agents.content import check_step
     from reckon_sales_agent.agents.content_agent import approved_knowledge
+    from reckon_sales_agent.campaigns.presend import bracket_placeholders
 
     knowledge = approved_knowledge(doc.company)
     text = "\n".join(f"{k.title}\n{k.content}" for k in knowledge)
     pricing = "\n".join(k.content for k in knowledge if k.category in ("Pricing", "Offer"))
     body = NUMBERED.sub("", doc.body or "") if doc.channel == "WhatsApp" else doc.body
-    issues = check_step({"step_no": 0, "channel": doc.channel, "subject_template": doc.subject or "",
-                         "body_template": body}, text, pricing, []) + template_issues(doc.channel, doc.body,
-                                                                                       doc.whatsapp_params)
+    if doc.channel == "WhatsApp":  # Meta reads the header text and the footer too
+        extra = [doc.get("whatsapp_footer")] + ([doc.get("whatsapp_header")] if doc.get("whatsapp_header_type") == "Text" else [])
+        body = "\n".join([body or "", *[e for e in extra if e]])
+    channel = "Call Task" if doc.channel == "LinkedIn" else doc.channel  # a LinkedIn message is a script we do not send
+    issues = check_step({"step_no": 0, "channel": channel, "subject_template": doc.subject or "",
+                         "subject_variants": doc.get("subject_variants"), "body_template": body},
+                        text, pricing, []) + template_issues(doc.channel, doc.body, doc.whatsapp_params)
+    words = strip_html(doc.body) if is_builder_html(doc.body) else (doc.body or "")
+    unfilled = bracket_placeholders(doc.subject, words, doc.get("whatsapp_header"), doc.get("whatsapp_footer"),
+                                    *_urls(doc.get("builder_content")))
+    if unfilled:
+        issues.append("Placeholders still to fill: " + ", ".join(unfilled) + ".")
     issues = [i.replace("Step 0 ", "") for i in issues]
     return {"status": "Needs review" if issues else "Passed", "issues": issues}
+
+
+def _urls(builder_content) -> list[str]:
+    """The addresses written in an email builder's blocks, so a link still to fill is not missed."""
+    from reckon_sales_agent.campaigns import builder
+
+    try:
+        data = json.loads(builder_content or "{}")
+    except ValueError:
+        return []
+    blocks = data.get("blocks") if isinstance(data, dict) else None
+    return [str(u) for b in blocks or [] if isinstance(b, dict) for u in builder.block_urls(b) if u]
 
 
 def write_template(company: str, channel: str, purpose: str, language: str = "English") -> str:
@@ -146,6 +173,8 @@ def approve(name: str, acknowledge_issues: bool = False) -> str:
     from reckon_sales_agent.usage import log_activity
 
     doc = frappe.get_doc("Sales Message Template", name)
+    if doc.channel == "Email" and not (doc.subject or "").strip():
+        frappe.throw(_("An email template needs a subject before it can be approved."))  # never waved through
     result = check_template(doc)
     if result["issues"] and not acknowledge_issues:
         frappe.throw(_("The content check found issues:") + "<br>" + "<br>".join(
@@ -166,8 +195,13 @@ def _publish_email(doc) -> str:
 
     from reckon_sales_agent.campaigns.templates import text_to_html
 
+    def fallbacks_only(text: str) -> str:
+        # The CRM composer renders with Jinja, where {{first_name|there}} would be a filter called "there".
+        return PLACEHOLDER_RE.sub(lambda m: frappe.utils.escape_html((m.group(2) or "").strip()), text or "")
+
     name = f"{doc.template_name} · {doc.company}"[:140]
-    values = {"subject": doc.subject, "use_html": 1, "response_html": text_to_html(frappe.utils.escape_html(doc.body))}
+    body = doc.body if is_builder_html(doc.body) else text_to_html(frappe.utils.escape_html(doc.body))
+    values = {"subject": fallbacks_only(doc.subject), "use_html": 1, "response_html": fallbacks_only(body)}
     if frappe.db.exists("Email Template", name):
         frappe.db.set_value("Email Template", name, values)
     else:
@@ -190,15 +224,45 @@ def _publish_whatsapp(doc) -> str | None:
 
     meta = frappe.get_meta("WhatsApp Templates")
     slug = re.sub(r"[^a-z0-9_]", "_", doc.template_name.lower())[:60].strip("_") or "template"
-    values = {"template_name": slug, "template": doc.body, "category": (doc.whatsapp_category or "Marketing").upper(),
+    body, order = meta_body(doc.body)  # Meta wants {{1}}, {{2}}; the template keeps readable names
+    order = order or [p.strip() for p in (doc.whatsapp_params or "").split(",") if p.strip()]
+    samples = _json(doc.get("whatsapp_samples"), {})
+    header_type = {"Text": "TEXT", "Image": "IMAGE", "Document": "DOCUMENT"}.get(doc.get("whatsapp_header_type") or "")
+    values = {"template_name": slug, "template": body, "category": (doc.whatsapp_category or "Marketing").upper(),
               "language_code": "bn" if doc.language == "Bangla" else "en",
-              "whatsapp_account": get_settings(doc.company).get("whatsapp_account") or None}
+              "whatsapp_account": get_settings(doc.company).get("whatsapp_account") or None,
+              "footer": doc.get("whatsapp_footer") or None, "header_type": header_type,
+              "header": doc.get("whatsapp_header") if header_type == "TEXT" else None,
+              "sample_values": ",".join(str(samples.get(p) or "") for p in order) or None}
     lang = "bn" if doc.language == "Bangla" else "en"
     if frappe.db.exists("Language", lang):
         values["language"] = lang  # frappe_whatsapp requires a language
     template = frappe.get_doc({"doctype": "WhatsApp Templates", **{k: v for k, v in values.items() if meta.has_field(k)}})
+    if meta.has_field("buttons"):
+        template.set("buttons", [row for row in (_meta_button(b) for b in _json(doc.get("whatsapp_buttons"), [])) if row])
     template.insert(ignore_permissions=True)
+    if header_type in ("IMAGE", "DOCUMENT"):
+        frappe.msgprint(frappe._("Attach the sample {0} on the WhatsApp Template {1} before Meta can review it.").format(
+            header_type.lower(), template.name), indicator="orange")
     return template.name
+
+
+def _json(value, default):
+    try:
+        data = json.loads(value or "")
+    except ValueError:
+        return default
+    return data if isinstance(data, type(default)) else default
+
+
+def _meta_button(button: dict) -> dict | None:
+    """A builder button as a row of frappe_whatsapp's WhatsApp Button table."""
+    label = str(button.get("label") or "")[:25]
+    if button.get("kind") == "url":
+        return {"button_type": "Visit Website", "button_label": label, "website_url": button.get("url"), "url_type": "Static"}
+    if button.get("kind") == "phone":
+        return {"button_type": "Call Phone", "button_label": label, "phone_number": button.get("phone")}
+    return {"button_type": "Quick Reply", "button_label": label} if label else None
 
 
 def apply_to_step(row, company: str) -> None:
@@ -208,13 +272,18 @@ def apply_to_step(row, company: str) -> None:
 
     template = frappe.db.get_value("Sales Message Template", row.message_template,
                                    ["company", "status", "channel", "subject", "body", "whatsapp_template",
-                                    "whatsapp_params"], as_dict=True)
+                                    "whatsapp_params", "subject_variants", "sms_send_window", "agent_actions"], as_dict=True)
     if not template or template.company != company:
         frappe.throw(_("Step {0}: unknown message template.").format(row.step_no))
     if template.status != "Approved":
         frappe.throw(_("Step {0}: the template is not approved yet.").format(row.step_no))
-    row.channel = template.channel
+    row.channel = "LinkedIn Task" if template.channel == "LinkedIn" else template.channel  # a person sends it
     row.subject_template = template.subject or ""
+    row.subject_variants = template.subject_variants or "" if template.channel == "Email" else ""
+    row.send_window = template.sms_send_window or "" if template.channel == "SMS" else (row.get("send_window") or "")
+    actions = _json(template.agent_actions, {})
+    if "personalize" in actions:
+        row.use_ai_personalisation = 1 if actions["personalize"] else 0
     if template.channel == "WhatsApp":
         row.whatsapp_template = template.whatsapp_template
         row.whatsapp_template_params = template.whatsapp_params
@@ -236,6 +305,8 @@ def start_broadcast(company: str, template: str, discovery_campaign: str | None 
     doc = frappe.get_doc("Sales Message Template", template)
     if doc.company != company or doc.status != "Approved":
         frappe.throw(_("Approve the template first."))
+    if doc.channel == "LinkedIn":
+        frappe.throw(_("A LinkedIn message is sent by a person: use it as a step in a campaign."))
     if doc.channel == "WhatsApp" and not doc.whatsapp_template:
         frappe.throw(_("This WhatsApp template has not been submitted to Meta yet (install frappe_whatsapp)."))
     campaign = frappe.get_doc({

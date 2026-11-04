@@ -28,10 +28,14 @@ def message_payload(message) -> dict:
 
 def campaign_payload(campaign) -> dict:
     """What a person approves for a campaign: content, channels, audience definition and schedule."""
-    steps = sorted((_get(step, "step_no") or 0, _get(step, "channel") or "Email", _get(step, "delay_days") or 0,
-                    _get(step, "subject_template") or "", _get(step, "body_template") or "",
-                    int(_get(step, "use_ai_personalisation") or 0))
-                   for step in (_get(campaign, "steps") or []))
+    def step_key(step):
+        key = (_get(step, "step_no") or 0, _get(step, "channel") or "Email", _get(step, "delay_days") or 0,
+               _get(step, "subject_template") or "", _get(step, "body_template") or "",
+               int(_get(step, "use_ai_personalisation") or 0))
+        extra = [_get(step, "subject_variants") or "", _get(step, "send_window") or ""]
+        return key + tuple(extra) if any(extra) else key
+
+    steps = sorted((step_key(step) for step in (_get(campaign, "steps") or [])), key=lambda k: k[:6])
     return {
         "steps": [list(step) for step in steps],
         "offer": _get(campaign, "offer") or "",

@@ -10,9 +10,15 @@ issues can still be approved, but only by a person who has seen them.
 
 from __future__ import annotations
 
+import json
 import re
 
-from reckon_sales_agent.campaigns.templates import PLACEHOLDER_RE, PLACEHOLDERS
+from reckon_sales_agent.campaigns.templates import (
+    PLACEHOLDER_RE,
+    PLACEHOLDERS,
+    is_builder_html,
+    strip_html,
+)
 from reckon_sales_agent.providers.llm import UNTRUSTED_RULES
 
 CHANNELS = ("Email", "WhatsApp", "SMS", "Call Task")
@@ -91,11 +97,24 @@ def _numbers(text: str) -> set[str]:
     return {n.replace(",", "") for n in NUMBER.findall(text or "")}
 
 
+def _variants(value) -> list[str]:
+    """Alternative subject lines for an A/B test, stored as a JSON list (or already a list)."""
+    if isinstance(value, str):
+        try:
+            value = json.loads(value or "[]")
+        except ValueError:
+            return []
+    return [str(v).strip() for v in value] if isinstance(value, list) else []
+
+
 def check_step(step: dict, knowledge_text: str, pricing_text: str, banned: list[str]) -> list[str]:
     """Issues for one step's subject and body template."""
     label = f"Step {step.get('step_no') or '?'} ({step.get('channel') or 'Email'})"
     subject, body = step.get("subject_template") or "", step.get("body_template") or ""
-    text = f"{subject}\n{body}"
+    if is_builder_html(body):
+        body = strip_html(body)  # the words, not the markup: a style is not a claim and does not count toward the limit
+    variants = [v for v in _variants(step.get("subject_variants")) if v]
+    text = "\n".join([subject, *variants, body])
     lowered = text.lower()
     issues = []
     for phrase in dict.fromkeys([*DEFAULT_BANNED, *banned]):
@@ -111,15 +130,18 @@ def check_step(step: dict, knowledge_text: str, pricing_text: str, banned: list[
         if term not in approved_terms:  # each offer must be one an approved Pricing or Offer item makes
             issues.append(f"{label}: mentions \"{match.group(0)}\" but no approved Pricing or Offer item does "
                           "(commercial terms need a person's approval).")
-    unknown = sorted({name for name in PLACEHOLDER_RE.findall(text) if name not in PLACEHOLDERS})
+    unknown = sorted({m.group(1) for m in PLACEHOLDER_RE.finditer(text) if m.group(1) not in PLACEHOLDERS})
     if unknown:
         issues.append(f"{label}: unknown placeholder(s) {', '.join(unknown)} (they are removed when sending).")
     channel = step.get("channel") or "Email"
     plain = PLACEHOLDER_RE.sub("", body)
     if channel in LIMITS and len(plain) > LIMITS[channel]:
         issues.append(f"{label}: {len(plain)} characters; keep {channel} under {LIMITS[channel]}.")
-    if channel == "Email" and len(subject) > SUBJECT_LIMIT:
-        issues.append(f"{label}: subject is {len(subject)} characters; keep it under {SUBJECT_LIMIT}.")
+    if channel == "Email":
+        for line in [subject, *variants]:
+            if len(PLACEHOLDER_RE.sub("", line)) > SUBJECT_LIMIT:
+                issues.append(f"{label}: subject is {len(line)} characters; keep it under {SUBJECT_LIMIT}.")
+                break
     if not body.strip():
         issues.append(f"{label}: the message is empty.")
     return issues
