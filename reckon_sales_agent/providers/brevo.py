@@ -41,3 +41,33 @@ def send_email(message, settings) -> str | None:
     if response.status_code >= 400:
         raise ChannelUnavailable(f"Brevo refused the email: {http_reason(response)}")
     return (response.json() or {}).get("messageId")
+
+
+# Brevo event → the shape ``agents.engagement.normalize_email_events`` reads. Other events (opened, clicked,
+# deferred, request, ...) carry no action for a campaign, so they are ignored.
+EVENT_MAP = {
+    "delivered": ("delivered", ""),
+    "hard_bounce": ("bounce", "hard"),
+    "invalid_email": ("bounce", "hard"),
+    "blocked": ("bounce", "hard"),
+    "soft_bounce": ("bounce", "soft"),
+    "spam": ("spamreport", ""),
+    "unsubscribed": ("unsubscribe", ""),
+}
+
+
+def normalize_events(items) -> list[dict]:
+    """Brevo webhook events: one JSON object per call, or a list. The id combines the message, the event and its time,
+    because Brevo's own ``id`` is the webhook's id and repeats across events."""
+    out = []
+    for item in items if isinstance(items, list) else [items]:
+        if not isinstance(item, dict):
+            continue
+        kind, bounce = EVENT_MAP.get(str(item.get("event") or ""), ("", ""))
+        message = str(item.get("message-id") or "").strip()
+        if not kind or not message:
+            continue
+        stamp = str(item.get("ts_epoch") or item.get("ts_event") or item.get("date") or "")
+        out.append({"id": f"brevo:{message}:{item['event']}:{stamp}", "type": kind, "bounce_type": bounce or "hard",
+                    "email": item.get("email") or "", "message": message})
+    return out

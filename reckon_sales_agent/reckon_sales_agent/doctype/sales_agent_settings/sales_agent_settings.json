@@ -67,6 +67,7 @@
   "sendgrid_webhook_key",
   "brevo_api_key",
   "brevo_sender_email",
+  "brevo_webhook_secret",
   "chat_reply_sla_minutes",
   "comment_to_chat",
   "agents_section",
@@ -469,6 +470,13 @@
    "fieldtype": "Data",
    "label": "Sender email (verified in Brevo)",
    "depends_on": "eval:doc.email_provider == 'Brevo'"
+  },
+  {
+   "fieldname": "brevo_webhook_secret",
+   "fieldtype": "Password",
+   "label": "Brevo webhook secret",
+   "depends_on": "eval:doc.email_provider == 'Brevo'",
+   "description": "Put it in the notify URL on the Integrations page. Bounces, spam reports and unsubscribes then reach the do-not-contact list."
   },
   {
    "fieldname": "chat_reply_sla_minutes",

@@ -709,7 +709,11 @@ function social(d, platforms, onText) {
 				return this.section(__("Account"), this.fields([
 						{ f: "email_provider", type: "select", label: __("Send email through"), options: ["System Email", "Twilio SendGrid", "Brevo"] },
 						{ f: "brevo_api_key", type: "secret", label: __("API key") },
-						{ f: "brevo_sender_email", label: __("Sender email (verified in Brevo)") }]));
+						{ f: "brevo_sender_email", label: __("Sender email (verified in Brevo)") }]))
+					+ this.section(__("Bounces and unsubscribes"), this.fields([
+						{ f: "brevo_webhook_secret", type: "secret", label: __("Webhook secret") }]))
+					+ this.copy_row(__("Notify URL in Brevo (Transactional → Webhooks)"), d.email.brevo_notify)
+					+ `<div class="sch-note small">${__("Add your webhook secret in place of <your secret> in the notify URL. Brevo does not sign its events, so the secret is the check.")}</div>`;
 			case "whatchimp":
 				return this.whatchimp_section();
 			case "sendgrid":

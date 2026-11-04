@@ -134,14 +134,16 @@ def apply_email_event(event: dict) -> bool:
     if event["type"] == "bounce" and not event["hard"]:
         record_event(message, "bounced", key, detail="soft bounce")  # temporary: keep the address
         return True
-    reason = "hard bounce" if event["type"] == "bounce" else "spam complaint"
+    # Hard bounce, spam complaint or the recipient's unsubscribe: all stop the sequence and suppress the address.
+    reason = {"bounce": "hard bounce", "complaint": "spam complaint", "unsubscribe": "unsubscribed"}[event["type"]]
+    outcome = {"bounce": "bounced", "complaint": "complained", "unsubscribe": "unsubscribed"}[event["type"]]
     _suppress_member(message.company, member, "Email", f"{reason} {event['id']}")
     if member.status == "Active":
         member.db_set({"status": "Stopped", "stop_reason": reason, "next_action_on": None})
         _cancel_pending(member.name, f"Email {reason}.")
-    record_event(message, "bounced" if event["type"] == "bounce" else "complained", key, detail=reason)
-    log_activity(message.company, f"reply_{'bounced' if event['type'] == 'bounce' else 'complaint'}", member,
-                 reason, actor_type="provider", agent="Engagement", policy_outcome="suppressed")
+    record_event(message, outcome, key, detail=reason)
+    log_activity(message.company, f"reply_{outcome}", member, reason, actor_type="provider", agent="Engagement",
+                 policy_outcome="suppressed")
     return True
 
 

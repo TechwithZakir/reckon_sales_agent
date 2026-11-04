@@ -75,7 +75,8 @@ def verify_signature(secret: str | None, body: bytes, signature: str | None) -> 
 
 
 EVENT_TYPES = {"bounce": "bounce", "bounced": "bounce", "complaint": "complaint", "spamreport": "complaint",
-               "spam_report": "complaint", "delivered": "delivered", "delivery": "delivered"}
+               "spam_report": "complaint", "delivered": "delivered", "delivery": "delivered",
+               "unsubscribe": "unsubscribe"}
 
 
 def normalize_email_events(payload) -> list[dict]:

@@ -2,6 +2,7 @@
 Channels page where a Company connects them."""
 
 from __future__ import annotations
+from urllib.parse import quote
 
 import hmac
 import json
@@ -251,6 +252,7 @@ def overview() -> dict:
                      "accounts": _wa_accounts(company), "provider": settings.get("whatsapp_provider") or "frappe_whatsapp",
                      "webhook": frappe.utils.get_url("/api/method/frappe_whatsapp.utils.webhook.webhook")},
         "email": {"account": _outgoing_address(settings), "provider": settings.get("email_provider") or "System Email",
+                  "brevo_notify": frappe.utils.get_url(f"/api/method/reckon_sales_agent.api_brevo.events?company={quote(company)}&key=<your secret>"),
                   "choices": frappe.get_all(
             "Email Account", filters={"email_id": ["is", "set"]}, pluck="name", order_by="name asc")},
         "webchat": {"enabled": bool(settings.get("webchat_enabled")), "key": settings.get("webchat_key") or "",
@@ -409,7 +411,7 @@ EDITABLE = {
     "voice_ai_greeting": "text", "voice_ai_language": "text", "voice_forward_to": "text",
     "email_provider": "text", "sendgrid_api_key": "secret", "sendgrid_from_email": "text",
     "sendgrid_webhook_key": "text", "email_account": "text", "crm_copilot_enabled": "check",
-    "brevo_api_key": "secret", "brevo_sender_email": "text",
+    "brevo_api_key": "secret", "brevo_sender_email": "text", "brevo_webhook_secret": "secret",
     "whatsapp_provider": "text", "whatchimp_api_token": "secret", "whatchimp_phone_number_id": "text",
 }
 
