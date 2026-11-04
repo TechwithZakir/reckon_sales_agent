@@ -95,6 +95,10 @@ class IntegrationsPageTests(unittest.TestCase):
         self.assertIn("whatchimp_section()", source)
         self.assertIn('d.email.provider === "Brevo"', source)
         self.assertIn("brevo_sender_email", source)
+        self.assertIn('{ key: "brevo", cat: "email"', source)
+        self.assertIn('{ key: "whatchimp", cat: "messaging"', source)
+        self.assertIn('case "brevo":', source)
+        self.assertIn('case "whatchimp":', source)
 
 
 if __name__ == "__main__":

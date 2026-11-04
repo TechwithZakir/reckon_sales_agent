@@ -53,6 +53,9 @@
 		{ key: "whatsapp", cat: "messaging", name: "WhatsApp", glyph: "whatsapp", color: "#16a34a",
 			desc: __("WhatsApp Business Cloud API: replies, templates, opt-ins"),
 			state: (d) => !d.whatsapp.installed ? ["na", __("App not installed")] : d.whatsapp.enabled && d.whatsapp.account ? ["on", d.whatsapp.account] : d.whatsapp.enabled ? ["warn", __("Choose an account")] : ["off", __("Off")] },
+		{ key: "whatchimp", cat: "messaging", name: "WhatChimp", glyph: "whatsapp", color: "#25d366",
+			desc: __("WhatsApp text messages through WhatChimp, inside the 24-hour window"),
+			state: (d) => d.whatsapp.provider === "WhatChimp" ? (d.values.whatchimp_api_token ? ["on", __("Sending")] : ["warn", __("Needs a token")]) : ["off", __("Not used")] },
 		{ key: "facebook", cat: "social", name: __("Facebook & Messenger"), mark: "f", color: "#1877f2",
 			desc: __("Pages: approved posts, Messenger chats, buying comments"),
 			state: (d) => social(d, ["Facebook Page"]) },
@@ -83,6 +86,9 @@
 		{ key: "email", cat: "email", name: __("Email"), glyph: "mail", color: "#2563eb",
 			desc: __("Your outgoing mailbox for replies and campaigns"),
 			state: (d) => d.twilio.email ? ["on", __("Through SendGrid")] : d.email.provider === "Brevo" ? (d.values.brevo_api_key ? ["on", __("Through Brevo")] : ["warn", __("Needs an API key")]) : d.email.account ? ["on", d.email.account] : ["warn", __("No outgoing account")] },
+		{ key: "brevo", cat: "email", name: "Brevo", glyph: "send", color: "#0b996e",
+			desc: __("Transactional email API for campaigns and outreach"),
+			state: (d) => d.email.provider === "Brevo" ? (d.values.brevo_api_key ? ["on", __("Sending")] : ["warn", __("Needs an API key")]) : ["off", __("Not used")] },
 		{ key: "sendgrid", cat: "email", name: "Twilio SendGrid", glyph: "send", color: "#0284c7",
 			desc: __("High-volume email with bounce and spam-report tracking"),
 			state: (d) => d.twilio.email ? (d.values.sendgrid_api_key ? ["on", __("Sending")] : ["warn", __("Needs an API key")]) : ["off", __("Not used")] },
@@ -608,8 +614,8 @@ function social(d, platforms, onText) {
 					+ (d.webchat.enabled && d.webchat.key ? this.section(__("Install on your website"), `<p class="sch-muted">${__("Paste before </body> on every page:")}</p>
 						${this.copy_row(__("Script tag"), `<script src="${d.webchat.script}" data-site="${d.webchat.site}" data-key="${d.webchat.key}" defer><\/script>`)}`) : "");
 			case "whatsapp":
-				if (!d.whatsapp.installed) return this.whatchimp_section() + `<div class="sch-note small">${__("Install the Frappe WhatsApp app (frappe_whatsapp) on this site to use WhatsApp.")}</div>`;
-				return this.whatchimp_section() + this.section(__("Connect"), `<button class="btn btn-primary btn-sm sch-wa-signup">${__("Connect WhatsApp with Facebook")}</button>`
+				if (!d.whatsapp.installed) return `<div class="sch-note small">${__("Install the Frappe WhatsApp app (frappe_whatsapp) on this site to use WhatsApp.")}</div>`;
+				return this.section(__("Connect"), `<button class="btn btn-primary btn-sm sch-wa-signup">${__("Connect WhatsApp with Facebook")}</button>`
 					+ `<div class="sch-note small">${__("Sign in, pick or create your number in Meta, then return here. Each customer connects its own number.")}</div>`)
 					+ this.section(__("Account"), this.fields([
 					{ f: "whatsapp_enabled", type: "check", label: __("Send and receive WhatsApp messages") },
@@ -699,6 +705,13 @@ function social(d, platforms, onText) {
 							{ f: "brevo_sender_email", label: __("Sender email (verified in Brevo)") }])) : "")
 						+ `<div class="sch-health"><button class="btn btn-default btn-sm sch-health-btn">${__("Check email health (SPF, DKIM, DMARC)")}</button>
 						<div class="sch-health-out"></div></div>`;
+			case "brevo":
+				return this.section(__("Account"), this.fields([
+						{ f: "email_provider", type: "select", label: __("Send email through"), options: ["System Email", "Twilio SendGrid", "Brevo"] },
+						{ f: "brevo_api_key", type: "secret", label: __("API key") },
+						{ f: "brevo_sender_email", label: __("Sender email (verified in Brevo)") }]));
+			case "whatchimp":
+				return this.whatchimp_section();
 			case "sendgrid":
 				return this.section(__("Account"), this.fields([
 						{ f: "email_provider", type: "select", label: __("Send email through"), options: ["System Email", "Twilio SendGrid", "Brevo"] },
