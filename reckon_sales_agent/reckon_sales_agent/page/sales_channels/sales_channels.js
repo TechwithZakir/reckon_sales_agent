@@ -82,7 +82,7 @@
 			state: (d) => d.phone.provider === "Asterisk (SIP)" ? (d.phone.asterisk ? ["on", __("Click-to-call on")] : ["warn", __("Needs the ARI address")]) : ["off", __("Not used")] },
 		{ key: "email", cat: "email", name: __("Email"), glyph: "mail", color: "#2563eb",
 			desc: __("Your outgoing mailbox for replies and campaigns"),
-			state: (d) => d.twilio.email ? ["on", __("Through SendGrid")] : d.email.account ? ["on", d.email.account] : ["warn", __("No outgoing account")] },
+			state: (d) => d.twilio.email ? ["on", __("Through SendGrid")] : d.email.provider === "Brevo" ? (d.values.brevo_api_key ? ["on", __("Through Brevo")] : ["warn", __("Needs an API key")]) : d.email.account ? ["on", d.email.account] : ["warn", __("No outgoing account")] },
 		{ key: "sendgrid", cat: "email", name: "Twilio SendGrid", glyph: "send", color: "#0284c7",
 			desc: __("High-volume email with bounce and spam-report tracking"),
 			state: (d) => d.twilio.email ? (d.values.sendgrid_api_key ? ["on", __("Sending")] : ["warn", __("Needs an API key")]) : ["off", __("Not used")] },
@@ -359,6 +359,15 @@ function social(d, platforms, onText) {
 			return `<section><h4>${e(title)}</h4>${html}</section>`;
 		}
 
+		// WhatsApp through WhatChimp: text messages in the 24-hour window; does not need frappe_whatsapp.
+		whatchimp_section() {
+			return this.section(__("WhatChimp"), this.fields([
+				{ f: "whatsapp_provider", type: "select", label: __("WhatsApp sends through"), options: ["frappe_whatsapp", "WhatChimp"] },
+				{ f: "whatchimp_api_token", type: "secret", label: __("API token") },
+				{ f: "whatchimp_phone_number_id", label: __("Phone number ID") }]))
+				+ `<div class="sch-note small">${__("WhatChimp sends text messages inside the 24-hour window. Templates still go through frappe_whatsapp.")}</div>`;
+		}
+
 		// Email health: the DNS and sending checks for the Email tile, loaded on demand.
 		email_health_html(h) {
 			// state: "ok" (green), "bad" (red, a DNS record is missing), "" (grey, a setting is off)
@@ -599,8 +608,8 @@ function social(d, platforms, onText) {
 					+ (d.webchat.enabled && d.webchat.key ? this.section(__("Install on your website"), `<p class="sch-muted">${__("Paste before </body> on every page:")}</p>
 						${this.copy_row(__("Script tag"), `<script src="${d.webchat.script}" data-site="${d.webchat.site}" data-key="${d.webchat.key}" defer><\/script>`)}`) : "");
 			case "whatsapp":
-				if (!d.whatsapp.installed) return `<div class="sch-note small">${__("Install the Frappe WhatsApp app (frappe_whatsapp) on this site to use WhatsApp.")}</div>`;
-				return this.section(__("Connect"), `<button class="btn btn-primary btn-sm sch-wa-signup">${__("Connect WhatsApp with Facebook")}</button>`
+				if (!d.whatsapp.installed) return this.whatchimp_section() + `<div class="sch-note small">${__("Install the Frappe WhatsApp app (frappe_whatsapp) on this site to use WhatsApp.")}</div>`;
+				return this.whatchimp_section() + this.section(__("Connect"), `<button class="btn btn-primary btn-sm sch-wa-signup">${__("Connect WhatsApp with Facebook")}</button>`
 					+ `<div class="sch-note small">${__("Sign in, pick or create your number in Meta, then return here. Each customer connects its own number.")}</div>`)
 					+ this.section(__("Account"), this.fields([
 					{ f: "whatsapp_enabled", type: "check", label: __("Send and receive WhatsApp messages") },
@@ -681,15 +690,18 @@ function social(d, platforms, onText) {
 						{ f: "calling_hours", label: __("Calling hours (Bangladesh time)"), placeholder: "09:00-20:00" }]));
 			case "email":
 				return this.section(__("Sending"), this.fields([
-						{ f: "email_provider", type: "select", label: __("Send email through"), options: ["System Email", "Twilio SendGrid"] },
+						{ f: "email_provider", type: "select", label: __("Send email through"), options: ["System Email", "Twilio SendGrid", "Brevo"] },
 						{ f: "email_account", type: "link", label: __("Send from Email Account"), options: d.email.choices || [], create: "/desk/email-account/new", create_label: __("New Email Account") },
 					]))
 					+ (d.email.choices && d.email.choices.length ? "" : `<div class="sch-note small">${__("Add an outgoing Email Account, or use Twilio SendGrid.")}</div>`)
-					+ `<div class="sch-health"><button class="btn btn-default btn-sm sch-health-btn">${__("Check email health (SPF, DKIM, DMARC)")}</button>
+					+ (d.values.email_provider === "Brevo" ? this.section(__("Brevo"), this.fields([
+							{ f: "brevo_api_key", type: "secret", label: __("API key") },
+							{ f: "brevo_sender_email", label: __("Sender email (verified in Brevo)") }])) : "")
+						+ `<div class="sch-health"><button class="btn btn-default btn-sm sch-health-btn">${__("Check email health (SPF, DKIM, DMARC)")}</button>
 						<div class="sch-health-out"></div></div>`;
 			case "sendgrid":
 				return this.section(__("Account"), this.fields([
-						{ f: "email_provider", type: "select", label: __("Send email through"), options: ["System Email", "Twilio SendGrid"] },
+						{ f: "email_provider", type: "select", label: __("Send email through"), options: ["System Email", "Twilio SendGrid", "Brevo"] },
 						{ f: "sendgrid_api_key", type: "secret", label: __("API key") },
 						{ f: "sendgrid_from_email", label: __("From address (verified in SendGrid)") },
 						{ f: "sendgrid_webhook_key", type: "textarea", label: __("Signed Event Webhook public key"), help: __("Bounces and spam reports then reach your do-not-contact list.") }]))

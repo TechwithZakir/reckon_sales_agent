@@ -83,7 +83,7 @@ def send(channel: str, message, settings) -> SendResult:
 
         return SendResult(send_sms(message, settings))
     if channel == "WhatsApp":
-        return _whatsapp(message)
+        return _whatsapp(message, settings)
     if channel in CHAT_CHANNELS:
         from reckon_sales_agent.agents.chat import deliver
 
@@ -99,6 +99,10 @@ def _email(message, settings) -> SendResult:
         from reckon_sales_agent.providers.twilio import send_email
 
         return SendResult(send_email(message, settings))
+    if settings.get("email_provider") == "Brevo":
+        from reckon_sales_agent.providers.brevo import send_email as send_brevo
+
+        return SendResult(send_brevo(message, settings))
     from frappe.core.doctype.communication.email import make
 
     account = None  # the chosen account's address, when it is set up for outgoing mail; else the default
@@ -119,7 +123,11 @@ def _email(message, settings) -> SendResult:
     return SendResult(frappe.db.get_value("Communication", result.get("name"), "message_id"))
 
 
-def _whatsapp(message) -> SendResult:
+def _whatsapp(message, settings) -> SendResult:
+    if settings.get("whatsapp_provider") == "WhatChimp":
+        from reckon_sales_agent.providers.whatchimp import send_text
+
+        return SendResult(provider_message_id=send_text(message, settings))
     if "frappe_whatsapp" not in frappe.get_installed_apps():
         raise ChannelUnavailable("Install the frappe_whatsapp app to send WhatsApp messages.")
     values = {

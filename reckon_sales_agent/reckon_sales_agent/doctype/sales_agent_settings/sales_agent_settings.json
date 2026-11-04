@@ -65,6 +65,8 @@
   "sendgrid_api_key",
   "sendgrid_from_email",
   "sendgrid_webhook_key",
+  "brevo_api_key",
+  "brevo_sender_email",
   "chat_reply_sla_minutes",
   "comment_to_chat",
   "agents_section",
@@ -111,6 +113,9 @@
   "sms_account",
   "sms_sender_id",
   "whatsapp_enabled",
+  "whatsapp_provider",
+  "whatchimp_api_token",
+  "whatchimp_phone_number_id",
   "whatsapp_account",
   "limits_section",
   "monthly_discovery_limit",
@@ -423,7 +428,7 @@
    "fieldname": "email_provider",
    "fieldtype": "Select",
    "label": "Send email through",
-   "options": "System Email\nTwilio SendGrid",
+   "options": "System Email\nTwilio SendGrid\nBrevo",
    "default": "System Email"
   },
   {
@@ -431,7 +436,7 @@
    "fieldtype": "Link",
    "options": "Email Account",
    "label": "Send from Email Account",
-   "depends_on": "eval:doc.email_provider!='Twilio SendGrid'"
+   "depends_on": "eval:doc.email_provider == 'System Email'"
   },
   {
    "fieldname": "sendgrid_api_key",
@@ -451,6 +456,19 @@
    "label": "Event webhook verification key",
    "depends_on": "eval:doc.email_provider == 'Twilio SendGrid'",
    "description": "SendGrid → Mail Settings → Signed Event Webhook: the public key. Bounces and spam reports then reach the do-not-contact list."
+  },
+  {
+   "fieldname": "brevo_api_key",
+   "fieldtype": "Password",
+   "label": "Brevo API key",
+   "depends_on": "eval:doc.email_provider == 'Brevo'",
+   "description": "Brevo → SMTP & API → API keys. Sends the outreach email through the transactional API."
+  },
+  {
+   "fieldname": "brevo_sender_email",
+   "fieldtype": "Data",
+   "label": "Sender email (verified in Brevo)",
+   "depends_on": "eval:doc.email_provider == 'Brevo'"
   },
   {
    "fieldname": "chat_reply_sla_minutes",
@@ -737,6 +755,27 @@
    "label": "WhatsApp Business",
    "default": "0",
    "description": "Needs the frappe_whatsapp app and recorded WhatsApp opt-in."
+  },
+  {
+   "fieldname": "whatsapp_provider",
+   "fieldtype": "Select",
+   "label": "WhatsApp sends through",
+   "options": "frappe_whatsapp\nWhatChimp",
+   "default": "frappe_whatsapp",
+   "depends_on": "whatsapp_enabled"
+  },
+  {
+   "fieldname": "whatchimp_api_token",
+   "fieldtype": "Password",
+   "label": "WhatChimp API token",
+   "depends_on": "eval:doc.whatsapp_provider == 'WhatChimp'",
+   "description": "WhatChimp → Settings → API Developer Console."
+  },
+  {
+   "fieldname": "whatchimp_phone_number_id",
+   "fieldtype": "Data",
+   "label": "WhatChimp phone number ID",
+   "depends_on": "eval:doc.whatsapp_provider == 'WhatChimp'"
   },
   {
    "fieldname": "whatsapp_account",

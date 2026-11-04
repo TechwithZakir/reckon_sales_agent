@@ -248,8 +248,10 @@ def overview() -> dict:
         "linkedin_ready": bool(platform.get("linkedin_client_id") and platform.get("linkedin_client_secret")),
         "whatsapp": {"installed": "frappe_whatsapp" in frappe.get_installed_apps(),
                      "enabled": bool(settings.get("whatsapp_enabled")), "account": settings.get("whatsapp_account") or "",
-                     "accounts": _wa_accounts(company), "webhook": frappe.utils.get_url("/api/method/frappe_whatsapp.utils.webhook.webhook")},
-        "email": {"account": _outgoing_address(settings), "choices": frappe.get_all(
+                     "accounts": _wa_accounts(company), "provider": settings.get("whatsapp_provider") or "frappe_whatsapp",
+                     "webhook": frappe.utils.get_url("/api/method/frappe_whatsapp.utils.webhook.webhook")},
+        "email": {"account": _outgoing_address(settings), "provider": settings.get("email_provider") or "System Email",
+                  "choices": frappe.get_all(
             "Email Account", filters={"email_id": ["is", "set"]}, pluck="name", order_by="name asc")},
         "webchat": {"enabled": bool(settings.get("webchat_enabled")), "key": settings.get("webchat_key") or "",
                     "title": settings.get("webchat_title") or "", "welcome": settings.get("webchat_welcome") or "",
@@ -407,6 +409,8 @@ EDITABLE = {
     "voice_ai_greeting": "text", "voice_ai_language": "text", "voice_forward_to": "text",
     "email_provider": "text", "sendgrid_api_key": "secret", "sendgrid_from_email": "text",
     "sendgrid_webhook_key": "text", "email_account": "text", "crm_copilot_enabled": "check",
+    "brevo_api_key": "secret", "brevo_sender_email": "text",
+    "whatsapp_provider": "text", "whatchimp_api_token": "secret", "whatchimp_phone_number_id": "text",
 }
 
 
