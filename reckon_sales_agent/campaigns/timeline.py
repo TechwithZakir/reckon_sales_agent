@@ -18,6 +18,7 @@ WEIGHTS = {
 }
 PENALTIES = {"bounced": 10, "unsubscribed": 20, "complained": 30, "failed": 3, "call_not_interested": 10,
              "call_wrong_number": 10}
+REPLIES = ("replied", "positive_reply", "meeting_requested")
 HOT, WARM = 15, 5  # a positive reply or three clicks is hot; one click is warm
 
 LABELS = {
@@ -83,7 +84,9 @@ def summarize_person(events: list[dict]) -> dict:
     """The headline for one person: score, temperature, counts and the last time anything happened."""
     score = engagement_score(events)
     counts = {kind: sum(1 for e in events if e.get("event_type") == kind)
-              for kind in ("sent", "opened", "clicked", "replied", "bounced", "unsubscribed")}
+              for kind in ("sent", "opened", "clicked", "bounced", "unsubscribed")}
+    # One answer can be several events (a reply, then its classification): count the messages that were answered.
+    counts["replied"] = len({e.get("message") or f"#{i}" for i, e in enumerate(events) if e.get("event_type") in REPLIES})
     stamps = [str(e.get("event_time") or "") for e in events if e.get("event_time")]
     return {"score": score, "temperature": temperature(score, events), "counts": counts,
             "last_activity": max(stamps) if stamps else ""}

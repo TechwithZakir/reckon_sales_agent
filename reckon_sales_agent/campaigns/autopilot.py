@@ -20,7 +20,7 @@ LEVELS = (OFF, ASSIST, AUTO)
 OUTREACH_CHANNELS = frozenset({"Email", "SMS", "WhatsApp"})
 
 DESCRIPTIONS = {
-    OFF: "A person approves every message. The copilot is silent.",
+    OFF: "A person approves every message. Suggestions show in the Studio, but the agent creates no tasks and raises nothing in Agent Studio.",
     ASSIST: "The copilot suggests, and creates internal follow-up tasks for people who engage. A person approves every message.",
     AUTO: "After a person approves a campaign, its messages go out on their own, inside the sending window and daily limits.",
 }

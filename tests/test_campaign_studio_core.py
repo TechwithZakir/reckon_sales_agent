@@ -137,6 +137,13 @@ class TimelineTests(unittest.TestCase):
         self.assertEqual(rows[0]["subject"], "Hello")
         self.assertEqual(len(timeline.build_timeline(messages, events, show_internal=True)), 3)
 
+    def test_one_answer_counts_once_even_when_it_is_several_events(self):
+        # Found live: an interested reply is two events (replied, then positive_reply) and showed as 0 replies, and a
+        # campaign showed a 200% reply rate. A person's count is the messages that were answered.
+        events = [ev("replied", "M1"), ev("positive_reply", "M1"), ev("meeting_requested", "M2")]
+        self.assertEqual(timeline.summarize_person(events)["counts"]["replied"], 2)
+        self.assertEqual(timeline.summarize_person([ev("positive_reply", "M1")])["counts"]["replied"], 1)
+
     def test_person_summary(self):
         result = timeline.summarize_person([ev("sent"), ev("opened", at="2026-11-04 11:00:00"), ev("clicked", at="2026-11-04 12:00:00")])
         self.assertEqual(result["counts"]["opened"], 1)
@@ -249,6 +256,11 @@ class AutopilotTests(unittest.TestCase):
         for override in ({"campaign_active": False}, {"campaign_approved": False}, {"content_passed": False},
                          {"channel": "Call Task"}, {"channel": "Messenger"}):
             self.assertFalse(autopilot.may_auto_approve("Auto-send", **{**self.OK, **override})[0], override)
+
+    def test_off_does_not_claim_the_copilot_is_silent(self):
+        # The Studio shows suggestions at every level; Off only stops the agent acting on them.
+        self.assertNotIn("silent", autopilot.DESCRIPTIONS["Off"])
+        self.assertIn("no tasks", autopilot.DESCRIPTIONS["Off"])
 
     def test_levels_default_to_off(self):
         self.assertEqual(autopilot.normalize_level(None), "Off")

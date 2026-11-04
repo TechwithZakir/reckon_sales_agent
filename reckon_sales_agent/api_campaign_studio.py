@@ -108,11 +108,18 @@ def campaigns() -> list[dict]:
             channels.setdefault(step.parent, set()).add(step.channel or "Email")
     audiences = {r.name: r.audience_name for r in frappe.get_all(
         "Sales Audience", filters={"company": company}, fields=["name", "audience_name"], limit=500)}
+    # A reply can be two events (a reply, then its classification), so count the messages that were answered.
+    replied = {r.campaign: r.n for r in frappe.db.sql(
+        """select campaign, count(distinct message) as n from `tabSales Communication Event`
+           where company = %s and event_type in ('replied', 'positive_reply', 'meeting_requested') group by campaign""",
+        company, as_dict=True)}
     for row in rows:
         sent = row.sent_count or 0
         row.update({"channels": sorted(channels.get(row.name, [])), "audience_name": audiences.get(row.audience, ""),
+                    "replied": replied.get(row.name, 0),
                     "open_rate": rate(row.open_count or 0, sent), "click_rate": rate(row.click_count or 0, sent),
-                    "reply_rate": rate(row.reply_count or 0, sent), "bounce_rate": rate(row.bounce_count or 0, sent)})
+                    "reply_rate": min(rate(replied.get(row.name, 0), sent), 100.0),
+                    "bounce_rate": rate(row.bounce_count or 0, sent)})
     return rows
 
 

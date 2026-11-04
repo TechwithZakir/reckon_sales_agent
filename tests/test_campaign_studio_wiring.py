@@ -186,6 +186,15 @@ class AudienceResolveTests(unittest.TestCase):
         self.assertIn("row.do_not_contact", body)
         self.assertIn("return", body.split("row.do_not_contact")[1][:30])
 
+    def test_audience_rows_are_checked_by_the_parent_because_frappe_skips_child_validate(self):
+        # Found live: a row with no email, phone or record was saved without an error.
+        controller = read("reckon_sales_agent", "doctype", "sales_audience", "sales_audience.py")
+        self.assertIn("def _check_people(self):", controller)
+        self.assertIn("self._check_people()", controller)
+        self.assertIn("add a valid email or phone, or pick a record", controller)
+        child = read("reckon_sales_agent", "doctype", "sales_audience_member", "sales_audience_member.py")
+        self.assertNotIn("def validate(", child)
+
     def test_consent_is_only_recorded_with_the_audiences_stated_source(self):
         body = self.source.split("def _opt_in_fields(")[1].split("def _create_prospect(")[0]
         self.assertIn("a.opt_in_source", body)
@@ -208,6 +217,12 @@ class ApiTests(unittest.TestCase):
         core_api = read("api.py")
         for name in core:
             self.assertRegex(core_api, rf"def {name}\(", name)
+
+    def test_the_campaign_list_counts_answered_messages_not_reply_events(self):
+        body = self.api.split("def campaigns(")[1].split("def _sms_parts(")[0]
+        self.assertIn("count(distinct message)", body)
+        self.assertIn("min(rate(replied.get(row.name, 0), sent), 100.0)", body)
+        self.assertNotIn("row.reply_count", body)
 
     def test_every_writer_needs_a_manager(self):
         for name in ("create_campaign", "save_audience", "refresh_audience", "delete_audience", "set_autopilot"):

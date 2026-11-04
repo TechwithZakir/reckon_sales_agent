@@ -103,9 +103,9 @@
 					<div class="cst-tiles">
 						${tile(__("Active campaigns"), num(d.campaign_statuses.Active || 0), `${num(d.campaign_statuses["Pending Approval"] || 0)} ${__("waiting for approval")}`)}
 						${tile(__("Sent, last 30 days"), num(c.sent))}
-						${tile(__("Opened"), pct(r.open_rate), `${num(c.opened)} ${__("messages")}`)}
-						${tile(__("Clicked"), pct(r.click_rate), `${num(c.clicked)} ${__("messages")}`)}
-						${tile(__("Replied"), pct(r.reply_rate), `${num(c.replied)} ${__("messages")}`)}
+						${tile(__("Opened"), pct(r.open_rate), `${num(c.opened)} ${__("of")} ${num(c.sent)}`)}
+						${tile(__("Clicked"), pct(r.click_rate), `${num(c.clicked)} ${__("of")} ${num(c.sent)}`)}
+						${tile(__("Replied"), pct(r.reply_rate), `${num(c.replied)} ${__("of")} ${num(c.sent)}`)}
 						${tile(__("Opted out"), pct(r.unsubscribe_rate), `${num(c.unsubscribed)} ${__("people")}`)}
 					</div>
 					${a.outbound_enabled ? "" : `<div class="cst-note">${__("Sending is switched off, so campaigns run as tests and reach nobody. Turn it on in Sales Agent Settings when you are ready.")}</div>`}
@@ -167,7 +167,7 @@
 					<div class="cst-tiles">
 						${tile(__("People"), num(d.metrics.members), d.unreached ? `${num(d.unreached)} ${__("cannot be reached")}` : "")}
 						${tile(__("Sent"), num(c.sent))}
-						${tile(__("Opened"), pct(r.open_rate), `${num(c.opened)} ${__("messages")}`)}
+						${tile(__("Opened"), pct(r.open_rate), `${num(c.opened)} ${__("of")} ${num(c.sent)}`)}
 						${tile(__("Clicked"), pct(r.click_rate), `${pct(r.click_to_open_rate)} ${__("of opens")}`)}
 						${tile(__("Replied"), pct(r.reply_rate), `${num(c.positive)} ${__("interested")}`)}
 						${tile(__("Bounced"), pct(r.bounce_rate))}
