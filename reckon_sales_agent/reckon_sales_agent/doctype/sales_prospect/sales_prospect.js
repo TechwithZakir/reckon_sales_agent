@@ -22,6 +22,15 @@ frappe.ui.form.on("Sales Prospect", {
 		}
 		frm.add_custom_button(__("CRM copilot"), () => frappe.call({ method: "reckon_sales_agent.api_conversations.copilot_summary", args: { prospect: frm.doc.name } })
 			.then((r) => frappe.msgprint({ title: __("CRM copilot"), indicator: "blue", message: `<p>${frappe.utils.escape_html(r.message.summary)}</p><p><b>${__("Next step")}:</b> ${frappe.utils.escape_html(r.message.next_step)}</p>` })));
+		frm.add_custom_button(__("Campaign history"), () => frappe.xcall("reckon_sales_agent.api_campaign_studio.recipient_timeline",
+			{ prospect: frm.doc.name }).then((t) => {
+			const e = frappe.utils.escape_html;
+			frappe.msgprint({ title: __("Campaign history"), wide: true, indicator: t.temperature === "Hot" ? "red" : t.temperature === "Warm" ? "orange" : "blue",
+				message: `<p><b>${e(__(t.temperature))}</b> · ${__("score")} ${t.score} · ${t.counts.sent} ${__("sent")}, ${t.counts.opened} ${__("opened")},
+					${t.counts.clicked} ${__("clicked")}, ${t.counts.replied} ${__("replied")}</p>
+					${t.timeline.slice().reverse().map((ev) => `<div>${e(ev.at.slice(0, 16))} · <b>${e(ev.label)}</b> · ${e(ev.channel)} ${ev.campaign ? "· " + e(ev.campaign) : ""}</div>`).join("")
+					|| `<p>${__("This person has not been in a campaign yet.")}</p>`}` });
+		}), __("CRM"));
 		frm.add_custom_button(__("Propose CRM change"), () => frappe.prompt([
 			{ fieldname: "action", fieldtype: "Select", label: __("Change"), reqd: 1,
 			  options: "set_stage\nset_deal_value\nset_probability\nset_close_date\nreassign\ncreate_task\nadd_note" },

@@ -18,7 +18,7 @@ from __future__ import annotations
 import html
 import re
 
-from reckon_sales_agent.campaigns.templates import PLACEHOLDERS
+from reckon_sales_agent.campaigns.templates import BUILDER_MARK, PLACEHOLDERS
 
 TAG_RE = re.compile(r"\{\{\s*([a-z_]+)\s*\}\}")
 OPT_OUT_RE = re.compile(r"\b(stop|unsubscribe|বন্ধ)\b", re.I)
@@ -82,7 +82,7 @@ def email_html(blocks: list[dict]) -> str:
             height = min(max(int(block.get("height") or 16), 4), 80)
             rows.append(f'<div style="height:{height}px;line-height:{height}px">&nbsp;</div>')
     body = "".join(rows)
-    return ('<div style="max-width:600px;margin:0 auto;padding:24px;font-family:Arial,Helvetica,sans-serif">'
+    return (f'<div {BUILDER_MARK} style="max-width:600px;margin:0 auto;padding:24px;font-family:Arial,Helvetica,sans-serif">'
             f"{body}</div>")
 
 
@@ -229,4 +229,8 @@ def _esc(value) -> str:
 
 def _number_tags(text: str, params: list[str]) -> str:
     """Replace each merge tag with Meta's {{n}}, n counted in the order of ``params``."""
-    return TAG_RE.sub(lambda m: "{{%d}}" % (params.index(m.group(1)) + 1) if m.group(1) in params else "", text or "")
+    def number(match: re.Match) -> str:
+        name = match.group(1)
+        return "{{" + str(params.index(name) + 1) + "}}" if name in params else ""
+
+    return TAG_RE.sub(number, text or "")

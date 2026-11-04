@@ -16,6 +16,7 @@ INBOX_PAGE = "sales-inbox"
 MEETINGS_PAGE = "sales-meetings"
 TEMPLATES_PAGE = "sales-templates"
 CHANNELS_PAGE = "sales-channels"
+CAMPAIGN_STUDIO_PAGE = "campaign-studio"
 HOME_ROUTE = f"/desk/{HOME_PAGE}"
 WORKSPACE_SIDEBAR = "Sales Agent"
 
@@ -66,9 +67,12 @@ COMPANY_DOCTYPES = (
     "Sales Message Template",
     "Sales Chat Message",
     "Sales Conversation",
+    "Sales Audience",
+    "Sales Tracked Link",
 )
 CHILD_DOCTYPES = ("Sales Planned Query", "Sales Research Fact", "Sales Campaign Step", "Sales Target Location",
-                  "Sales Market Segment", "Sales Provider Budget", "Sales Social Post Target")
+                  "Sales Market Segment", "Sales Provider Budget", "Sales Social Post Target",
+                  "Sales Audience Member")
 # Vendor-only records (no company): provider request counts for budgets.
 VENDOR_DOCTYPES = ("Sales Provider Usage",)
 CHANNELS = ("Email", "SMS", "WhatsApp", "Messenger", "Instagram", "Web Chat", "Call Task", "LinkedIn Task")
@@ -103,7 +107,7 @@ LOOKUP_ONLY_DOCTYPES = frozenset(
     | set(CRM_DOCTYPES)
 )
 ALLOWED_PAGES = frozenset({HOME_PAGE, REVIEW_PAGE, ANALYTICS_PAGE, STUDIO_PAGE, SETUP_PAGE, INBOX_PAGE, MEETINGS_PAGE,
-                           TEMPLATES_PAGE, CHANNELS_PAGE, "print", "user-profile", "home"})
+                           TEMPLATES_PAGE, CHANNELS_PAGE, CAMPAIGN_STUDIO_PAGE, "print", "user-profile", "home"})
 
 LEAD_SOURCE = "Sales Agent"
 

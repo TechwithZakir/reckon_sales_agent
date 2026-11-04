@@ -1,0 +1,163 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Tracked Link",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-11-04 12:00:00.000000",
+ "modified": "2026-11-04 12:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 0,
+ "issingle": 0,
+ "editable_grid": 0,
+ "track_changes": 0,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "field_order": [
+  "company",
+  "code",
+  "kind",
+  "url",
+  "campaign",
+  "message",
+  "member",
+  "prospect",
+  "hits",
+  "bot_hits",
+  "first_hit",
+  "last_hit"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "search_index": 1,
+   "remember_last_selected_value": 1
+  },
+  {
+   "fieldname": "code",
+   "fieldtype": "Data",
+   "label": "Code",
+   "reqd": 1,
+   "unique": 1,
+   "search_index": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "kind",
+   "fieldtype": "Select",
+   "label": "Kind",
+   "options": "click\nopen",
+   "default": "click",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "url",
+   "fieldtype": "Small Text",
+   "label": "Destination"
+  },
+  {
+   "fieldname": "campaign",
+   "fieldtype": "Link",
+   "label": "Campaign",
+   "options": "Sales Campaign",
+   "search_index": 1
+  },
+  {
+   "fieldname": "message",
+   "fieldtype": "Link",
+   "label": "Message",
+   "options": "Sales Outreach Message",
+   "search_index": 1
+  },
+  {
+   "fieldname": "member",
+   "fieldtype": "Link",
+   "label": "Member",
+   "options": "Sales Campaign Member"
+  },
+  {
+   "fieldname": "prospect",
+   "fieldtype": "Link",
+   "label": "Prospect",
+   "options": "Sales Prospect"
+  },
+  {
+   "fieldname": "hits",
+   "fieldtype": "Int",
+   "label": "Visits",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "bot_hits",
+   "fieldtype": "Int",
+   "label": "Scanner visits",
+   "read_only": 1
+  },
+  {
+   "fieldname": "first_hit",
+   "fieldtype": "Datetime",
+   "label": "First visit",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_hit",
+   "fieldtype": "Datetime",
+   "label": "Last visit",
+   "read_only": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Vendor Superuser",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Admin",
+   "read": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "Reckon Sales Agent Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "Reckon Sales Agent User",
+   "read": 1,
+   "report": 1,
+   "export": 1
+  }
+ ],
+ "autoname": "hash",
+ "naming_rule": "Random"
+}

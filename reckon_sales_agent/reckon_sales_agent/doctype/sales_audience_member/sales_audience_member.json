@@ -1,0 +1,61 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Audience Member",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-11-04 12:00:00.000000",
+ "modified": "2026-11-04 12:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 1,
+ "issingle": 0,
+ "editable_grid": 1,
+ "track_changes": 0,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "field_order": [
+  "reference_doctype",
+  "reference_name",
+  "person_name",
+  "email",
+  "phone"
+ ],
+ "fields": [
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Select",
+   "label": "Record type",
+   "options": "\nSales Prospect\nCRM Lead\nContact\nCRM Deal",
+   "in_list_view": 1,
+   "description": "Pick a record, or leave blank and type a name with an email or phone."
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Record",
+   "options": "reference_doctype",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "person_name",
+   "fieldtype": "Data",
+   "label": "Name",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "phone",
+   "fieldtype": "Data",
+   "label": "Phone",
+   "in_list_view": 1
+  }
+ ]
+}

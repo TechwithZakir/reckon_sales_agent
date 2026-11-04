@@ -137,6 +137,10 @@ def plan(state: dict) -> list[Step]:
     if state.get("drafts_waiting"):
         add(Step("Engagement", "approve_drafts", ASK, "Approve messages",
                  f"{state['drafts_waiting']} message(s) are drafted and waiting for approval."))
+    if state.get("hot_recipients"):
+        n = state["hot_recipients"]
+        add(Step("Engagement", "hot_recipients", ASK, f"{n} {'person is' if n == 1 else 'people are'} showing real interest",
+                 "They clicked a campaign link more than once or replied. Open Campaign Studio, Recipients, and call them."))
     if state.get("meetings_to_book") or state.get("meetings_to_log"):
         add(Step("Meetings", "meetings", ASK, "Meetings",
                  ", ".join(filter(None, [
@@ -231,6 +235,21 @@ def _crm_stalled(company: str, settings) -> int:
     return crm_stalled(company)
 
 
+def _hot_recipients(company: str, settings) -> int:
+    """People who engaged strongly with a campaign this week. The copilot is silent while autopilot is Off."""
+    import frappe
+    from frappe.utils import add_days, nowdate
+
+    from reckon_sales_agent.campaigns.autopilot import creates_followup_tasks, normalize_level
+    from reckon_sales_agent.campaigns.people import events, hot_people
+
+    if not creates_followup_tasks(normalize_level(settings.get("campaign_autopilot"))):
+        return 0
+    if not frappe.db.exists("Sales Campaign", {"company": company}):
+        return 0
+    return len(hot_people(events(company, since=add_days(nowdate(), -7))))
+
+
 def _crm_pending(company: str) -> int:
     import frappe
 
@@ -252,6 +271,7 @@ def collect_state(company: str, deep: bool = False) -> dict:
     state = {
         "crm_stalled": _crm_stalled(company, settings),
         "crm_pending": _crm_pending(company),
+        "hot_recipients": _hot_recipients(company, settings),
         "autopilot": bool(settings.get("autopilot_enabled")),
         "auto_segments": bool(settings.get("autopilot_auto_segments")),
         "auto_approve": bool(settings.auto_approve_enabled),

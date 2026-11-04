@@ -6,7 +6,7 @@ from reckon_sales_agent.agents.approvals import approval_current, campaign_paylo
 from reckon_sales_agent.tenant import protect_fields
 
 PROTECTED = ("status", "approved_by", "approved_on", "member_count", "sent_count", "reply_count",
-             "unsubscribe_count", "bounce_count", "converted_count", "approval_fingerprint", "approved_audience_size",
+             "unsubscribe_count", "bounce_count", "open_count", "click_count", "converted_count", "approval_fingerprint", "approved_audience_size",
              "content_status", "content_issues", "content_checked_on", "pilot_verdict", "pilot_summary",
              "pilot_checked_on")
 

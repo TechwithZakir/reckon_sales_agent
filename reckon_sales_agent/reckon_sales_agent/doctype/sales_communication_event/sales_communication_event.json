@@ -44,7 +44,7 @@
    "fieldname": "event_type",
    "fieldtype": "Select",
    "label": "Event Type",
-   "options": "drafted\napproved\nsent\ndry_run\ndelivered\nbounced\nreplied\npositive_reply\nmeeting_requested\nout_of_office\nunsubscribed\ncomplained\nfailed\nstopped\ntask_created\nauto_approved\napproval_invalidated\nreceived\ncall_interested\ncall_callback\ncall_not_interested\ncall_wrong_number\ncall_no_answer",
+   "options": "drafted\napproved\nsent\ndry_run\ndelivered\nbounced\nreplied\npositive_reply\nmeeting_requested\nout_of_office\nunsubscribed\ncomplained\nfailed\nstopped\ntask_created\nauto_approved\napproval_invalidated\nreceived\ncall_interested\ncall_callback\ncall_not_interested\ncall_wrong_number\ncall_no_answer\nopened\nclicked\nread",
    "in_list_view": 1
   },
   {

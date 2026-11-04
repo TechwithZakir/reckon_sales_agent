@@ -2,11 +2,11 @@
 Channels page where a Company connects them."""
 
 from __future__ import annotations
-from urllib.parse import quote
 
 import hmac
 import json
 import re
+from urllib.parse import quote
 
 import frappe
 from frappe import _

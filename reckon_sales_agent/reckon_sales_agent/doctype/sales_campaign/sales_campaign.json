@@ -25,6 +25,7 @@
   "targeting_profile",
   "head_col",
   "discovery_campaign",
+  "audience",
   "minimum_fit_score",
   "daily_limit",
   "start_date",
@@ -58,6 +59,8 @@
   "metrics_col",
   "unsubscribe_count",
   "bounce_count",
+  "open_count",
+  "click_count",
   "converted_count",
   "task_count",
   "latest_insight"
@@ -125,6 +128,13 @@
    "label": "Discovery Campaign",
    "options": "Sales Discovery Campaign",
    "description": "Optional: audience is qualified prospects of this discovery campaign."
+  },
+  {
+   "fieldname": "audience",
+   "fieldtype": "Link",
+   "label": "Audience",
+   "options": "Sales Audience",
+   "description": "Who this campaign goes to. Leave empty to use the discovery campaign above."
   },
   {
    "fieldname": "minimum_fit_score",
@@ -321,6 +331,18 @@
    "fieldname": "bounce_count",
    "fieldtype": "Int",
    "label": "Bounce Count",
+   "read_only": 1
+  },
+  {
+   "fieldname": "open_count",
+   "fieldtype": "Int",
+   "label": "Opened",
+   "read_only": 1
+  },
+  {
+   "fieldname": "click_count",
+   "fieldtype": "Int",
+   "label": "Clicked",
    "read_only": 1
   },
   {

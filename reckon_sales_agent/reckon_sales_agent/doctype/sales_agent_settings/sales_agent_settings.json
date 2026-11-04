@@ -68,6 +68,10 @@
   "brevo_api_key",
   "brevo_sender_email",
   "brevo_webhook_secret",
+  "campaign_autopilot",
+  "campaign_send_window",
+  "track_opens",
+  "track_clicks",
   "chat_reply_sla_minutes",
   "comment_to_chat",
   "agents_section",
@@ -477,6 +481,32 @@
    "label": "Brevo webhook secret",
    "depends_on": "eval:doc.email_provider == 'Brevo'",
    "description": "Put it in the notify URL on the Integrations page. Bounces, spam reports and unsubscribes then reach the do-not-contact list."
+  },
+  {
+   "fieldname": "campaign_autopilot",
+   "fieldtype": "Select",
+   "label": "Campaign autopilot",
+   "options": "Off\nAssist\nAuto-send",
+   "default": "Off",
+   "description": "Off: a person approves every message. Assist: the copilot suggests and creates follow-up tasks. Auto-send: an approved campaign's messages go out on their own."
+  },
+  {
+   "fieldname": "campaign_send_window",
+   "fieldtype": "Data",
+   "label": "Campaign sending window",
+   "description": "For example 09:00-20:00 (server time). Campaign messages wait outside it. Empty means any time."
+  },
+  {
+   "fieldname": "track_opens",
+   "fieldtype": "Check",
+   "label": "Track email opens",
+   "default": "1"
+  },
+  {
+   "fieldname": "track_clicks",
+   "fieldtype": "Check",
+   "label": "Track link clicks",
+   "default": "1"
   },
   {
    "fieldname": "chat_reply_sla_minutes",

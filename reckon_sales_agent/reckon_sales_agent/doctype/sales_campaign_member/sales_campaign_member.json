@@ -20,6 +20,9 @@
   "campaign",
   "prospect",
   "crm_lead",
+  "audience",
+  "source_doctype",
+  "source_name",
   "email",
   "phone",
   "reply_classification",
@@ -65,6 +68,24 @@
    "fieldtype": "Link",
    "label": "CRM Lead",
    "options": "CRM Lead"
+  },
+  {
+   "fieldname": "audience",
+   "fieldtype": "Link",
+   "label": "Audience",
+   "options": "Sales Audience"
+  },
+  {
+   "fieldname": "source_doctype",
+   "fieldtype": "Data",
+   "label": "Came from (record type)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_name",
+   "fieldtype": "Data",
+   "label": "Came from (record)",
+   "read_only": 1
   },
   {
    "fieldname": "email",

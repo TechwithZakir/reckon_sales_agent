@@ -16,7 +16,7 @@ from frappe import _
 from frappe.utils import add_days, get_url, getdate, now_datetime, nowdate
 
 from reckon_sales_agent.campaigns.suppression import is_suppressed, suppress
-from reckon_sales_agent.campaigns.templates import footer, render, text_to_html
+from reckon_sales_agent.campaigns.templates import footer, is_builder_html, render, text_to_html
 from reckon_sales_agent.constants import TASK_CHANNELS, USAGE_AI, USAGE_MESSAGE
 from reckon_sales_agent.discovery.normalize import normalize_phone
 from reckon_sales_agent.providers.channels import ChannelUnavailable, reachability, send
@@ -93,7 +93,7 @@ def build_members(campaign) -> int:
         frappe.db.set_value("Sales Campaign Member", waiting, {"status": "Active", "next_action_on": nowdate(),
                                                                 "eligibility_reason": "Started after the pilot was scaled."})
         treated += 1
-    for name in frappe.get_all("Sales Prospect", filters=filters, pluck="name", limit=5000):
+    for name, source in _candidates(campaign, filters):
         key = f"{campaign.name}:{name}"
         if frappe.db.exists("Sales Campaign Member", {"idempotency_key": key}):
             continue
@@ -113,6 +113,9 @@ def build_members(campaign) -> int:
             "campaign": campaign.name,
             "prospect": name,
             "crm_lead": prospect.crm_lead,
+            "audience": campaign.get("audience") or None,
+            "source_doctype": source.get("ref_doctype") or None,
+            "source_name": source.get("ref_name") or None,
             "email": prospect.email if ok else None,
             "phone": prospect.phone if ok else None,
             "status": status,
@@ -130,6 +133,19 @@ def build_members(campaign) -> int:
         _require_reapproval(campaign, f"The audience grew from {campaign.approved_audience_size} to {total} "
                                       "members after approval.")
     return added
+
+
+
+def _candidates(campaign, filters) -> list[tuple[str, dict]]:
+    """(prospect, where they came from). An audience wins over the discovery campaign and the fit score."""
+    if campaign.get("audience"):
+        from reckon_sales_agent.campaigns.audience_resolve import materialize
+
+        audience = frappe.get_doc("Sales Audience", campaign.audience)
+        if audience.company != campaign.company:
+            frappe.throw(_("That audience belongs to another Company."), frappe.PermissionError)
+        return materialize(audience)
+    return [(name, {}) for name in frappe.get_all("Sales Prospect", filters=filters, pluck="name", limit=5000)]
 
 
 # Drafting ------------------------------------------------------------------
@@ -199,7 +215,8 @@ def draft_message(campaign, member, step, key: str) -> str:
     subject = render(step.subject_template, values, escape=False)[:140]
     unsubscribe_url = get_url(f"/api/method/reckon_sales_agent.api.unsubscribe?token={member.unsubscribe_token}")
     if channel == "Email":
-        body = text_to_html(render(step.body_template, values))
+        rendered = render(step.body_template, values)
+        body = rendered if is_builder_html(rendered) else text_to_html(rendered)  # builder email is already HTML
         body += footer(values["sender_name"], settings.physical_address, unsubscribe_url)
     elif channel in ("SMS", "WhatsApp"):
         text = render(step.body_template, values, escape=False).strip()
@@ -208,6 +225,13 @@ def draft_message(campaign, member, step, key: str) -> str:
         body = text_to_html(render(step.body_template, values))
     # Internal tasks contact nobody, so they need no approval; outreach does.
     approval = settings.human_approval_required and channel not in TASK_CHANNELS
+    from reckon_sales_agent.campaigns import autopilot
+
+    auto, auto_reason = autopilot.may_auto_approve(
+        autopilot.normalize_level(settings.get("campaign_autopilot")), campaign_active=campaign.status == "Active",
+        campaign_approved=bool(campaign.get("approved_by")), content_passed=campaign.get("content_status") == "Passed",
+        channel=channel)
+    auto = bool(approval and auto)  # only matters where a person would otherwise have to approve
     message = frappe.get_doc({
         "doctype": "Sales Outreach Message",
         "company": campaign.company,
@@ -224,10 +248,15 @@ def draft_message(campaign, member, step, key: str) -> str:
         "whatsapp_params": json.dumps([str(values.get(p.strip()) or "") for p in
                                        (step.get("whatsapp_template_params") or "").split(",") if p.strip()])
         if channel == "WhatsApp" and step.get("whatsapp_template") else None,
-        "status": "Draft" if approval else "Approved",
+        "status": "Draft" if (approval and not auto) else "Approved",
+        "auto_approved_by_policy": 1 if auto else 0,
         "idempotency_key": key,
     }).insert(ignore_permissions=True)
     record_event(message, "drafted", f"draft:{message.name}")
+    if auto:
+        record_event(message, "auto_approved", f"auto:{message.name}", detail=auto_reason)
+        log_activity(campaign.company, "message_auto_approved", message, auto_reason, actor_type="agent",
+                     agent="Engagement", policy_outcome="automatic (autopilot: approved campaign)")
     return message.name
 
 
@@ -352,6 +381,12 @@ def send_message(message) -> bool:
         assert_entitled(message.company)
     except NotEntitled:
         return False
+    if not is_reply:
+        from reckon_sales_agent.campaigns.autopilot import in_window
+
+        now = now_datetime()
+        if not in_window(settings.get("campaign_send_window"), now.hour * 60 + now.minute):
+            return False  # outside the sending window: it waits, approved, until the window opens
     if _sent_today(message.company) >= (settings.daily_message_limit or 0):
         return False
     if _sent_today(message.company, campaign.name) >= (campaign.daily_limit or 0):
@@ -370,18 +405,33 @@ def send_message(message) -> bool:
         return True
 
     reserve(message.company, USAGE_MESSAGE, 1, message)
+    stored_body = message.body
     try:
+        _instrument(message, settings)
         result = send(channel, message, settings)
     except ChannelUnavailable as exc:
         message.db_set({"status": "Failed", "error": str(exc)[:500]})
         record_event(message, "failed", f"failed:{message.name}", detail=str(exc))
         return False
+    finally:
+        message.body = stored_body  # tracking changes only the copy that goes out, never what was approved
     message.db_set({"status": "Sent", "sent_on": now_datetime()})
     record_event(message, "sent", f"sent:{message.name}", provider_message_id=result.provider_message_id)
     if channel == "Email" and not settings.get("first_send_on"):
         frappe.db.set_value("Sales Agent Settings", message.company, "first_send_on", nowdate())  # warm-up starts
     _advance(campaign, member)
     return True
+
+
+def _instrument(message, settings) -> None:
+    """Track opens and clicks on the outgoing copy. A failure here must never stop the message."""
+    try:
+        from reckon_sales_agent.campaigns.track_links import instrument
+
+        instrument(message, settings)
+    except Exception:
+        frappe.log_error(title="Sales Agent link tracking failed", reference_doctype="Sales Outreach Message",
+                         reference_name=message.name)
 
 
 def _advance(campaign, member) -> None:
@@ -492,6 +542,18 @@ def handle_whatsapp(doc, method=None) -> None:
         receive_reply(message, doc.get("message") or "", f"whatsapp:{doc.name}", "WhatsApp")
         return
     _whatsapp_conversation(company, phone, doc)
+
+
+def handle_whatsapp_status(doc, method=None) -> None:
+    """``WhatsApp Message.on_update``: Meta's delivered / read / failed receipts for a campaign message we sent."""
+    if doc.get("type") != "Outgoing" or doc.get("reference_doctype") != "Sales Outreach Message":
+        return
+    kind = {"delivered": "delivered", "read": "read", "failed": "failed"}.get(str(doc.get("status") or "").lower())
+    if not kind or not doc.get("reference_name") or not frappe.db.exists("Sales Outreach Message", doc.reference_name):
+        return
+    message = frappe.get_doc("Sales Outreach Message", doc.reference_name)
+    record_event(message, kind, f"wa:{doc.name}:{kind}", provider_message_id=doc.get("message_id"))
+    _refresh_metrics(message.campaign)
 
 
 def _account_company(account: str | None) -> str | None:
@@ -724,6 +786,10 @@ def _refresh_metrics(campaign_name: str) -> None:
     def count_events(event_type):
         return frappe.db.count("Sales Communication Event", {"campaign": campaign_name, "event_type": event_type})
 
+    def count_unique(event_type):  # people reached, not repeat visits
+        return frappe.db.sql("select count(distinct message) from `tabSales Communication Event` "
+                             "where campaign = %s and event_type = %s", (campaign_name, event_type))[0][0]
+
     frappe.db.set_value("Sales Campaign", campaign_name, {
         "member_count": count_members(),
         "sent_count": count_events("sent") + count_events("dry_run"),
@@ -732,6 +798,8 @@ def _refresh_metrics(campaign_name: str) -> None:
         "meeting_count": count_events("meeting_requested"),
         "unsubscribe_count": count_events("unsubscribed"),
         "bounce_count": count_events("bounced"),
+        "open_count": count_unique("opened"),
+        "click_count": count_unique("clicked"),
         "converted_count": count_members(status="Converted"),
         "task_count": count_events("task_created"),
     }, update_modified=False)

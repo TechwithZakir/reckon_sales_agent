@@ -1,0 +1,262 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Audience",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-11-04 12:00:00.000000",
+ "modified": "2026-11-04 12:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 0,
+ "issingle": 0,
+ "editable_grid": 0,
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "field_order": [
+  "company",
+  "audience_name",
+  "audience_type",
+  "description",
+  "filters_section",
+  "status_filter",
+  "source_filter",
+  "owner_filter",
+  "filters_column",
+  "city_filter",
+  "industry_filter",
+  "minimum_fit_score",
+  "require_email",
+  "require_phone",
+  "people_section",
+  "members",
+  "consent_section",
+  "sms_opt_in",
+  "whatsapp_opt_in",
+  "opt_in_source",
+  "size_section",
+  "size",
+  "size_email",
+  "size_phone",
+  "last_refreshed"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "search_index": 1,
+   "remember_last_selected_value": 1
+  },
+  {
+   "fieldname": "audience_name",
+   "fieldtype": "Data",
+   "label": "Audience name",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "audience_type",
+   "fieldtype": "Select",
+   "label": "Who is in it",
+   "options": "Prospects\nCRM Leads\nCRM Contacts\nCustomers\nSpecific people",
+   "default": "Prospects",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "description": "Prospects: approved Sales Prospects. CRM Leads and Contacts: records in Frappe CRM. Customers: contacts with a won deal. Specific people: a list you pick."
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "filters_section",
+   "fieldtype": "Section Break",
+   "label": "Who to include",
+   "depends_on": "eval:doc.audience_type!='Specific people'"
+  },
+  {
+   "fieldname": "status_filter",
+   "fieldtype": "Small Text",
+   "label": "Statuses",
+   "depends_on": "eval:doc.audience_type=='CRM Leads'",
+   "description": "CRM lead statuses, comma separated, e.g. New, Contacted. Empty means every status."
+  },
+  {
+   "fieldname": "source_filter",
+   "fieldtype": "Data",
+   "label": "Source",
+   "depends_on": "eval:['Prospects','CRM Leads'].includes(doc.audience_type)",
+   "description": "Prospects: where they were found (source type). Leads: the lead source."
+  },
+  {
+   "fieldname": "owner_filter",
+   "fieldtype": "Link",
+   "label": "Owner",
+   "options": "User",
+   "depends_on": "eval:doc.audience_type=='CRM Leads'"
+  },
+  {
+   "fieldname": "filters_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "city_filter",
+   "fieldtype": "Data",
+   "label": "City",
+   "depends_on": "eval:doc.audience_type=='Prospects'"
+  },
+  {
+   "fieldname": "industry_filter",
+   "fieldtype": "Data",
+   "label": "Industry",
+   "depends_on": "eval:doc.audience_type=='Prospects'"
+  },
+  {
+   "fieldname": "minimum_fit_score",
+   "fieldtype": "Float",
+   "label": "Minimum fit score",
+   "depends_on": "eval:doc.audience_type=='Prospects'"
+  },
+  {
+   "fieldname": "require_email",
+   "fieldtype": "Check",
+   "label": "Only people with an email"
+  },
+  {
+   "fieldname": "require_phone",
+   "fieldtype": "Check",
+   "label": "Only people with a phone"
+  },
+  {
+   "fieldname": "people_section",
+   "fieldtype": "Section Break",
+   "label": "People",
+   "depends_on": "eval:doc.audience_type=='Specific people'"
+  },
+  {
+   "fieldname": "members",
+   "fieldtype": "Table",
+   "label": "People",
+   "options": "Sales Audience Member"
+  },
+  {
+   "fieldname": "consent_section",
+   "fieldtype": "Section Break",
+   "label": "Permission for SMS and WhatsApp",
+   "collapsible": 1,
+   "description": "Tick only if these people agreed to be texted or messaged on WhatsApp. Without it, SMS and WhatsApp steps skip them."
+  },
+  {
+   "fieldname": "sms_opt_in",
+   "fieldtype": "Check",
+   "label": "These people agreed to receive SMS"
+  },
+  {
+   "fieldname": "whatsapp_opt_in",
+   "fieldtype": "Check",
+   "label": "These people agreed to receive WhatsApp messages"
+  },
+  {
+   "fieldname": "opt_in_source",
+   "fieldtype": "Data",
+   "label": "How they agreed",
+   "description": "For example: event sign-up sheet, 3 Nov 2026. Required when either box above is ticked."
+  },
+  {
+   "fieldname": "size_section",
+   "fieldtype": "Section Break",
+   "label": "Size"
+  },
+  {
+   "fieldname": "size",
+   "fieldtype": "Int",
+   "label": "People",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "size_email",
+   "fieldtype": "Int",
+   "label": "With an email",
+   "read_only": 1
+  },
+  {
+   "fieldname": "size_phone",
+   "fieldtype": "Int",
+   "label": "With a phone",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_refreshed",
+   "fieldtype": "Datetime",
+   "label": "Last counted",
+   "read_only": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Vendor Superuser",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Admin",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "Reckon Sales Agent User",
+   "read": 1,
+   "report": 1,
+   "export": 1
+  }
+ ],
+ "autoname": "format:AUD-{#####}",
+ "naming_rule": "Expression",
+ "title_field": "audience_name",
+ "show_title_field_in_link": 1
+}

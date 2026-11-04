@@ -10,6 +10,71 @@ def rate(numerator: int, denominator: int) -> float:
     return round(100.0 * numerator / denominator, 1) if denominator else 0.0
 
 
+# Which funnel step each event feeds (a unique message is counted once per step).
+FUNNEL_STEPS = {
+    "sent": "sent", "dry_run": "sent", "delivered": "delivered", "opened": "opened", "clicked": "clicked",
+    "read": "read", "replied": "replied", "positive_reply": "replied", "meeting_requested": "replied",
+    "bounced": "bounced", "unsubscribed": "unsubscribed", "complained": "complained",
+}
+POSITIVE_EVENTS = ("positive_reply", "meeting_requested")
+
+
+def funnel(events: list[dict]) -> dict:
+    """Unique-message funnel, rates, a daily series and the hours people open. Events need ``event_type``;
+    ``message``, ``channel`` and ``event_time`` are used when present (without ``message`` each event counts once)."""
+    steps = ("sent", "delivered", "opened", "clicked", "read", "replied", "positive", "bounced", "unsubscribed",
+             "complained")
+    seen = {step: set() for step in steps}
+    per_channel: dict[str, dict] = {}
+    by_day: dict[str, dict] = {}
+    open_hours: dict[str, int] = {}
+    totals = {"opens": 0, "clicks": 0}
+    for index, event in enumerate(events):
+        kind = event.get("event_type")
+        step = FUNNEL_STEPS.get(kind)
+        if not step:
+            continue
+        key = event.get("message") or f"#{index}"
+        channel = event.get("channel") or "Email"
+        chan = per_channel.setdefault(channel, {name: set() for name in steps})
+        targets = [step] + (["positive"] if kind in POSITIVE_EVENTS else [])
+        for target in targets:
+            seen[target].add(key)
+            chan[target].add(key)
+        day = str(event.get("event_time") or "")[:10]
+        if day:
+            bucket = by_day.setdefault(day, {"sent": 0, "opened": 0, "clicked": 0, "replied": 0})
+            if step in bucket:
+                bucket[step] += 1
+        if kind == "opened":
+            totals["opens"] += 1
+            hour = str(event.get("event_time") or "")[11:13]
+            if hour.isdigit():
+                open_hours[hour] = open_hours.get(hour, 0) + 1
+        if kind == "clicked":
+            totals["clicks"] += 1
+
+    def counts(source: dict) -> dict:
+        return {name: len(values) for name, values in source.items()}
+
+    def rates(c: dict) -> dict:
+        return {
+            "open_rate": rate(c["opened"], c["sent"]), "click_rate": rate(c["clicked"], c["sent"]),
+            "click_to_open_rate": rate(c["clicked"], c["opened"]), "reply_rate": rate(c["replied"], c["sent"]),
+            "positive_rate": rate(c["positive"], c["sent"]), "bounce_rate": rate(c["bounced"], c["sent"]),
+            "unsubscribe_rate": rate(c["unsubscribed"], c["sent"]), "delivery_rate": rate(c["delivered"], c["sent"]),
+            "read_rate": rate(c["read"], c["sent"]),
+        }
+
+    overall = counts(seen)
+    by_channel = {}
+    for channel, source in per_channel.items():
+        c = counts(source)
+        by_channel[channel] = {**c, **rates(c)}
+    return {"counts": overall, "rates": rates(overall), "totals": totals, "by_channel": by_channel,
+            "by_day": dict(sorted(by_day.items())), "open_hours": dict(sorted(open_hours.items()))}
+
+
 def summarize(events: list[dict], members: list[dict], deals: list[dict]) -> dict:
     """Pure aggregation, easy to test: events need event_type, channel, step_no."""
     by_channel: dict[str, dict] = {}
@@ -66,4 +131,5 @@ def summarize(events: list[dict], members: list[dict], deals: list[dict]) -> dic
         "pipeline_value": round(pipeline, 2),
         "by_channel": by_channel,
         "by_step": {str(k): v for k, v in sorted(by_step.items())},
+        "engagement": funnel(events),
     }

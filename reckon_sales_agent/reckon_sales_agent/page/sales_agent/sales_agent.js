@@ -463,6 +463,14 @@
 			}).catch(() => { this.dialing = null; });
 		}
 
+		ask_hot_recipients(body) {
+			$(`<button class="btn btn-primary btn-xs">${__("Open Campaign Studio")}</button>`).appendTo(body)
+				.on("click", () => {
+					try { localStorage.setItem("cst_tab", "recipients"); } catch (err) { /* private window */ }
+					frappe.set_route("campaign-studio");
+				});
+		}
+
 		ask_conversations(body) {
 			$(`<button class="btn btn-primary btn-xs">${__("Open Conversations")}</button>`).appendTo(body)
 				.on("click", () => frappe.set_route("sales-inbox"));

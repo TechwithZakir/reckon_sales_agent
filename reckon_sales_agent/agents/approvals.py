@@ -37,6 +37,8 @@ def campaign_payload(campaign) -> dict:
         "offer": _get(campaign, "offer") or "",
         "audience": {"discovery_campaign": _get(campaign, "discovery_campaign") or "",
                      "minimum_fit_score": float(_get(campaign, "minimum_fit_score") or 0),
+                     # Listed only when one is chosen, so campaigns approved before audiences keep their fingerprint.
+                     **({"audience": _get(campaign, "audience")} if _get(campaign, "audience") else {}),
                      # Pilot settings decide who is contacted; listed only for pilots so other fingerprints stay stable.
                      **({"pilot": [int(_get(campaign, "holdout_percent") or 0),
                                    int(_get(campaign, "pilot_max_members") or 0)]}

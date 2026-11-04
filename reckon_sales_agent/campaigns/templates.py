@@ -12,6 +12,8 @@ import re
 
 PLACEHOLDERS = ("business_name", "city", "industry", "sender_name", "offer", "personal_line", "company")
 PLACEHOLDER_RE = re.compile(r"\{\{\s*([a-z_]+)\s*\}\}")
+# The template builder marks the HTML it writes, so the engine uses it as it is instead of wrapping it as plain text.
+BUILDER_MARK = 'data-rsa-builder="1"'
 
 
 def render(template: str, values: dict, *, escape: bool = True) -> str:
@@ -23,6 +25,10 @@ def render(template: str, values: dict, *, escape: bool = True) -> str:
         return html.escape(value) if escape else value
 
     return PLACEHOLDER_RE.sub(replace, template or "")
+
+
+def is_builder_html(text: str) -> bool:
+    return (text or "").lstrip().startswith("<div") and BUILDER_MARK in (text or "")[:120]
 
 
 def text_to_html(text: str) -> str:
