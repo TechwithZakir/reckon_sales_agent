@@ -1,4 +1,4 @@
-// Message Templates: AI-written email and WhatsApp templates, approval, broadcasts, and email health.
+// Message Templates: AI-written email and WhatsApp templates, approval, and broadcasts. Email health lives in Integrations.
 // Wrapped in a closure: Desk evaluates page scripts in the global scope.
 (() => {
 	frappe.pages["sales-templates"].on_page_load = function (wrapper) {
@@ -14,11 +14,10 @@
 	class Templates {
 		constructor(page) {
 			this.page = page;
-			this.$root = $(`<div class="stp"><div class="stp-main"></div><aside class="stp-side"></aside></div>`).appendTo(page.main);
+			this.$root = $(`<div class="stp"><div class="stp-main"></div></div>`).appendTo(page.main);
 		}
 
 		load() {
-			frappe.xcall("reckon_sales_agent.api_deliverability.email_health").then((h) => this.render_health(h)).catch(() => {});
 			return frappe.xcall(API + "library").then((d) => { this.d = d; this.render(); });
 		}
 
@@ -73,21 +72,6 @@
 						message: __("Campaign {0} is waiting for your approval in the Agent Studio before anything is sent.", [e(c)]) });
 				}), __("Send {0} to a segment", [t.channel]), __("Create the campaign"));
 			});
-		}
-
-		render_health(h) {
-			const el = this.$root.find(".stp-side");
-			el.html(`<div class="stp-card"><h3>${__("Email health")}</h3>
-				<div class="stp-muted">${h.domain ? __("Sending domain: {0}", [e(h.domain)]) : e(h.error || "")}</div>
-				${(h.checks || []).map((c) => `<div class="stp-check"><span class="stp-dot ${c.ok ? "ok" : "bad"}"></span><b>${e(c.name)}</b>
-					<span class="stp-muted">${c.ok ? __("OK") : __("Missing")}</span>${c.advice ? `<div class="stp-muted">${e(c.advice)}</div>` : ""}</div>`).join("")}
-				<div class="stp-check"><span class="stp-dot ${h.warmup.enabled ? "ok" : ""}"></span><b>${__("Warm-up")}</b>
-					<span class="stp-muted">${h.warmup.enabled ? __("{0} emails today", [h.warmup.today_limit]) : __("Off")}</span></div>
-				<div class="stp-check"><span class="stp-dot ${h.safe_mode.enabled ? "ok" : ""}"></span><b>${__("Safe mode")}</b>
-					<span class="stp-muted">${h.safe_mode.enabled ? __("Only {0} allowlisted recipient(s)", [h.safe_mode.count]) : __("Off")}</span></div>
-				<div class="stp-check"><span class="stp-dot ${h.outbound_enabled ? "ok" : ""}"></span><b>${__("Sending")}</b>
-					<span class="stp-muted">${h.outbound_enabled ? __("Live") : __("Dry run: nothing is sent")}</span></div>
-				<div class="stp-muted" style="margin-top:8px">${__("Change these in Sales Agent Settings → Email safety and deliverability.")}</div></div>`);
 		}
 	}
 })();

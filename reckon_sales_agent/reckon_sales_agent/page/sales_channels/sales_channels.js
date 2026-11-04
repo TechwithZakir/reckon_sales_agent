@@ -359,6 +359,19 @@ function social(d, platforms, onText) {
 			return `<section><h4>${e(title)}</h4>${html}</section>`;
 		}
 
+		// Email health: the DNS and sending checks for the Email tile, loaded on demand.
+		email_health_html(h) {
+			// state: "ok" (green), "bad" (red, a DNS record is missing), "" (grey, a setting is off)
+			const check = (state, name, detail, advice) => `<div class="sch-check"><span class="sch-dot ${state}"></span><b>${e(name)}</b>
+				<span class="sch-muted">${detail}</span>${advice ? `<div class="sch-muted">${e(advice)}</div>` : ""}</div>`;
+			return `<div class="sch-muted">${h.domain ? __("Sending domain: {0}", [e(h.domain)]) : e(h.error || "")}</div>`
+				+ (h.checks || []).map((c) => check(c.ok ? "ok" : "bad", c.name, c.ok ? __("OK") : __("Missing"), c.advice)).join("")
+				+ check(h.warmup.enabled ? "ok" : "", __("Warm-up"), h.warmup.enabled ? __("{0} emails today", [h.warmup.today_limit]) : __("Off"))
+				+ check(h.safe_mode.enabled ? "ok" : "", __("Safe mode"), h.safe_mode.enabled ? __("Only {0} allowlisted recipient(s)", [h.safe_mode.count]) : __("Off"))
+				+ check(h.outbound_enabled ? "ok" : "", __("Sending"), h.outbound_enabled ? __("Live") : __("Dry run: nothing is sent"))
+				+ `<div class="sch-muted" style="margin-top:8px">${__("Change these in Sales Agent Settings → Email safety and deliverability.")}</div>`;
+		}
+
 		steps(list) {
 			return `<ol class="sch-steps">${list.map(([done, text]) => `<li class="${done ? "done" : ""}"><i>${done ? "✓" : ""}</i><span>${text}</span></li>`).join("")}</ol>`;
 		}
@@ -672,7 +685,8 @@ function social(d, platforms, onText) {
 						{ f: "email_account", type: "link", label: __("Send from Email Account"), options: d.email.choices || [], create: "/desk/email-account/new", create_label: __("New Email Account") },
 					]))
 					+ (d.email.choices && d.email.choices.length ? "" : `<div class="sch-note small">${__("Add an outgoing Email Account, or use Twilio SendGrid.")}</div>`)
-					+ `<a class="btn btn-default btn-sm" href="/desk/sales-templates">${__("Check email health (SPF, DKIM, DMARC)")}</a>`;
+					+ `<div class="sch-health"><button class="btn btn-default btn-sm sch-health-btn">${__("Check email health (SPF, DKIM, DMARC)")}</button>
+						<div class="sch-health-out"></div></div>`;
 			case "sendgrid":
 				return this.section(__("Account"), this.fields([
 						{ f: "email_provider", type: "select", label: __("Send email through"), options: ["System Email", "Twilio SendGrid"] },
@@ -688,6 +702,8 @@ function social(d, platforms, onText) {
 		bind(p, key, d) {
 			p.find(".sch-wa-signup").on("click", () => this.wa_signup());
 			p.find(".sch-copy-url").on("click", (ev) => frappe.utils.copy_to_clipboard(ev.currentTarget.dataset.url));
+				p.find(".sch-health-btn").on("click", (ev) => frappe.xcall("reckon_sales_agent.api_deliverability.email_health")
+					.then((h) => p.find(".sch-health-out").html(this.email_health_html(h))));
 			p.find(".sch-connect").on("click", (ev) => {
 				$(ev.currentTarget).prop("disabled", true);
 				this.call("social_connect", { provider: ev.currentTarget.dataset.provider })

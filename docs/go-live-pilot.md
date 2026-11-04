@@ -38,7 +38,7 @@ This checklist takes the Sales Agent from dry run to a controlled pilot on distr
 
 | ✓ | Step | Owner | Done when |
 |---|------|-------|-----------|
-| ☐ | **Fix SPF** for reckon.tech: one SPF TXT record ending in `~all` or `-all`, with at most 10 DNS lookups. The Facebook verification string moves to its own TXT record. | You (DNS) | Message Templates → Email health shows SPF ✓ |
+| ☐ | **Fix SPF** for reckon.tech: one SPF TXT record ending in `~all` or `-all`, with at most 10 DNS lookups. The Facebook verification string moves to its own TXT record. | You (DNS) | Integrations → Email → Check email health shows SPF ✓ |
 | ☐ | **DKIM** for the sending service is published | You (DNS) | Email health shows DKIM ✓ |
 | ☐ | **DMARC** exists. Keep `p=none` for the pilot and add a `rua=` address to receive reports. | You (DNS) | Email health shows DMARC ✓ |
 | ☐ | **Sending:** an outgoing Email Account in Frappe (default outgoing), or Integrations → Twilio SendGrid with an API key, a verified from address and the signed Event Webhook | You | The Integrations Email tile is green |
