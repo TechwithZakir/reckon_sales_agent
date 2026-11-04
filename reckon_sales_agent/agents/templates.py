@@ -17,7 +17,12 @@ from __future__ import annotations
 import json
 import re
 
-from reckon_sales_agent.campaigns.templates import PLACEHOLDER_RE, is_builder_html, strip_html
+from reckon_sales_agent.campaigns.templates import (
+    PLACEHOLDER_RE,
+    fallback_only,
+    is_builder_html,
+    strip_html,
+)
 
 TEMPLATE_SCHEMA = {
     "type": "object",
@@ -200,7 +205,7 @@ def _publish_email(doc) -> str:
         return PLACEHOLDER_RE.sub(lambda m: frappe.utils.escape_html((m.group(2) or "").strip()), text or "")
 
     name = f"{doc.template_name} · {doc.company}"[:140]
-    body = doc.body if is_builder_html(doc.body) else text_to_html(frappe.utils.escape_html(doc.body))
+    body = fallback_only(doc.body) if is_builder_html(doc.body) else text_to_html(frappe.utils.escape_html(doc.body))
     values = {"subject": fallbacks_only(doc.subject), "use_html": 1, "response_html": fallbacks_only(body)}
     if frappe.db.exists("Email Template", name):
         frappe.db.set_value("Email Template", name, values)

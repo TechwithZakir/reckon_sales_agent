@@ -434,7 +434,8 @@ def check_whatsapp(header: str, body: str, footer: str, buttons: list[dict], hea
     if header_type == "Text" and len(header or "") > WA_HEADER_MAX:
         issues.append(f"The header is {len(header)} characters; Meta allows {WA_HEADER_MAX}.")
     if header_type in ("Image", "Document") and not _https(header):
-        issues.append(f"A {header_type.lower()} header needs the https:// address of a sample for Meta to review.")
+        article = "An" if header_type == "Image" else "A"
+        issues.append(f"{article} {header_type.lower()} header needs the https:// address of a sample for Meta to review.")
     if len(footer or "") > WA_FOOTER_MAX:
         issues.append(f"The footer is {len(footer)} characters; Meta allows {WA_FOOTER_MAX}.")
     text_body = (body or "").strip()

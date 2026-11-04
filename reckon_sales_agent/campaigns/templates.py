@@ -17,7 +17,7 @@ import re
 
 # (group, key, label, sample value for previews, fallback offered when the field is inserted, needs a fallback)
 FIELDS = (
-    ("Business", "business_name", "Business name", "Acme Foods Ltd.", "your business", True),
+    ("Business", "business_name", "Business name", "Acme Foods", "your business", True),
     ("Business", "city", "City", "Dhaka", "your city", True),
     ("Business", "industry", "Industry", "food distribution", "your industry", True),
     ("Business", "website", "Website", "acmefoods.com", "", False),
@@ -25,7 +25,7 @@ FIELDS = (
     ("Contact", "contact_name", "Full name", "Rahim Uddin", "", True),
     ("Your team", "sender_name", "Sender name", "Nadia", "our team", False),
     ("Your team", "owner_name", "Record owner", "Nadia Rahman", "our team", True),
-    ("Your team", "company", "Your company", "Reckon Technologies Ltd.", "", False),
+    ("Your team", "company", "Your company", "Reckon Technologies", "", False),
     ("Campaign and AI", "offer", "Offer", "a 15-minute walkthrough", "", True),
     ("Campaign and AI", "personal_line", "AI opening line", "I saw you recently opened a second warehouse.", "", False),
 )
@@ -124,6 +124,12 @@ def resolve_dynamic(body: str, values: dict) -> str:
         return f"<div{match.group(2)}>{chosen}</div>"
 
     return DYNAMIC_RE.sub(pick, body or "")
+
+
+def fallback_only(body: str) -> str:
+    """Every dynamic block reduced to its fallback, with its rules removed. Used wherever the engine is not the one choosing
+    (the CRM email composer), so the alternatives never travel in a message."""
+    return DYNAMIC_RE.sub(lambda m: f"<div{m.group(2)}>{m.group(3)}</div>", body or "")
 
 
 def dynamic_alternatives(body: str) -> list[str]:

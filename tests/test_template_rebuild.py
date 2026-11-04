@@ -92,7 +92,7 @@ class FieldMappingTests(unittest.TestCase):
 
     def test_a_stored_whatsapp_sample_is_what_meta_receives_not_a_blank(self):
         wa = template_content.fields_to_store("WhatsApp", {"body": "Hi {{business_name|you}}, hello.", "samples": {}})
-        self.assertEqual(json.loads(wa["whatsapp_samples"])["business_name"], "Acme Foods Ltd.")
+        self.assertEqual(json.loads(wa["whatsapp_samples"])["business_name"], "Acme Foods")
 
     def test_an_empty_body_is_stored_as_a_dash_because_the_field_is_required(self):
         self.assertEqual(template_content.fields_to_store("SMS", {"text": ""})["body"], "-")
@@ -251,7 +251,7 @@ class TemplateAgentTests(unittest.TestCase):
     def test_the_crm_composer_never_receives_jinja_breaking_fallbacks_or_escaped_markup(self):
         body = self.source.split("def _publish_email(")[1].split("\ndef ")[0]
         self.assertIn("fallbacks_only", body)
-        self.assertIn("doc.body if is_builder_html(doc.body)", body)
+        self.assertIn("fallback_only(doc.body) if is_builder_html(doc.body)", body)
 
     def test_meta_receives_numbered_variables_header_footer_samples_and_buttons(self):
         body = self.source.split("def _publish_whatsapp(")[1].split("\ndef apply_to_step(")[0]
@@ -473,6 +473,34 @@ class WizardTests(unittest.TestCase):
         self.assertIn("ab_card(d, en)", self.script)
         api = read("api_campaign_studio.py")
         self.assertIn('"variants": variants.parse(s.get("subject_variants"))', api)
+
+
+class LiveFindingTests(unittest.TestCase):
+    """Found testing the rebuilt builder on the live site."""
+
+    def test_the_crm_composer_never_receives_the_rules_of_a_dynamic_block(self):
+        block = builder._dynamic({"type": "dynamic", "fallback": "Everyone else", "rules": [
+            {"field": "industry", "op": "contains", "value": "pharma", "text": "Only for pharma"}]})
+        body = f'<div {t.BUILDER_MARK} style="x">{block}</div>'
+        out = t.fallback_only(body)
+        self.assertIn("Everyone else", out)
+        self.assertNotIn("data-rsa-dynamic", out)
+        self.assertNotIn("Only for pharma", out)
+        self.assertIn(t.BUILDER_MARK, out)  # still builder HTML
+
+    def test_publishing_to_the_crm_uses_the_fallback_only(self):
+        body = read("agents", "templates.py").split("def _publish_email(")[1].split("\ndef ")[0]
+        self.assertIn("fallback_only(doc.body) if is_builder_html(doc.body)", body)
+
+    def test_a_sample_never_ends_in_a_full_stop_that_a_sentence_then_doubles(self):
+        for field in t.FIELDS:
+            self.assertFalse(field[3].endswith(".") and field[1] != "personal_line", field[1])
+        self.assertEqual(t.render("{{company}}.", {}), ".")  # fields are filled from real data, never the samples
+        self.assertNotIn("..", t.render("from {{company}}. Thanks", t.sample_values()))
+
+    def test_the_image_header_message_reads_correctly(self):
+        self.assertTrue(any(i.startswith("An image header") for i in builder.check_whatsapp("", "Body.", "", [], "Image")))
+        self.assertTrue(any(i.startswith("A document header") for i in builder.check_whatsapp("", "Body.", "", [], "Document")))
 
 
 if __name__ == "__main__":
