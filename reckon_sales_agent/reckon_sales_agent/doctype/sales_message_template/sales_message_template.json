@@ -165,6 +165,13 @@
    "description": "Comma-separated placeholders for {{1}}, {{2}}…, e.g. business_name,offer"
   },
   {
+   "fieldname": "builder_content",
+   "fieldtype": "Long Text",
+   "label": "Builder content",
+   "read_only": 1,
+   "description": "The block-builder source for this template (JSON). Edit it with the builder."
+  },
+  {
    "fieldname": "check_section",
    "fieldtype": "Section Break",
    "label": "Checks and approval"
@@ -228,6 +235,7 @@
   "body",
   "whatsapp_category",
   "whatsapp_params",
+  "builder_content",
   "check_section",
   "content_status",
   "content_issues",
