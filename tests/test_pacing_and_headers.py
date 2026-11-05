@@ -197,5 +197,13 @@ class LiveHeaderFindingTests(unittest.TestCase):
         self.assertIn('"is_reply", "body"', source)
 
 
+class SmsGatewayFailureTests(unittest.TestCase):
+    def test_a_refused_platform_gateway_marks_the_message_failed_instead_of_retrying_forever(self):
+        body = read("providers", "sms.py").split("def send(")[1].split("def receive(")[0]
+        gateway = body.split('if provider == "Platform gateway":')[1].split('if provider == "Twilio')[0]
+        self.assertIn("except Exception as exc:", gateway)
+        self.assertIn("raise ChannelUnavailable(", gateway)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -94,7 +94,13 @@ def send(message, settings) -> str | None:
             raise ChannelUnavailable("The platform SMS gateway is not installed.") from exc
         if not is_sms_configured():
             raise ChannelUnavailable("The platform SMS gateway is not configured.")
-        reference = send_sms(message.recipient.lstrip("+"), text)
+        try:
+            reference = send_sms(message.recipient.lstrip("+"), text)
+        except Exception as exc:
+            # Live test: the gateway's account was refused (BulkSMSBD "User ID not found") and the message stayed Approved,
+            # retried every ten minutes with the reason only in the Error Log. A failed send is Failed, with its reason.
+            raise ChannelUnavailable("The platform SMS gateway could not send this SMS (its account may be wrong). "
+                                     "Ask the platform owner to check it, or choose your own SMS provider in Integrations.") from exc
         return str(reference) if reference else None
     if provider == "Twilio (SMS and RCS)":
         from reckon_sales_agent.providers.twilio import credentials
