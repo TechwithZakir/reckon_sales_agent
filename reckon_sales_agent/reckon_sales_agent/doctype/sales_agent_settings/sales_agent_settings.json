@@ -68,8 +68,12 @@
   "brevo_api_key",
   "brevo_sender_email",
   "brevo_webhook_secret",
+  "brevo_daily_cap",
   "campaign_autopilot",
   "campaign_send_window",
+  "send_gap_seconds",
+  "send_gap_jitter",
+  "hourly_message_limit",
   "track_opens",
   "track_clicks",
   "chat_reply_sla_minutes",
@@ -483,6 +487,14 @@
    "description": "Put it in the notify URL on the Integrations page. Bounces, spam reports and unsubscribes then reach the do-not-contact list."
   },
   {
+   "fieldname": "brevo_daily_cap",
+   "fieldtype": "Int",
+   "label": "Brevo emails per day",
+   "default": "300",
+   "depends_on": "eval:doc.email_provider == 'Brevo'",
+   "description": "Brevo's free plan allows 300 emails a day. Raise it after upgrading in Brevo, or enter 0 for no cap."
+  },
+  {
    "fieldname": "campaign_autopilot",
    "fieldtype": "Select",
    "label": "Campaign autopilot",
@@ -495,6 +507,27 @@
    "fieldtype": "Data",
    "label": "Campaign sending window",
    "description": "For example 09:00-20:00 (server time). Campaign messages wait outside it. Empty means any time."
+  },
+  {
+   "fieldname": "send_gap_seconds",
+   "fieldtype": "Int",
+   "label": "Seconds between messages",
+   "default": "45",
+   "description": "Email, SMS and WhatsApp go out one at a time with this gap, so mailbox providers do not see a burst. 0 turns the gap off."
+  },
+  {
+   "fieldname": "send_gap_jitter",
+   "fieldtype": "Int",
+   "label": "Gap variation (%)",
+   "default": "40",
+   "description": "Each message waits a little more or less than the gap, so the rhythm is not mechanical."
+  },
+  {
+   "fieldname": "hourly_message_limit",
+   "fieldtype": "Int",
+   "label": "Messages per hour, per channel",
+   "default": "30",
+   "description": "A cap on each of Email, SMS and WhatsApp in any hour. 0 means no hourly cap (the daily limit still applies)."
   },
   {
    "fieldname": "track_opens",

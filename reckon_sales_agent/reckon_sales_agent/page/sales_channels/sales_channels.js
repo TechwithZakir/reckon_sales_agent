@@ -87,7 +87,7 @@
 			desc: __("Your outgoing mailbox for replies and campaigns"),
 			state: (d) => d.twilio.email ? ["on", __("Through SendGrid")] : d.email.provider === "Brevo" ? (d.values.brevo_api_key ? ["on", __("Through Brevo")] : ["warn", __("Needs an API key")]) : d.email.account ? ["on", d.email.account] : ["warn", __("No outgoing account")] },
 		{ key: "brevo", cat: "email", name: "Brevo", glyph: "send", color: "#0b996e",
-			desc: __("Transactional email API for campaigns and outreach"),
+			desc: __("Email API for campaigns. Free plan: 300 emails a day, each business signs up for its own"),
 			state: (d) => d.email.provider === "Brevo" ? (d.values.brevo_api_key ? ["on", __("Sending")] : ["warn", __("Needs an API key")]) : ["off", __("Not used")] },
 		{ key: "sendgrid", cat: "email", name: "Twilio SendGrid", glyph: "send", color: "#0284c7",
 			desc: __("High-volume email with bounce and spam-report tracking"),
@@ -406,8 +406,17 @@ function social(d, platforms, onText) {
 				if (f.type === "select") return `<label>${e(f.label)}<select class="form-control" data-f="${f.f}" ${dis}>${f.options.map((o) => `<option ${o === val ? "selected" : ""}>${e(o)}</option>`).join("")}</select>${help}</label>`;
 				if (f.type === "secret") return `<label>${e(f.label)}<input class="form-control" type="password" autocomplete="new-password" data-f="${f.f}" placeholder="${val ? __("Saved · type to replace") : ""}" ${dis}>${help}</label>`;
 				if (f.type === "textarea") return `<label>${e(f.label)}<textarea class="form-control" rows="3" data-f="${f.f}" ${dis}>${e(val || "")}</textarea>${help}</label>`;
+				if (f.type === "number") return `<label>${e(f.label)}<input class="form-control" type="number" min="0" max="100000" data-f="${f.f}" value="${e(val ?? "")}" ${dis}>${help}</label>`;
 				return `<label>${e(f.label)}<input class="form-control" data-f="${f.f}" value="${e(val || "")}" placeholder="${e(f.placeholder || "")}" ${dis}>${help}</label>`;
 			}).join("")}${this.data.can_manage ? `<div class="sch-actions"><button class="btn btn-primary btn-sm sch-save" data-scope="${scope}">${__("Save")}</button></div>` : ""}</div>`;
+		}
+
+		pace_section() {
+			return this.section(__("Sending pace"), this.fields([
+				{ f: "send_gap_seconds", type: "number", label: __("Seconds between messages"), help: __("Email, SMS and WhatsApp go out one at a time, not in a burst. 0 turns the gap off.") },
+				{ f: "send_gap_jitter", type: "number", label: __("Gap variation (%)"), help: __("Each message waits a little more or less, so the rhythm is not mechanical.") },
+				{ f: "hourly_message_limit", type: "number", label: __("Messages per hour, per channel"), help: __("0 means no hourly cap. The daily limit and warm-up still apply.") }]))
+				+ `<div class="sch-note small">${__("Every campaign email carries a one-click Unsubscribe header, as Gmail and Yahoo require for bulk mail.")}</div>`;
 		}
 
 		accounts(platforms, messaging) {
@@ -703,13 +712,18 @@ function social(d, platforms, onText) {
 					+ (d.values.email_provider === "Brevo" ? this.section(__("Brevo"), this.fields([
 							{ f: "brevo_api_key", type: "secret", label: __("API key") },
 							{ f: "brevo_sender_email", label: __("Sender email (verified in Brevo)") }])) : "")
+						+ this.pace_section()
 						+ `<div class="sch-health"><button class="btn btn-default btn-sm sch-health-btn">${__("Check email health (SPF, DKIM, DMARC)")}</button>
 						<div class="sch-health-out"></div></div>`;
 			case "brevo":
-				return this.section(__("Account"), this.fields([
+				return `<div class="sch-note small">${__("Brevo's free plan sends up to 300 emails a day. Each business signs up for its own free account at")} <a href="https://www.brevo.com/pricing/" target="_blank" rel="noopener">brevo.com</a> ${__("(Settings → SMTP & API → API keys), verifies its sender address in Brevo, then pastes the key here. Your emails never share another business's account or limit.")}</div>`
+					+ this.section(__("Account"), this.fields([
 						{ f: "email_provider", type: "select", label: __("Send email through"), options: ["System Email", "Twilio SendGrid", "Brevo"] },
 						{ f: "brevo_api_key", type: "secret", label: __("API key") },
 						{ f: "brevo_sender_email", label: __("Sender email (verified in Brevo)") }]))
+					+ this.section(__("Your Brevo plan"), this.fields([
+						{ f: "brevo_daily_cap", type: "number", label: __("Emails per day"), help: __("Free plan: 300. After upgrading in Brevo, raise it, or enter 0 for no cap.") }]))
+					+ this.pace_section()
 					+ this.section(__("Bounces and unsubscribes"), this.fields([
 						{ f: "brevo_webhook_secret", type: "secret", label: __("Webhook secret") }]))
 					+ this.copy_row(__("Notify URL in Brevo (Transactional → Webhooks)"), d.email.brevo_notify)

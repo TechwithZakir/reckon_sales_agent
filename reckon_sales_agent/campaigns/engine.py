@@ -13,7 +13,15 @@ from html import escape as html_escape
 
 import frappe
 from frappe import _
-from frappe.utils import add_days, get_url, getdate, now_datetime, nowdate
+from frappe.utils import (
+    add_days,
+    add_to_date,
+    get_datetime,
+    get_url,
+    getdate,
+    now_datetime,
+    nowdate,
+)
 
 from reckon_sales_agent.campaigns import variants
 from reckon_sales_agent.campaigns.suppression import is_suppressed, suppress
@@ -311,15 +319,67 @@ def approve_message(message) -> None:
     record_event(message, "approved", f"approved:{message.name}")
 
 
-def send_due_messages(company: str | None = None) -> int:
+HOUR_FULL = 3600.0  # what pace_wait returns while an hour's limit is reached (the caller does not sleep that long)
+
+
+def pace_wait(message, settings) -> float:
+    """Seconds this message must still wait for its channel's pace; 0 when it may go now.
+
+    Only real sends count (dry runs and internal tasks do not reach a mailbox). The gap is measured from the last
+    real send on the same channel, and an hour's limit counts the sends of the last 60 minutes.
+    """
+    from reckon_sales_agent.campaigns import pacing
+
+    channel = message.get("channel") or "Email"
+    if channel not in pacing.PACED_CHANNELS:
+        return 0.0
+    pace = pacing.config(settings)
+    filters = {"company": message.company, "channel": channel, "status": "Sent"}
+    if pace["hourly"]:
+        last_hour = frappe.db.count("Sales Outreach Message", {**filters, "sent_on": [">=", add_to_date(now_datetime(), hours=-1)]})
+        if pacing.hourly_reached(last_hour, pace["hourly"]):
+            return HOUR_FULL
+    if not pace["gap"]:
+        return 0.0
+    last = frappe.db.get_value("Sales Outreach Message", filters, "sent_on", order_by="sent_on desc")
+    since = (now_datetime() - get_datetime(last)).total_seconds() if last else None
+    return pacing.wait_seconds(since, pacing.message_gap(pace["gap"], pace["jitter"], message.name))
+
+
+def run_paced_send() -> None:
+    """Every ten minutes: one background job per Company with approved messages, each sending at its own pace, so one
+    Company's gaps never hold up another's."""
+    for company in frappe.get_all("Sales Outreach Message", filters={"status": "Approved"}, pluck="company", distinct=True):
+        frappe.enqueue("reckon_sales_agent.campaigns.engine.send_due_messages", queue="long", timeout=900,
+                       job_id=f"reckon_sales_agent_paced_send_{company}", deduplicate=True, company=company, pace=True,
+                       budget=540)
+
+
+def send_due_messages(company: str | None = None, pace: bool = False, budget: int = 0) -> int:
+    """Send what is approved. With ``pace`` the job waits out each message's gap (up to ``budget`` seconds in all), so
+    a long list goes out one message at a time instead of in a burst; without it a message still too soon waits."""
+    import time
+
     filters = {"status": "Approved"}
     if company:
         filters["company"] = company
     sent = 0
+    deadline = time.monotonic() + budget
     for name in frappe.get_all("Sales Outreach Message", filters=filters, pluck="name",
                                order_by="creation asc", limit=500):
         try:
-            if send_message(frappe.get_doc("Sales Outreach Message", name)):
+            message = frappe.get_doc("Sales Outreach Message", name)
+            if pace and budget and not message.get("is_reply"):
+                wait = pace_wait(message, get_settings(message.company))
+                if 0 < wait < HOUR_FULL:
+                    if time.monotonic() + wait >= deadline:
+                        continue  # no time left this run: later messages (other channels) may still be ready
+                    time.sleep(wait)
+                    frappe.db.rollback()  # end the open transaction so the next read sees other workers' sends
+                    message = frappe.get_doc("Sales Outreach Message", name)
+                    if message.status != "Approved":
+                        continue  # cancelled or sent by someone else while it waited
+            if send_message(message):
                 sent += 1
         except Exception:
             frappe.db.rollback()
@@ -422,6 +482,9 @@ def send_message(message) -> bool:
         record_event(message, "dry_run", f"dry_run:{message.name}")
         _advance(campaign, member)
         return True
+
+    if not is_reply and pace_wait(message, settings) > 0:
+        return False  # too soon after the last one, or the hour is full: it waits, approved, for the next run
 
     reserve(message.company, USAGE_MESSAGE, 1, message)
     stored_body = message.body

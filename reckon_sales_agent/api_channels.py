@@ -413,13 +413,22 @@ EDITABLE = {
     "sendgrid_webhook_key": "text", "email_account": "text", "crm_copilot_enabled": "check",
     "brevo_api_key": "secret", "brevo_sender_email": "text", "brevo_webhook_secret": "secret",
     "whatsapp_provider": "text", "whatchimp_api_token": "secret", "whatchimp_phone_number_id": "text",
+    # Sending pace and the Company's own Brevo plan: whole numbers, 0 turns the control off.
+    "send_gap_seconds": "number", "send_gap_jitter": "number", "hourly_message_limit": "number",
+    "brevo_daily_cap": "number",
 }
 
 
 def _values(settings) -> dict:
     """Current values for the panels; a secret only says whether it is set."""
-    return {field: bool(settings.get(field)) if kind == "secret" else settings.get(field)
-            for field, kind in EDITABLE.items()}
+    from reckon_sales_agent.campaigns import pacing
+
+    values = {field: bool(settings.get(field)) if kind == "secret" else settings.get(field)
+              for field, kind in EDITABLE.items()}
+    pace = pacing.config(settings)  # an unset control shows the default the engine uses
+    values.update(send_gap_seconds=pace["gap"], send_gap_jitter=pace["jitter"], hourly_message_limit=pace["hourly"],
+                  brevo_daily_cap=pacing.brevo_daily_limit(settings))
+    return values
 
 
 @frappe.whitelist(methods=["POST"])
@@ -438,6 +447,9 @@ def save_settings(data: str | dict) -> dict:
             frappe.throw(_("No WhatsApp account has that name. Pick one from the list, or create it first."))
         if kind == "check":
             value = 1 if value in (1, "1", True, "true") else 0
+        elif kind == "number":
+            if not str(value).strip().isdigit() or int(str(value).strip()) > 100000:
+                frappe.throw(_("{0} must be a whole number, 0 or more.").format(doc.meta.get_label(field)))
         elif doc.meta.get_field(field) and doc.meta.get_field(field).fieldtype == "Select":
             options = (doc.meta.get_field(field).options or "").splitlines()
             if str(value) not in options:

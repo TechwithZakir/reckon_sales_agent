@@ -125,6 +125,11 @@ def today_email_limit(settings) -> int:
     from frappe.utils import date_diff, nowdate
 
     cap = int(settings.daily_message_limit or 0)
+    if settings.get("email_provider") == "Brevo":
+        from reckon_sales_agent.campaigns.pacing import brevo_daily_limit
+
+        provider_cap = brevo_daily_limit(settings)  # the Company's own Brevo plan (free: 300 a day)
+        cap = min(cap, provider_cap) if provider_cap else cap
     if not settings.get("warmup_enabled") or not settings.get("first_send_on"):
         return cap if not settings.get("warmup_enabled") else min(cap, int(settings.get("warmup_start") or 20))
     return warmup_limit(int(settings.get("warmup_start") or 20), float(settings.get("warmup_growth") or 20),

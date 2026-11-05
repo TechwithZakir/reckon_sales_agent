@@ -10,15 +10,20 @@ BREVO_SEND_URL = "https://api.brevo.com/v3/smtp/email"
 TAG = "reckon_sales_agent"
 
 
-def email_payload(to: str, sender_email: str, sender_name: str, subject: str, html: str, message_name: str) -> dict:
-    """The JSON body for POST /v3/smtp/email. ``tags`` carry the outreach id so Brevo events can be traced back."""
-    return {
+def email_payload(to: str, sender_email: str, sender_name: str, subject: str, html: str, message_name: str,
+                  headers: dict | None = None) -> dict:
+    """The JSON body for POST /v3/smtp/email. ``tags`` carry the outreach id so Brevo events can be traced back;
+    ``headers`` carry the one-click unsubscribe pair."""
+    payload = {
         "sender": {"name": sender_name, "email": sender_email},
         "to": [{"email": to}],
         "subject": subject,
         "htmlContent": html,
         "tags": [TAG, message_name],
     }
+    if headers:
+        payload["headers"] = dict(headers)
+    return payload
 
 
 def send_email(message, settings) -> str | None:
@@ -32,7 +37,8 @@ def send_email(message, settings) -> str | None:
     if not key or not settings.get("brevo_sender_email"):
         raise ChannelUnavailable("Enter the Brevo API key and a sender email verified in Brevo in Sales Agent Settings.")
     payload = email_payload(message.recipient, settings.brevo_sender_email, settings.sender_name or message.company,
-                            message.subject or "", message.body or "", message.name)
+                            message.subject or "", message.body or "", message.name,
+                            None if message.get("is_reply") else _unsubscribe_headers(message))
     try:
         response = requests.post(BREVO_SEND_URL, json=payload, timeout=30,
                                  headers={"api-key": key, "accept": "application/json"})
@@ -41,6 +47,12 @@ def send_email(message, settings) -> str | None:
     if response.status_code >= 400:
         raise ChannelUnavailable(f"Brevo refused the email: {http_reason(response)}")
     return (response.json() or {}).get("messageId")
+
+
+def _unsubscribe_headers(message) -> dict:
+    from reckon_sales_agent.campaigns.mailheaders import headers_for
+
+    return headers_for(message)
 
 
 # Brevo event → the shape ``agents.engagement.normalize_email_events`` reads. Other events (opened, clicked,

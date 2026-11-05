@@ -137,6 +137,7 @@ doc_events["CRM Deal"]["after_insert"] = "reckon_sales_agent.campaigns.engine.ha
 # Leads synced from Meta lead forms (Frappe CRM Lead Syncing) start the speed-to-lead flow.
 doc_events["CRM Lead"]["after_insert"] = "reckon_sales_agent.leads_bridge.on_crm_lead_insert"
 # Inbound WhatsApp replies (only fires when the frappe_whatsapp app is installed).
+doc_events["Email Queue"] = {"before_insert": "reckon_sales_agent.campaigns.mailheaders.add_to_queued_email"}
 doc_events["WhatsApp Message"] = {"after_insert": "reckon_sales_agent.campaigns.engine.handle_whatsapp",
                                   # Delivered / read receipts for campaign messages we sent.
                                   "on_update": "reckon_sales_agent.campaigns.engine.handle_whatsapp_status"}
@@ -160,6 +161,7 @@ scheduler_events = {
     ],
     "cron": {
         "*/5 * * * *": ["reckon_sales_agent.agents.chat.remind_waiting"],  # chats waiting too long
+        "*/10 * * * *": ["reckon_sales_agent.campaigns.engine.run_paced_send"],  # approved messages, one at a time
         "0 8 * * *": ["reckon_sales_agent.agents.digest.send_all"],  # the morning digest (server time)
     },
     "weekly": [

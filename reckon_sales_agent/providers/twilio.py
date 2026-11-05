@@ -74,10 +74,14 @@ def click_to_call_params(agent_phone: str, lead_phone: str, from_number: str, bu
             "StatusCallback": status_url, "StatusCallbackEvent": "initiated ringing answered completed"}
 
 
-def sendgrid_payload(to: str, from_email: str, from_name: str, subject: str, html: str, message: str) -> dict:
-    return {"personalizations": [{"to": [{"email": to}], "custom_args": {"message": message}}],
-            "from": {"email": from_email, "name": from_name}, "subject": subject,
-            "content": [{"type": "text/html", "value": html}]}
+def sendgrid_payload(to: str, from_email: str, from_name: str, subject: str, html: str, message: str,
+                     headers: dict | None = None) -> dict:
+    payload = {"personalizations": [{"to": [{"email": to}], "custom_args": {"message": message}}],
+               "from": {"email": from_email, "name": from_name}, "subject": subject,
+               "content": [{"type": "text/html", "value": html}]}
+    if headers:
+        payload["headers"] = dict(headers)  # the one-click unsubscribe pair
+    return payload
 
 
 def sendgrid_events(events: list[dict]) -> list[dict]:
@@ -262,6 +266,12 @@ def voice_answer(company: str, caller: str, call_sid: str, speech: str) -> tuple
     return gather(answer + " Anything else?", action, language), "answered"
 
 
+def _unsubscribe_headers(message) -> dict:
+    from reckon_sales_agent.campaigns.mailheaders import headers_for
+
+    return headers_for(message)
+
+
 def send_email(message, settings) -> str | None:
     """One outreach email through SendGrid; returns SendGrid's message id."""
     import requests
@@ -272,7 +282,8 @@ def send_email(message, settings) -> str | None:
     if not key or not settings.get("sendgrid_from_email"):
         raise ChannelUnavailable("Enter the SendGrid API key and a verified from address in Sales Agent Settings.")
     payload = sendgrid_payload(message.recipient, settings.sendgrid_from_email, settings.sender_name or message.company,
-                               message.subject or "", message.body or "", message.name)
+                               message.subject or "", message.body or "", message.name,
+                               None if message.get("is_reply") else _unsubscribe_headers(message))
     try:
         response = requests.post("https://api.sendgrid.com/v3/mail/send", json=payload, timeout=30,
                                  headers={"Authorization": f"Bearer {key}"})

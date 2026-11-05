@@ -139,3 +139,33 @@ Run `scripts/deploy.sh` as usual. The migration adds the new doctypes and settin
 * Messenger and Instagram campaigns: Meta only allows replies inside its 24-hour window, so these stay conversations.
 * WhatChimp template sending, and Brevo opens and clicks (Reckon tracks those itself, whichever provider sends).
 * The campaign history panel inside the `/crm` app (it is on the prospect form and in the Studio).
+
+## Sending pace, spam protection and Brevo
+
+Bulk mail that leaves in a burst looks like spam, so every Company's Email, SMS and WhatsApp go out at a pace
+(Integrations, **Email** and **Brevo** panels, "Sending pace"):
+
+- **Seconds between messages** (default 45) with **variation** (default 40%): each message waits its own, repeatable
+  length, so the rhythm is not mechanical. 0 turns the gap off.
+- **Messages per hour, per channel** (default 30; 0 = no hourly cap). The daily limit, warm-up, sending window and
+  allowlist still apply on top.
+- A job runs every ten minutes, one per Company, and sends approved messages one at a time at that pace. A message that
+  is too soon, or in a full hour, simply waits (approved) for the next run. Dry runs, internal tasks and replies to
+  people who wrote to us are never delayed.
+
+Every campaign email carries `List-Unsubscribe` and `List-Unsubscribe-Post: List-Unsubscribe=One-Click` (RFC 8058), as
+Gmail and Yahoo expect from bulk senders. Brevo and SendGrid get them in the API request; mail through the site's own
+Email Account gets them added in the Email Queue. A POST to the link unsubscribes without a page.
+
+**Brevo free plan.** Each business signs up for its own free account (300 emails a day), verifies its sender address and
+pastes the API key. "Emails per day" in the Brevo panel (default 300) lowers the Company's daily email limit to match
+the plan; raise it after upgrading in Brevo, or set 0 for no cap. Accounts and limits are never shared between businesses.
+
+### Live test plan (3 to 5 addresses you own)
+
+1. Use a campaign with approved messages to your own addresses and turn on a gap of 20 seconds.
+2. Watch the messages' `sent_on`: roughly 14 to 28 seconds apart, never in one second.
+3. In the received email, open "Show original" and check `List-Unsubscribe` and `List-Unsubscribe-Post`; in Gmail
+   the "Unsubscribe" link shows beside the sender.
+4. Open the email and click a link: the open and click appear on the recipient's timeline and the campaign funnel.
+5. Reply and unsubscribe from one address: the member stops, the address is suppressed, nothing more is sent to it.
