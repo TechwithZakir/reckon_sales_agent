@@ -391,7 +391,17 @@ function social(d, platforms, onText) {
 			return `<ol class="sch-steps">${list.map(([done, text]) => `<li class="${done ? "done" : ""}"><i>${done ? "✓" : ""}</i><span>${text}</span></li>`).join("")}</ol>`;
 		}
 
+		// An address to paste into another service uses the domain this page was opened on, so moving the site to a new
+		// domain needs no change here: the server's own idea of its address (host_name) may still be the old one.
+		rebase(text) {
+			const here = window.location.origin, value = String(text == null ? "" : text);
+			const site = ((this.data && this.data.webchat && this.data.webchat.site) || "").replace(/\/+$/, "");
+			if (site && site !== here && value.includes(site)) return value.split(site).join(here);
+			return value.includes("<") ? value : value.replace(/^https?:\/\/[^/\s"]+/i, here);
+		}
+
 		copy_row(label, url) {
+			url = this.rebase(url);
 			return `<div class="sch-url"><span>${e(label)}</span><div><code>${e(url)}</code>
 				<button class="btn btn-default btn-xs sch-copy-url" data-url="${e(url)}" title="${__("Copy")}">${icon("copy", 13)}</button></div></div>`;
 		}

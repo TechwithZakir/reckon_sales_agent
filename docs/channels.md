@@ -202,3 +202,16 @@ The Channels page has the following:
   button that makes a new webhook verify token.
 - **For each Company:** one-click Connect buttons and every webhook address with a Copy button.
 
+
+## Moving the site to another domain
+
+Every address you paste into another service (Meta and LinkedIn callbacks, WhatsApp, Twilio, Brevo, SendGrid, the web chat
+script) is shown on the Integrations page using the domain you opened the page on. Open Integrations on the new domain
+and copy the addresses again; nothing in the app needs editing.
+
+Two things live outside the page and need the new domain once:
+
+1. The site's own address, which links in sent email (unsubscribe, open and click tracking) and the OAuth redirect are
+   built from: `bench --site <site> set-config host_name https://app.reckon.tech`, then restart.
+2. The addresses already pasted into Meta, LinkedIn, Twilio, Brevo and SendGrid: replace them with the new ones. Links in
+   emails already sent keep the old domain, so keep the old domain redirecting to the new one for a while.

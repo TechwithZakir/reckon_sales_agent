@@ -1,6 +1,6 @@
 # Go-live checklist: the first pilot
 
-This checklist takes the Sales Agent from dry run to a controlled pilot on distribution.reckon.tech.
+This checklist takes the Sales Agent from dry run to a controlled pilot on app.reckon.tech.
 - **Pilot:** CAMP-00472 (pharma distributors), phone-first, with email follow-ups, for two weeks.
 - **Rule for every phase:** finish it before the next one; nothing in a later phase is safe without the earlier
   ones.
