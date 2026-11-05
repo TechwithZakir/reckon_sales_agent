@@ -173,5 +173,29 @@ class LiveFindingTests(unittest.TestCase):
         self.assertIn('[:140] or f"{channel} message"', body)
 
 
+class LiveHeaderFindingTests(unittest.TestCase):
+    """Live test: the queued email had no List-Unsubscribe, because a background worker builds http links."""
+
+    FOOT = '<a href="https://crm.example.com/api/method/reckon_sales_agent.api.unsubscribe?token=abc123" rel="noopener">Unsubscribe</a>'
+
+    def test_the_footer_link_is_the_source(self):
+        self.assertEqual(pacing.unsubscribe_url_from_body("<p>Hi</p>" + self.FOOT),
+                         "https://crm.example.com/api/method/reckon_sales_agent.api.unsubscribe?token=abc123")
+        self.assertEqual(pacing.unsubscribe_url_from_body("<p>No link</p>"), "")
+        self.assertEqual(pacing.unsubscribe_url_from_body('<a href="https://evil.example/x?token=abc">x</a>'), "")
+
+    def test_a_public_http_link_becomes_https_and_a_local_one_stays(self):
+        self.assertEqual(pacing.ensure_https("http://crm.example.com/x?token=a"), "https://crm.example.com/x?token=a")
+        self.assertEqual(pacing.ensure_https("http://localhost:8000/x"), "http://localhost:8000/x")
+        self.assertEqual(pacing.ensure_https("https://crm.example.com/x"), "https://crm.example.com/x")
+
+    def test_the_header_uses_the_body_link_first(self):
+        source = read("campaigns", "mailheaders.py")
+        body = source.split("def unsubscribe_url_for(")[1].split("\ndef headers_for(")[0]
+        self.assertLess(body.index("unsubscribe_url_from_body"), body.index("unsubscribe_token"))
+        self.assertIn("ensure_https", body)
+        self.assertIn('"is_reply", "body"', source)
+
+
 if __name__ == "__main__":
     unittest.main()

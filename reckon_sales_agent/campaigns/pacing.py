@@ -11,6 +11,7 @@ Bulk senders are also expected to carry a one-click unsubscribe header (RFC 8058
 from __future__ import annotations
 
 import hashlib
+import re
 
 PACED_CHANNELS = ("Email", "SMS", "WhatsApp")  # internal tasks and chat replies contact nobody in bulk
 
@@ -77,6 +78,25 @@ def unsubscribe_headers(url: str) -> dict:
     if any(ch in url for ch in "<>\r\n "):
         return {}
     return {"List-Unsubscribe": f"<{url}>", "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"}
+
+
+UNSUBSCRIBE_LINK_RE = re.compile(r'href="([^"]*reckon_sales_agent\.api\.unsubscribe\?token=[A-Za-z0-9]+)"')
+
+
+def unsubscribe_url_from_body(body: str) -> str:
+    """The unsubscribe link already in the email footer, exactly as the recipient sees it. A background worker builds links
+    without the request's scheme (http), so the footer written while a person was approving is the reliable source."""
+    match = UNSUBSCRIBE_LINK_RE.search(body or "")
+    return match.group(1).replace("&amp;", "&") if match else ""
+
+
+def ensure_https(url: str) -> str:
+    """A public http link becomes https (the header standard needs it); a local development address stays as it is."""
+    if url.lower().startswith("http://"):
+        host = url[7:].split("/", 1)[0].split(":", 1)[0].lower()
+        if host not in ("localhost", "127.0.0.1", "::1") and not host.endswith((".localhost", ".test")):
+            return "https://" + url[7:]
+    return url
 
 
 def add_headers_to_mime(raw: str, headers: dict) -> str:
