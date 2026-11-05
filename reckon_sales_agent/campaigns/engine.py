@@ -235,7 +235,8 @@ def draft_message(campaign, member, step, key: str) -> str:
     _ok, _reason, recipient = reachability(channel, prospect, settings)
     # A/B test: each person gets one of the template's subject lines, the same one every time it is asked.
     letter, chosen_subject = variants.choose(key, step.subject_template or "", step.get("subject_variants"))
-    subject = render(chosen_subject, values, escape=False)[:140]
+    # SMS and WhatsApp have no subject line, but the message record requires one: it is only a label there.
+    subject = render(chosen_subject, values, escape=False)[:140] or f"{channel} message"
     unsubscribe_url = get_url(f"/api/method/reckon_sales_agent.api.unsubscribe?token={member.unsubscribe_token}")
     if channel == "Email":
         # Dynamic blocks pick their content for this person first, then the fields are filled.

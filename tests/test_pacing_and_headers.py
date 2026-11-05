@@ -166,5 +166,12 @@ class WiringTests(unittest.TestCase):
         self.assertIn('f: "brevo_daily_cap"', js)
 
 
+class LiveFindingTests(unittest.TestCase):
+    def test_a_message_without_a_subject_line_still_gets_a_label(self):
+        """Live test: drafting an SMS failed with 'Value missing for Sales Outreach Message: Subject'."""
+        body = read("campaigns", "engine.py").split("def draft_message(")[1].split("\ndef _personal_line(")[0]
+        self.assertIn('[:140] or f"{channel} message"', body)
+
+
 if __name__ == "__main__":
     unittest.main()
