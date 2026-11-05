@@ -205,5 +205,16 @@ class SmsGatewayFailureTests(unittest.TestCase):
         self.assertIn("raise ChannelUnavailable(", gateway)
 
 
+class SmsSecretTests(unittest.TestCase):
+    def test_a_refusal_never_carries_the_providers_key(self):
+        """Live test: BulkSMSBD answered 'user id not found in this <key> key' and it was stored on the message."""
+        body = read("providers", "sms.py").split("def send(")[1].split("def receive(")[0]
+        self.assertIn('secret = ""', body)
+        self.assertIn("secret = key", body)
+        self.assertIn("secret = token or \"\"", body)
+        refused = body.split("if not ok:")[1]
+        self.assertLess(refused.index('detail.replace(secret, "***")'), refused.index("raise ChannelUnavailable"))
+
+
 if __name__ == "__main__":
     unittest.main()

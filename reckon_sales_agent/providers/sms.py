@@ -87,6 +87,7 @@ def send(message, settings) -> str | None:
 
     text = html_to_text(message.body)[:SMS_MAX_CHARS]
     provider = settings.get("sms_provider") or "Platform gateway"
+    secret = ""  # the provider's key or token, kept out of any error text
     if provider == "Platform gateway":
         try:
             from reckon_saas_platform.sms import is_sms_configured, send_sms
@@ -106,6 +107,7 @@ def send(message, settings) -> str | None:
         from reckon_sales_agent.providers.twilio import credentials
 
         sid, token = credentials(settings)
+        secret = token or ""
         if not settings.get("twilio_messaging_service_sid") and not settings.get("twilio_phone_number"):
             raise ChannelUnavailable("Enter a Twilio Messaging Service SID or phone number.")
         request = build_request(provider, to=message.recipient, text=text, key=token,
@@ -115,6 +117,7 @@ def send(message, settings) -> str | None:
         key = settings.get_password("sms_api_key", raise_exception=False) if settings.get("sms_api_key") else ""
         if not key or not settings.get("sms_sender_id"):
             raise ChannelUnavailable(f"Enter your {provider} key and sender ID in Sales Agent Settings.")
+        secret = key
         request = build_request(provider, to=message.recipient, text=text, key=key, sender=settings.sms_sender_id,
                                 account=settings.get("sms_account") or "", reference=message.name)
     try:
@@ -127,6 +130,10 @@ def send(message, settings) -> str | None:
         body = {}
     ok, detail = parse_result(provider, response.status_code, body if isinstance(body, dict) else {})
     if not ok:
+        # Live test: BulkSMSBD's refusal repeats the API key ("user id not found in this <key> key"), and the reason is
+        # stored on the message and its event, so a secret must never travel with it.
+        if secret:
+            detail = detail.replace(secret, "***")
         raise ChannelUnavailable(f"{provider} refused the SMS: {detail[:200]}")
     return detail or None
 
