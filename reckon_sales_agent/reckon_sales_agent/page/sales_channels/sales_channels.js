@@ -727,7 +727,7 @@ function social(d, platforms, onText) {
 					+ this.section(__("Bounces and unsubscribes"), this.fields([
 						{ f: "brevo_webhook_secret", type: "secret", label: __("Webhook secret") }]))
 					+ this.copy_row(__("Notify URL in Brevo (Transactional → Webhooks)"), d.email.brevo_notify)
-					+ `<div class="sch-note small">${__("Add your webhook secret in place of <your secret> in the notify URL. Brevo does not sign its events, so the secret is the check.")}</div>`;
+					+ `<div class="sch-note small">${__("Add your webhook secret in place of &lt;your secret&gt; in the notify URL. Brevo does not sign its events, so the secret is the check.")}</div>`;
 			case "whatchimp":
 				return this.whatchimp_section();
 			case "sendgrid":
