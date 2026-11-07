@@ -224,6 +224,12 @@ class EngineWiringTests(unittest.TestCase):
         resolve = read("campaigns", "audience_resolve.py")
         self.assertIn("SEGMENT: _segment", resolve)
 
+    def test_the_simulator_shows_names_not_ids(self):
+        simulate = read("api_automation.py").split("def simulate(")[1].split("@frappe.whitelist")[0]
+        self.assertIn("template_name", simulate)
+        self.assertIn("segment_name", simulate)
+        self.assertIn("form_name", simulate)
+
     def test_studio_list_hides_an_automations_own_campaign(self):
         self.assertIn('"automation": ["is", "not set"]', read("api_campaign_studio.py"))
 

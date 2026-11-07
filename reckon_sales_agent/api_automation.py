@@ -125,10 +125,19 @@ def check(flow) -> dict:
 @frappe.whitelist(methods=["POST"])
 def simulate(flow, decisions=None) -> dict:
     """The path one person would take, step by step and with the time each step is reached. Nothing is sent or changed."""
+    company = current_company()
     clean = fl.normalize(_json(flow))
     path = fl.walk(clean, _json(decisions) if decisions else {})
+    names = {r.name: r.template_name for r in frappe.get_all("Sales Message Template", filters={"company": company},
+                                                             fields=["name", "template_name"], limit=500)}
+    names.update({r.name: r.segment_name for r in frappe.get_all("Sales Segment", filters={"company": company},
+                                                                 fields=["name", "segment_name"], limit=500)})
+    names.update({r.slug: r.form_name for r in frappe.get_all("Sales Capture Form", filters={"company": company},
+                                                              fields=["slug", "form_name"], limit=500)})
     for step in path:
         step["when"] = fl.duration_text(step["after_minutes"])
+        for key, label in names.items():  # the flow stores ids; a person reads names
+            step["label"] = step["label"].replace(key, label or key)
     return {"path": path, "total": fl.duration_text(path[-1]["after_minutes"] if path else 0)}
 
 
