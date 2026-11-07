@@ -39,6 +39,43 @@
 		["voice", __("Calls & SMS")], ["email", __("Email")], ["ai", __("AI & team")]];
 	const STATE_LABEL = { on: __("Connected"), warn: __("Needs attention"), off: __("Not connected"), na: __("Unavailable") };
 
+	// What a non-technical owner should ask their IT person for, per integration. Plain words; no jargon.
+	const IT_NOTES = {
+		whatsapp: [__("A WhatsApp Business account with a phone number that is not used on the normal WhatsApp app"), __("Access to the company’s Facebook Business account to approve the connection")],
+		whatchimp: [__("The WhatChimp API token and phone number ID"), __("Confirmation that the WhatChimp plan allows sending through its API")],
+		facebook: [__("Admin access to the Facebook Page"), __("Someone who can sign in to Facebook and tick the Pages to connect")],
+		instagram: [__("An Instagram professional account linked to a Facebook Page"), __("Admin access to that Facebook Page")],
+		linkedin: [__("Admin access to the LinkedIn company page"), __("Someone who can sign in to LinkedIn and approve the connection")],
+		meta_leads: [__("Admin access to the Facebook Page that runs the lead ads"), __("Permission to read leads on that Page")],
+		linkedin_leads: [__("Admin access to the LinkedIn ad account"), __("Approval from LinkedIn for lead form access")],
+		twilio: [__("The Twilio Account SID and Auth Token"), __("A Twilio phone number (and a Messaging Service ID if you want RCS)"), __("Someone to paste our web addresses into the Twilio console")],
+		voice_ai: [__("Twilio connected first"), __("Agreement from your team that callers are told it is an AI assistant")],
+		sms: [__("The SMS provider API key and sender ID (BulkSMSBD or SSL Wireless)"), __("Our server’s address added to the provider’s allowed list, if they ask for one")],
+		asterisk: [__("The address of the office phone system (HTTPS) and a user name and password for it"), __("Your 09-series number from the phone provider")],
+		email: [__("An outgoing email account on the company domain, or an API key from an email service"), __("Someone who can add SPF and DKIM records to the domain’s DNS")],
+		brevo: [__("A Brevo account (the free plan sends 300 emails a day) and its API key"), __("The sender email address verified in Brevo"), __("Someone to add Brevo’s DNS records to the domain")],
+		sendgrid: [__("A SendGrid API key and a verified sender address"), __("Someone to add SendGrid’s DNS records to the domain")],
+		webchat: [__("The list of websites where the chat may appear"), __("Someone who can paste one line of code into the website")],
+		ai: [__("Nothing: your system provider chooses the AI. Ask them if it shows as off.")],
+		autopilot: [__("Nothing technical. Decide with your manager what the AI may answer on its own.")],
+	};
+
+	function it_message(item, d) {
+		const lines = (IT_NOTES[item.key] || []).map((t) => "- " + t);
+		if (!lines.length) return "";
+		return [__("Hello,"), "",
+			__("We are connecting “{0}” to our Reckon Sales Agent ({1}). Could you please arrange the following?", [item.name, window.location.origin]), "",
+			...lines, "", __("Please send the values to me by a safe channel (not in a group chat). Thank you."),
+		].join("\n");
+	}
+
+	function it_block(item, d) {
+		const list = IT_NOTES[item.key];
+		if (!list || !list.length) return "";
+		return `<div class="sch-it"><b>${__("Ask your IT person for")}</b><ul>${list.map((t) => `<li>${e(t)}</li>`).join("")}</ul>
+			<button class="btn btn-default btn-xs sch-it-copy">${__("Copy a message for your IT person")}</button></div>`;
+	}
+
 	// The gallery. ``state(d)`` -> [on|warn|off|na, short text]; ``body(d)`` -> the panel; ``bind($p, d)`` wires it.
 	const INTEGRATIONS = [
 		{ key: "autopilot", cat: "ai", name: __("AI autopilot & team"), glyph: "spark", color: "#7c3aed",
@@ -343,10 +380,14 @@ function social(d, platforms, onText) {
 					${key === "vendor" ? "" : `<span class="sch-state ${state}"><i></i>${e(STATE_LABEL[state])}</span>`}
 					${key === "vendor" ? "" : `<button class="btn btn-default btn-xs sch-help" title="${__("AI guide")}" aria-label="${__("AI guide")}">?</button>`}
 					<button class="btn btn-default btn-xs sch-close" aria-label="${__("Close")}">${icon("close", 14)}</button></header>
-				<div class="sch-help-box"></div><div class="sch-panel-body">${this.body(key, d)}${this.guides(key)}</div>`);
+				<div class="sch-help-box"></div><div class="sch-panel-body">${it_block(item, d)}${this.body(key, d)}${this.guides(key)}</div>`);
 			this.$root.find(".sch-drawer").addClass("open").attr("aria-hidden", "false");
 			panel.find(".sch-close").on("click", () => this.close());
 			panel.find(".sch-help").on("click", () => this.help(panel, key));
+			panel.find(".sch-it-copy").on("click", () => {
+				frappe.utils.copy_to_clipboard(it_message(item, d));
+				frappe.show_alert({ message: __("Message copied. Paste it into an email or chat."), indicator: "green" });
+			});
 			this.bind(panel, key, d);
 		}
 

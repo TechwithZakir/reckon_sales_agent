@@ -61,7 +61,7 @@ You will not receive further emails from this sender.,এই প্রেরক�
 Stop receiving emails from this sender?,এই প্রেরকের ইমেইল পাওয়া বন্ধ করবেন?
 Link not valid,লিংকটি সঠিক নয়
 All outbound activity is paused (kill switch).,সব বহির্গামী কার্যক্রম বন্ধ আছে (কিল সুইচ)।
-"Outbound sending is off: approved messages are logged as dry runs.","বার্তা পাঠানো বন্ধ: অনুমোদিত বার্তা শুধু ড্রাই রান হিসেবে লগ হয়।"
+Outbound sending is off: approved messages are logged as dry runs.,বার্তা পাঠানো বন্ধ: অনুমোদিত বার্তা শুধু ড্রাই রান হিসেবে লগ হয়।
 Only Sales Agent admins and managers can do this.,শুধু সেলস এজেন্ট অ্যাডমিন ও ম্যানেজার এটি করতে পারেন।
 Lead Finder Studio,লিড ফাইন্ডার স্টুডিও
 Find Leads,লিড খুঁজুন
@@ -105,3 +105,2443 @@ Search keywords,অনুসন্ধানের কীওয়ার্ড
 Locations,অবস্থান
 Industries,শিল্পখাত
 Preview searches,অনুসন্ধানের প্রিভিউ
+Advanced,উন্নত
+Reach out,যোগাযোগ করুন
+Lead scores,লিডের স্কোর
+Activity log,কার্যকলাপের লগ
+Social posts,সোশ্যাল পোস্ট
+Lead searches,লিড খোঁজা
+Market briefs,বাজারের সারসংক্ষেপ
+Messages sent,পাঠানো বার্তা
+Scoring rules,স্কোরিংয়ের নিয়ম
+Who to target,কাদের টার্গেট করবেন
+Social accounts,সোশ্যাল অ্যাকাউন্ট
+Background tasks,ব্যাকগ্রাউন্ড কাজ
+Campaigns (list),ক্যাম্পেইন (তালিকা)
+Message activity,বার্তার কার্যকলাপ
+Research reports,গবেষণা প্রতিবেদন
+Usage and limits,ব্যবহার ও সীমা
+AI campaign advice,এআই ক্যাম্পেইন পরামর্শ
+Do-not-contact list,যোগাযোগ-নিষিদ্ধ তালিকা
+People in campaigns,ক্যাম্পেইনের মানুষ
+Signup forms (list),সাইনআপ ফর্ম (তালিকা)
+Connect and settings,সংযোগ ও সেটিংস
+Facts the AI may use,যে তথ্য এআই ব্যবহার করতে পারে
+Lead source settings,লিড উৎসের সেটিংস
+Your business profile,আপনার ব্যবসার পরিচিতি
+All leads and contacts,সব লিড ও যোগাযোগ
+Provider usage (vendor),প্রোভাইডার ব্যবহার (ভেন্ডর)
+Platform settings (vendor),প্ল্যাটফর্ম সেটিংস (ভেন্ডর)
+Home,হোম
+Get Started,শুরু করুন
+Integrations,ইন্টিগ্রেশন
+Capture Studio,ক্যাপচার স্টুডিও
+Campaign Studio,ক্যাম্পেইন স্টুডিও
+Automation Studio,অটোমেশন স্টুডিও
+Message Templates,বার্তার টেমপ্লেট
+Campaign Analytics,ক্যাম্পেইন বিশ্লেষণ
+Help,সাহায্য
+More,আরও
+Send,পাঠান
+Close,বন্ধ করুন
+Inbox,ইনবক্স
+Bounce,বাউন্স
+Reopen,আবার খুলুন
+Opt-out,অপ্ট-আউট
+Resolve,সমাধান হয়েছে
+AI reply,এআই উত্তর
+Minimize,ছোট করুন
+Template,টেমপ্লেট
+Automations,অটোমেশন
+Delete chat,চ্যাট মুছুন
+Get started,শুরু করুন
+Conversation,কথোপকথন
+Double opt-in,ডাবল অপ্ট-ইন
+Find customers,গ্রাহক খুঁজুন
+Only you reply,শুধু আপনি উত্তর দেবেন
+Pick a period.,একটি সময়কাল বেছে নিন।
+Write a reply…,একটি উত্তর লিখুন…
+Block this lead,এই লিড ব্লক করুন
+They spoke last,শেষ কথা বলেছেন
+No messages yet.,এখনো কোনো বার্তা নেই।
+Review new leads,নতুন লিড পর্যালোচনা করুন
+Message templates,বার্তার টেমপ্লেট
+New message sound,নতুন বার্তার শব্দ
+Unblock this lead,এই লিড আনব্লক করুন
+Mute notifications,বিজ্ঞপ্তি নীরব করুন
+Open Conversations,কথোপকথন খুলুন
+Words you will see,যে শব্দগুলো দেখবেন
+How to use this page,এই পাতাটি কীভাবে ব্যবহার করবেন
+Unmute notifications,বিজ্ঞপ্তি চালু করুন
+AI replies on its own,এআই নিজে থেকে উত্তর দেয়
+No conversations yet.,এখনো কোনো কথোপকথন নেই।
+Open in Conversations,কথোপকথনে খুলুন
+"AI drafts, you approve","এআই খসড়া করে, আপনি অনুমোদন দেন"
+Signup forms and lists,সাইনআপ ফর্ম ও তালিকা
+Use the Company setting,কোম্পানির সেটিং ব্যবহার করুন
+Anything marked To do needs you.,“করণীয়” লেখা যেকোনো কিছুতে আপনার কাজ আছে।
+No channel to reply on right now,এই মুহূর্তে উত্তর দেওয়ার কোনো চ্যানেল নেই
+Open a tile and follow its steps.,একটি টাইল খুলুন এবং তার ধাপগুলো অনুসরণ করুন।
+You can change every answer later.,প্রতিটি উত্তর আপনি পরে বদলাতে পারবেন।
+A green tile means it is connected.,সবুজ টাইল মানে সংযুক্ত আছে।
+Approve a template before using it.,ব্যবহারের আগে একটি টেমপ্লেট অনুমোদন করুন।
+Developers: for your technical team.,ডেভেলপার: আপনার প্রযুক্তি দলের জন্য।
+Say what kind of business and where.,"কোন ধরনের ব্যবসা এবং কোথায়, তা বলুন।"
+Start from a template or from blank.,একটি টেমপ্লেট থেকে বা ফাঁকা থেকে শুরু করুন।
+An email that could not be delivered.,যে ইমেইল পৌঁছানো যায়নি।
+Only approved leads can be contacted.,শুধু অনুমোদিত লিডের সঙ্গে যোগাযোগ করা যায়।
+"Approve the good ones, reject the rest.","ভালোগুলো অনুমোদন করুন, বাকিগুলো বাতিল করুন।"
+Resolve a conversation when it is done.,কথোপকথন শেষ হলে সেটি সমাধান হয়েছে বলে চিহ্নিত করুন।
+"Send the answer, edit it, or take over.","উত্তর পাঠান, সম্পাদনা করুন, অথবা নিজে দায়িত্ব নিন।"
+The group of people a campaign goes to.,"যাদের কাছে একটি ক্যাম্পেইন যায়, সেই মানুষের দল।"
+Watch the results on the campaign page.,ক্যাম্পেইনের পাতায় ফলাফল দেখুন।
+Check proposed times before they are sent.,পাঠানোর আগে প্রস্তাবিত সময়গুলো দেখে নিন।
+"Click a step to change it, or + to add one.","কোনো ধাপ বদলাতে সেটিতে ক্লিক করুন, নতুন ধাপ যোগ করতে + চাপুন।"
+Import: bring in a list from a spreadsheet.,ইম্পোর্ট: স্প্রেডশিট থেকে একটি তালিকা আনুন।
+Clean list: find addresses that will bounce.,পরিষ্কার তালিকা: যে ঠিকানায় ইমেইল ফিরে আসবে তা খুঁজে বের করুন।
+A business or person you may want to sell to.,যে ব্যবসা বা ব্যক্তির কাছে আপনি বিক্রি করতে চাইতে পারেন।
+"Submit it. A manager approves, then it starts.",জমা দিন। একজন ম্যানেজার অনুমোদন দিলে এটি শুরু হবে।
+Press New campaign and pick what you want to do.,“নতুন ক্যাম্পেইন” চাপুন এবং কী করতে চান তা বেছে নিন।
+New here? Press Help on any page for a short guide.,নতুন এসেছেন? যেকোনো পাতায় “সাহায্য” চাপলে ছোট একটি নির্দেশিকা পাবেন।
+Confirm a booked meeting and it goes in the calendar.,নিশ্চিত করলে বুক হওয়া মিটিং ক্যালেন্ডারে যুক্ত হয়ে যায়।
+"How well a lead matches your ideal customer, 0 to 100.","একটি লিড আপনার আদর্শ গ্রাহকের সঙ্গে কতটা মেলে, ০ থেকে ১০০।"
+Press New automation and start from a ready-made flow.,“নতুন অটোমেশন” চাপুন এবং তৈরি করা একটি ফ্লো থেকে শুরু করুন।
+"Open a campaign to see who opened, clicked and replied.","কারা খুলেছে, ক্লিক করেছে ও উত্তর দিয়েছে তা দেখতে একটি ক্যাম্পেইন খুলুন।"
+"A message, or a series of messages, sent to an audience.","একটি বার্তা, বা পরপর কয়েকটি বার্তা, যা একটি অডিয়েন্সের কাছে পাঠানো হয়।"
+Meetings the agents are arranging with interested leads.,আগ্রহী লিডদের সঙ্গে এজেন্টরা যে মিটিং ঠিক করছে।
+Pick where to look. Smart Sources is the easiest choice.,কোথায় খুঁজবেন তা বেছে নিন। স্মার্ট সোর্স সবচেয়ে সহজ পছন্দ।
+Press Launch. New leads appear under “Review new leads”.,“চালু করুন” চাপুন। নতুন লিড “নতুন লিড পর্যালোচনা”-য় দেখা যাবে।
+Your technical team can help with keys and web addresses.,চাবি ও ওয়েব ঠিকানার ব্যাপারে আপনার প্রযুক্তি দল সাহায্য করতে পারবে।
+How your campaigns are doing and which messages work best.,আপনার ক্যাম্পেইনগুলো কেমন চলছে এবং কোন বার্তা সবচেয়ে ভালো কাজ করছে।
+Open “See what each AI agent is doing” if you are curious.,কৌতূহল থাকলে “প্রতিটি এআই এজেন্ট কী করছে দেখুন” খুলুন।
+A small test of a campaign on a few people before everyone.,সবাইকে পাঠানোর আগে অল্প কয়েকজনের ওপর ক্যাম্পেইনের ছোট পরীক্ষা।
+Go down the list from the top. Each step says what it is for.,তালিকার ওপর থেকে নিচে যান। প্রতিটি ধাপে লেখা আছে সেটি কিসের জন্য।
+Open a conversation to read it and the AI’s suggested answer.,একটি কথোপকথন খুলে সেটি এবং এআই-এর প্রস্তাবিত উত্তর পড়ুন।
+The leads the agent found. You decide who is worth contacting.,এজেন্টের খুঁজে পাওয়া লিডগুলো। কার সঙ্গে যোগাযোগ করবেন তা আপনি ঠিক করেন।
+Block this lead? We stop messaging them. You can unblock later.,যে অডিয়েন্স (মানুষের দল) পাবে তা এবং কোন বার্তার টেমপ্লেট ব্যবহার করবেন তা বেছে নিন।
+Choose who gets it (an audience) and which message templates to use.,একজন নতুন সাইনআপ আগে ইমেইল নিশ্চিত করেন। তার আগে তিনি কিছুই পান না।
+A new signup confirms their email first. Until then they get nothing.,এআই-এর প্রস্তাব ও তার কারণ দেখানো হয়; শেষ সিদ্ধান্ত আপনার।
+The AI’s suggestion and its reason are shown; you have the last word.,যিনি যোগাযোগ করতে মানা করেছেন। তাঁর সঙ্গে আর কখনো যোগাযোগ করা হয় না।
+Someone who asked not to be contacted. They are never contacted again.,ফর্ম: একটি সাইনআপ ফর্ম বানিয়ে তার লিংক শেয়ার করুন বা আপনার ওয়েবসাইটে বসান।
+Forms: make a signup form and share its link or put it on your website.,এই লিডকে ব্লক করবেন? আমরা তাকে বার্তা পাঠানো বন্ধ করব। পরে আনব্লক করতে পারবেন।
+Delete this chat? Its messages are removed for good. The lead itself stays.,এই চ্যাট মুছবেন? এর বার্তাগুলো চিরতরে মুছে যাবে। লিডটি থাকবে।
+Use fields such as the person’s first name; they are filled in for each person.,ব্যক্তির প্রথম নামের মতো ফিল্ড ব্যবহার করুন; প্রত্যেকের জন্য সেগুলো আলাদাভাবে বসে যায়।
+"Segments: save a group of people by rules, such as “opened an email this month”.","সেগমেন্ট: নিয়ম দিয়ে একটি দল সংরক্ষণ করুন, যেমন “এই মাসে ইমেইল খুলেছেন”।"
+"Connect the places you talk to customers: email, SMS, WhatsApp, Facebook and more.","গ্রাহকদের সঙ্গে যেখানে কথা বলেন সেগুলো যুক্ত করুন: ইমেইল, এসএমএস, হোয়াটসঅ্যাপ, ফেসবুক ও আরও।"
+"Nothing is sent to a customer until you approve it, unless you switch autopilot on.","আপনি অনুমোদন না দিলে কোনো গ্রাহকের কাছে কিছু যায় না, যদি না অটোপাইলট চালু করেন।"
+"Start with “Needs you today”: leads to review, replies to answer, messages to approve.","“আজ আপনার করণীয়” দিয়ে শুরু করুন: পর্যালোচনার লিড, উত্তর দেওয়ার বার্তা, অনুমোদনের বার্তা।"
+Saved wording you can reuse. Fields such as the first name are filled in for each person.,সংরক্ষিত লেখা যা আবার ব্যবহার করা যায়। প্রথম নামের মতো ফিল্ড প্রত্যেকের জন্য বসে যায়।
+"Collect people who want to hear from you, keep your lists clean and connect other systems.","যারা আপনার কাছ থেকে শুনতে চান তাদের সংগ্রহ করুন, তালিকা পরিষ্কার রাখুন এবং অন্য সিস্টেম যুক্ত করুন।"
+"Send a message or a series of messages to a group of people, and see what they do with it.",একটি দলের কাছে একটি বার্তা বা পরপর কয়েকটি বার্তা পাঠান এবং তারা কী করে তা দেখুন।
+"Every conversation with your leads in one place: email, WhatsApp, Messenger and website chat.","আপনার লিডদের সঙ্গে সব কথোপকথন এক জায়গায়: ইমেইল, হোয়াটসঅ্যাপ, মেসেঞ্জার ও ওয়েবসাইট চ্যাট।"
+"Steps that happen on their own for each person, such as a welcome email followed by a reminder.","প্রতিটি মানুষের জন্য নিজে নিজে ঘটে এমন ধাপ, যেমন একটি স্বাগত ইমেইলের পর একটি অনুস্মারক।"
+"The wording of your emails, SMS and WhatsApp messages. Write it once, use it in many campaigns.","আপনার ইমেইল, এসএমএস ও হোয়াটসঅ্যাপ বার্তার লেখা। একবার লিখুন, অনেক ক্যাম্পেইনে ব্যবহার করুন।"
+"A saved group made by rules, always up to date. For example “opened an email in the last 30 days”.","নিয়ম দিয়ে সংরক্ষিত একটি দল, যা সবসময় হালনাগাদ থাকে। যেমন “গত ৩০ দিনে ইমেইল খুলেছেন”।"
+Idle,নিষ্ক্রিয়
+Seen,দেখা হয়েছে
+AI on,এআই চালু
+Do it,করুন
+Start,শুরু
+AI off,এআই বন্ধ
+Chance,সম্ভাবনা
+Working,কাজ চলছে
+due {0},নির্ধারিত {0}
+Schedule,সময়সূচি
+Step {0},ধাপ {0}
+day +{0},দিন +{0}
+Call back,ফিরতি কল
+Call done,কল শেষ
+Mark done,সম্পন্ন চিহ্নিত করুন
+Needs you,আপনার করণীয়
+No answer,উত্তর নেই
+Interested,আগ্রহী
+Calling {0},{0}-কে কল করা হচ্ছে
+Marked done,সম্পন্ন চিহ্নিত হয়েছে
+Nothing yet,এখনো কিছু নেই
+Autopilot on,অটোপাইলট চালু
+Call back on,ফিরতি কল চালু
+Last run {0},সর্বশেষ চালানো {0}
+Sending live,পাঠানো চালু আছে
+Stop calling,কল বন্ধ করুন
+Wrong number,ভুল নম্বর
+Autopilot off,অটোপাইলট বন্ধ
+Autopilot run,অটোপাইলট চালানো
+Judged a lead,একটি লিড বিচার করা হয়েছে
+Lead approved,লিড অনুমোদিত
+Lead rejected,লিড বাতিল
+Live activity,চলমান কার্যকলাপ
+Open Meetings,মিটিং খুলুন
+Scored a lead,একটি লিডের স্কোর করা হয়েছে
+Start calling,কল শুরু করুন
+Draft proposal,প্রস্তাবের খসড়া
+Forecast ready,পূর্বাভাস তৈরি
+Kill switch on,জরুরি বন্ধ চালু
+Leads per week,সপ্তাহে লিড
+Marked as seen,দেখা হয়েছে চিহ্নিত
+Not interested,আগ্রহী নন
+Run agents now,এজেন্ট এখনই চালান
+quiet {0} days,{0} দিন নীরব
+Autopilot is on,অটোপাইলট চালু আছে
+Call: call back,কল: ফিরতি কল
+Call: no answer,কল: উত্তর নেই
+Campaign paused,ক্যাম্পেইন থামানো হয়েছে
+Drafted a reply,একটি উত্তরের খসড়া করা হয়েছে
+Needs you today,আজ আপনার করণীয়
+Segments chosen,সেগমেন্ট বাছাই হয়েছে
+yourcompany.com,yourcompany.com
+Approve selected,বাছাইগুলো অনুমোদন করুন
+Autopilot is off,অটোপাইলট বন্ধ আছে
+Call: interested,কল: আগ্রহী
+Measured a pilot,একটি পাইলট মাপা হয়েছে
+Message approved,বার্তা অনুমোদিত
+New Meta ad lead,নতুন মেটা বিজ্ঞাপনের লিড
+Review the posts,পোস্টগুলো দেখুন
+Wrote a campaign,একটি ক্যাম্পেইন লেখা হয়েছে
+looks like a fit,মানানসই মনে হচ্ছে
+Campaign approved,ক্যাম্পেইন অনুমোদিত
+Drafted an answer,একটি উত্তরের খসড়া করা হয়েছে
+Open Integrations,ইন্টিগ্রেশন খুলুন
+Summarised a call,একটি কলের সারসংক্ষেপ লেখা হয়েছে
+Turn on autopilot,অটোপাইলট চালু করুন
+Autopilot settings,অটোপাইলটের সেটিংস
+Call: wrong number,কল: ভুল নম্বর
+Callback scheduled,ফিরতি কলের সময় ঠিক হয়েছে
+Drafted a proposal,একটি প্রস্তাবের খসড়া করা হয়েছে
+Lead search queued,লিড খোঁজা সারিতে আছে
+Market brief ready,বাজারের সারসংক্ষেপ তৈরি
+Pause the campaign,ক্যাম্পেইন থামান
+Sent today's calls,আজকের কলগুলো পাঠানো হয়েছে
+Turn autopilot off,অটোপাইলট বন্ধ করুন
+Your AI sales team,আপনার এআই বিক্রয় দল
+Answered a question,একটি প্রশ্নের উত্তর দেওয়া হয়েছে
+Checked competitors,প্রতিযোগীদের দেখা হয়েছে
+Coached stuck deals,আটকে থাকা ডিলে সাহায্য করা হয়েছে
+Finish setup ({0}%),সেটআপ শেষ করুন ({0}%)
+looks like a misfit,মানানসই নয় বলে মনে হচ্ছে
+Call: not interested,কল: আগ্রহী নন
+Fast answers changed,দ্রুত উত্তরের সেটিং বদলেছে
+Lead search finished,লিড খোঁজা শেষ
+New LinkedIn ad lead,নতুন লিংকডইন বিজ্ঞাপনের লিড
+Open Campaign Studio,ক্যাম্পেইন স্টুডিও খুলুন
+Open the full review,সম্পূর্ণ পর্যালোচনা খুলুন
+Review sent messages,পাঠানো বার্তা দেখুন
+Autopilot switched on,অটোপাইলট চালু করা হয়েছে
+Call via office phone,অফিসের ফোনে কল করুন
+Daily digest at 08:00,প্রতিদিন সকাল ০৮:০০টায় ডাইজেস্ট
+Note (what they said),নোট (তারা যা বলেছেন)
+Reading your website…,আপনার ওয়েবসাইট পড়া হচ্ছে…
+Sent the daily digest,দৈনিক ডাইজেস্ট পাঠানো হয়েছে
+Target these segments,এই সেগমেন্টগুলো টার্গেট করুন
+The agents are on it.,এজেন্টরা কাজে নেমেছে।
+A lead wrote in a chat,একজন লিড চ্যাটে লিখেছেন
+Applied do-not-contact,যোগাযোগ-নিষিদ্ধ প্রয়োগ হয়েছে
+Approved a strong lead,একটি ভালো লিড অনুমোদিত হয়েছে
+Autopilot switched off,অটোপাইলট বন্ধ করা হয়েছে
+Found a business email,একটি ব্যবসায়িক ইমেইল পাওয়া গেছে
+Found a lead's website,একজন লিডের ওয়েবসাইট পাওয়া গেছে
+Lead Finder (advanced),লিড ফাইন্ডার (উন্নত)
+Send me today's digest,আজকের ডাইজেস্ট আমাকে পাঠান
+Added a lead to the CRM,একটি লিড সিআরএমে যোগ হয়েছে
+Answered a chat at once,একটি চ্যাটের উত্তর সঙ্গে সঙ্গে দেওয়া হয়েছে
+Found customers to call,কল করার মতো গ্রাহক পাওয়া গেছে
+No digest for you today,আজ আপনার জন্য কোনো ডাইজেস্ট নেই
+No email on the website,ওয়েবসাইটে কোনো ইমেইল নেই
+Review battlecard facts,ব্যাটলকার্ডের তথ্য দেখুন
+Start with your website,আপনার ওয়েবসাইট দিয়ে শুরু করুন
+Started market research,বাজার গবেষণা শুরু হয়েছে
+{0} message(s) approved,{0}টি বার্তা অনুমোদিত
+Dry run: nothing is sent,ড্রাই রান: কিছুই পাঠানো হয় না
+No more calls due today.,আজ আর কোনো কল বাকি নেই।
+The content check found:,কনটেন্ট পরীক্ষায় যা পাওয়া গেছে:
+buying signals {0} → {1},কেনার ইঙ্গিত {0} → {1}
+A manager can start this.,একজন ম্যানেজার এটি শুরু করতে পারেন।
+Complaint: needs a person,অভিযোগ: একজন মানুষের দরকার
+Connected social accounts,সংযুক্ত সোশ্যাল অ্যাকাউন্ট
+Noted; the sequence stops,নোট করা হয়েছে; ধারাবাহিক বার্তা থামছে
+A buying comment on a post,একটি পোস্টে কেনার আগ্রহ জানিয়ে মন্তব্য
+Your phone is ringing: {0},আপনার ফোন বাজছে: {0}
+one user or email per line,প্রতি লাইনে একজন ব্যবহারকারী বা ইমেইল
+{0} days past closing date,সমাপ্তির তারিখ পেরিয়েছে {0} দিন
+Accept the AI's suggestions,এআই-এর পরামর্শ গ্রহণ করুন
+Campaign ready for approval,ক্যাম্পেইন অনুমোদনের জন্য প্রস্তুত
+Could not read your website,আপনার ওয়েবসাইট পড়া যায়নি
+Learned from your decisions,আপনার সিদ্ধান্ত থেকে শেখা হয়েছে
+Noted; the agent will retry,নোট করা হয়েছে; এজেন্ট আবার চেষ্টা করবে
+Researched a lead's website,একজন লিডের ওয়েবসাইট নিয়ে গবেষণা হয়েছে
+salesperson@yourcompany.com,salesperson@yourcompany.com
+"{0} approved, {1} set aside","{0}টি অনুমোদিত, {1}টি আলাদা করে রাখা হয়েছে"
+Approve and launch the pilot,পাইলট অনুমোদন করে চালু করুন
+Classified a reply: question,একটি উত্তর শ্রেণিবদ্ধ হয়েছে: প্রশ্ন
+Number removed from the lead,লিড থেকে নম্বর সরানো হয়েছে
+Only my calls and follow-ups,শুধু আমার কল ও ফলো-আপ
+Re-checked leads for signals,সংকেতের জন্য লিডগুলো আবার দেখা হয়েছে
+Started reading your website,আপনার ওয়েবসাইট পড়া শুরু হয়েছে
+Approved and added to the CRM,অনুমোদিত এবং সিআরএমে যোগ হয়েছে
+Choose segments automatically,সেগমেন্ট নিজে থেকে বাছাই করুন
+Handed a question to a person,একটি প্রশ্ন মানুষের কাছে দেওয়া হয়েছে
+Open the campaign to widen it,বাড়াতে ক্যাম্পেইনটি খুলুন
+Classified a reply: interested,একটি উত্তর শ্রেণিবদ্ধ হয়েছে: আগ্রহী
+Tick the box to confirm first.,আগে বক্সটিতে টিক দিয়ে নিশ্চিত করুন।
+Auto-approve leads at fit score,এই মানানসই স্কোরে লিড নিজে থেকে অনুমোদন করুন
+Filled in your business profile,আপনার ব্যবসার পরিচিতি পূরণ করা হয়েছে
+Let the agents run on their own,এজেন্টদের নিজে নিজে চলতে দিন
+See what each AI agent is doing,প্রতিটি এআই এজেন্ট কী করছে দেখুন
+Open your ToDo list to see them.,সেগুলো দেখতে আপনার করণীয় তালিকা খুলুন।
+Confirm you have read the issues.,সমস্যাগুলো পড়েছেন বলে নিশ্চিত করুন।
+Nothing assigned to you right now.,এখন আপনাকে কিছু দেওয়া হয়নি।
+Give calls and follow-ups to (user),কল ও ফলো-আপ দিন (ব্যবহারকারী)
+Started; follow it in Live activity.,শুরু হয়েছে; চলমান কার্যকলাপে অনুসরণ করুন।
+Proposal drafted as a note on the deal,প্রস্তাবের খসড়া ডিলের একটি নোট হিসেবে রাখা হয়েছে
+"Optional: what you sell, in one sentence","ঐচ্ছিক: আপনি কী বিক্রি করেন, এক বাক্যে"
+"{0}% hold-out, up to {1} leads, {2} a day","{0}% বাদ রাখা, সর্বোচ্চ {1}টি লিড, দিনে {2}টি"
+Digest sent to your email and notifications,ডাইজেস্ট আপনার ইমেইলে ও বিজ্ঞপ্তিতে পাঠানো হয়েছে
+Added to the CRM with a 'book the demo' task,‘ডেমো বুক করুন’ কাজসহ সিআরএমে যোগ হয়েছে
+Ask a Sales Agent admin or manager to start.,একজন সেলস এজেন্ট অ্যাডমিন বা ম্যানেজারকে শুরু করতে বলুন।
+I have read these and the campaign is accurate.,আমি এগুলো পড়েছি এবং ক্যাম্পেইনটি সঠিক।
+"Dry run: approved messages are logged, not sent.","ড্রাই রান: অনুমোদিত বার্তা লগ হয়, পাঠানো হয় না।"
+Segments chosen; the agents start finding leads.,সেগমেন্ট বাছাই হয়েছে; এজেন্টরা লিড খুঁজতে শুরু করবে।
+The agents' work will appear here as it happens.,এজেন্টদের কাজ ঘটার সঙ্গে সঙ্গে এখানে দেখা যাবে।
+Approved messages go out within your daily limit.,অনুমোদিত বার্তা আপনার দৈনিক সীমার মধ্যে যাবে।
+Your phone is ringing; answer to connect the lead.,আপনার ফোন বাজছে; লিডের সঙ্গে যুক্ত হতে ধরুন।
+Pilot launched; the agents draft the first messages.,পাইলট চালু হয়েছে; এজেন্টরা প্রথম বার্তাগুলোর খসড়া করছে।
+Content check passed: every claim is in your approved knowledge.,কনটেন্ট পরীক্ষা পাস করেছে: প্রতিটি দাবি আপনার অনুমোদিত তথ্যে আছে।
+Rings your phone for each due call in turn; log the outcome to move on.,প্রতিটি নির্ধারিত কলের জন্য একে একে আপনার ফোন বাজে; এগোতে ফলাফল লিখে রাখুন।
+Nothing needs you right now. The agents will ask here when a decision is yours.,এখন আপনার কিছু করার নেই। সিদ্ধান্ত আপনার হলে এজেন্টরা এখানে জানাবে।
+The AI suggests approving {0} and setting aside {1}. Leads it is unsure about stay here.,"এআই {0}টি অনুমোদন এবং {1}টি আলাদা করে রাখার পরামর্শ দিচ্ছে। যেগুলো নিয়ে সে নিশ্চিত নয়, সেগুলো এখানে থাকে।"
+"{0} agents find, research, write, talk to leads and follow up. You only approve what goes out.","{0}টি এজেন্ট লিড খোঁজে, গবেষণা করে, লেখে, লিডদের সঙ্গে কথা বলে ও ফলো-আপ করে। কী যাবে তা শুধু আপনি অনুমোদন করেন।"
+Edit,সম্পাদনা
+Next,পরের
+Save,সংরক্ষণ
+Score,স্কোর
+Setup,সেটআপ
+Delete,মুছুন
+Funnel,ফানেল
+Remove,সরান
+Starts,শুরু
+Warmth,আগ্রহের মাত্রা
+Details,বিবরণ
+See who,কারা দেখুন
+Overview,সারসংক্ষেপ
+Tracking,ট্র্যাকিং
+of opens,খোলার মধ্যে
+Audiences,অডিয়েন্স
+Checking…,পরীক্ষা চলছে…
+Delivered,পৌঁছেছে
+No steps.,কোনো ধাপ নেই।
+Opted out,অপ্ট-আউট করেছেন
+Record ID,রেকর্ড আইডি
+By channel,চ্যানেল অনুযায়ী
+Export CSV,সিএসভি রপ্তানি
+Pilot size,পাইলটের আকার
+Recipients,প্রাপক
+Set window,সময়সীমা ঠিক করুন
+Start date,শুরুর তারিখ
+Start over,নতুন করে শুরু করুন
+with email,ইমেইলসহ
+with phone,ফোনসহ
+Count again,আবার গণনা করুন
+What to try,যা চেষ্টা করবেন
+Agent Studio,এজেন্ট স্টুডিও
+At the start,শুরুতে
+Create draft,খসড়া তৈরি করুন
+New audience,নতুন অডিয়েন্স
+New campaign,নতুন ক্যাম্পেইন
+Nothing yet.,এখনো কিছু নেই।
+All campaigns,সব ক্যাম্পেইন
+Check content,কনটেন্ট পরীক্ষা করুন
+Edit audience,অডিয়েন্স সম্পাদনা
+Nobody found.,কাউকে পাওয়া যায়নি।
+Open campaign,ক্যাম্পেইন খুলুন
+Open prospect,লিড খুলুন
+Open the form,ফর্ম খুলুন
+Add new people,নতুন মানুষ যোগ করুন
+No clicks yet.,এখনো কোনো ক্লিক নেই।
+Open templates,টেমপ্লেট খুলুন
+Sending is on.,পাঠানো চালু আছে।
+Sending window,পাঠানোর সময়সীমা
+Activity by day,দিন অনুযায়ী কার্যকলাপ
+Build a template,একটি টেমপ্লেট বানান
+Copilot suggests,কোপাইলটের পরামর্শ
+No activity yet.,এখনো কোনো কার্যকলাপ নেই।
+No issues found.,কোনো সমস্যা পাওয়া যায়নি।
+Write drafts now,এখনই খসড়া লিখুন
+{0} people added,{0} জন যোগ হয়েছেন
+Approve and start,অনুমোদন করে শুরু করুন
+No audiences yet.,এখনো কোনো অডিয়েন্স নেই।
+Nothing sent yet.,এখনো কিছু পাঠানো হয়নি।
+Open Agent Studio,এজেন্ট স্টুডিও খুলুন
+Schedule & review,সময়সূচি ও পর্যালোচনা
+cannot be reached,যোগাযোগ করা যাচ্ছে না
+{0} rows exported,{0}টি সারি রপ্তানি হয়েছে
+"Held back, percent","আটকে রাখা, শতাংশ"
+Invite to an event,ইভেন্টে আমন্ত্রণ জানান
+Most clicked links,সবচেয়ে বেশি ক্লিক হওয়া লিংক
+Offer or next step,প্রস্তাব বা পরের পদক্ষেপ
+"Sent, last 30 days","পাঠানো, গত ৩০ দিনে"
+of the step before,আগের ধাপের মধ্যে
+{0} drafts written,{0}টি খসড়া লেখা হয়েছে
+Copilot & Autopilot,কোপাইলট ও অটোপাইলট
+Most engaged people,সবচেয়ে সক্রিয় মানুষ
+Open in the builder,বিল্ডারে খুলুন
+Permission recorded,অনুমতি নথিভুক্ত হয়েছে
+Schedule and review,সময়সূচি ও পর্যালোচনা
+Submit for approval,অনুমোদনের জন্য জমা দিন
+What will you send?,আপনি কী পাঠাবেন?
+Build a new template,নতুন একটি টেমপ্লেট বানান
+Follow up a new lead,নতুন লিডের ফলো-আপ করুন
+"Funnel, last 30 days","ফানেল, গত ৩০ দিন"
+Make an announcement,একটি ঘোষণা দিন
+Offer customers more,গ্রাহকদের আরও কিছু প্রস্তাব করুন
+pre-send checks open,পাঠানোর আগের পরীক্ষা বাকি
+waiting for approval,অনুমোদনের অপেক্ষায়
+Delete this audience?,এই অডিয়েন্সটি মুছবেন?
+Most messages per day,দিনে সর্বোচ্চ বার্তা
+Where people drop out,কোথায় মানুষ ঝরে পড়ে
+Re-engage quiet people,নীরব মানুষদের আবার সক্রিয় করুন
+Submitted for approval,অনুমোদনের জন্য জমা দেওয়া হয়েছে
+Who should receive it?,কারা এটি পাবেন?
+Nobody has engaged yet.,এখনো কেউ সাড়া দেননি।
+What do you want to do?,আপনি কী করতে চান?
+Who each step can reach,প্রতিটি ধাপ কাদের কাছে পৌঁছাতে পারে
+All pre-send checks pass,পাঠানোর আগের সব পরীক্ষা পাস করেছে
+One message to everyone.,সবার কাছে একটি বার্তা।
+Subject lines · A/B test,সাবজেক্ট লাইন · এ/বি পরীক্ষা
+This could not be loaded.,এটি লোড করা যায়নি।
+Approved: {0} people added,অনুমোদিত: {0} জন যোগ হয়েছেন
+Blue: sent. Green: opened.,নীল: পাঠানো। সবুজ: খোলা।
+No approved templates yet.,এখনো কোনো অনুমোদিত টেমপ্লেট নেই।
+Statuses (comma separated),অবস্থা (কমা দিয়ে আলাদা)
+They agreed to receive SMS,তারা এসএমএস পেতে রাজি হয়েছেন
+An offer and one follow-up.,একটি প্রস্তাব ও একটি ফলো-আপ।
+An invitation and a reminder.,একটি আমন্ত্রণ ও একটি অনুস্মারক।
+Choose who should receive it.,কারা এটি পাবেন তা বেছে নিন।
+For example: Q4 re-engagement,যেমন: চতুর্থ প্রান্তিকের পুনঃসংযোগ
+Nothing to suggest right now.,এখনই পরামর্শ দেওয়ার কিছু নেই।
+Create and submit for approval,তৈরি করুন ও অনুমোদনের জন্য জমা দিন
+"Search by name, email or phone","নাম, ইমেইল বা ফোন দিয়ে খুঁজুন"
+The content check found issues,কনটেন্ট পরীক্ষায় সমস্যা পাওয়া গেছে
+What you are asking people to do,আপনি মানুষকে কী করতে বলছেন
+Choose a template for every step.,প্রতিটি ধাপের জন্য একটি টেমপ্লেট বেছে নিন।
+Wait (days after the previous step),অপেক্ষা (আগের ধাপের কত দিন পরে)
+"A first message, then two follow-ups.","একটি প্রথম বার্তা, তারপর দুটি ফলো-আপ।"
+You have an unfinished campaign: {0}.,আপনার একটি অসমাপ্ত ক্যাম্পেইন আছে: {0}।
+No audiences yet. Make one to continue.,এখনো কোনো অডিয়েন্স নেই। এগোতে একটি বানান।
+They agreed to receive WhatsApp messages,তারা হোয়াটসঅ্যাপ বার্তা পেতে রাজি হয়েছেন
+"Track link clicks (email, SMS, WhatsApp)","লিংকে ক্লিক ট্র্যাক করুন (ইমেইল, এসএমএস, হোয়াটসঅ্যাপ)"
+LinkedIn steps become tasks for your team.,লিংকডইন ধাপগুলো আপনার দলের জন্য কাজ হয়ে যায়।
+Only a Sales Agent manager can change this.,শুধু একজন সেলস এজেন্ট ম্যানেজার এটি বদলাতে পারেন।
+"Two messages, tried on a small group first.","দুটি বার্তা, আগে ছোট একটি দলের ওপর পরীক্ষা করে।"
+{0} message drafts are waiting for approval.,{0}টি বার্তার খসড়া অনুমোদনের অপেক্ষায় আছে।
+The content check found issues. Approve anyway?,কনটেন্ট পরীক্ষায় সমস্যা পাওয়া গেছে। তবু অনুমোদন করবেন?
+"No campaigns yet. Make an audience, then start one.","এখনো কোনো ক্যাম্পেইন নেই। একটি অডিয়েন্স বানান, তারপর শুরু করুন।"
+Email reaches {0} of {1} people (those with an email).,ইমেইল {1} জনের মধ্যে {0} জনের কাছে পৌঁছায় (যাদের ইমেইল আছে)।
+Draft created. Submit it for approval when you are ready.,খসড়া তৈরি হয়েছে। প্রস্তুত হলে অনুমোদনের জন্য জমা দিন।
+Created and submitted. A manager approves it before anything is sent.,তৈরি ও জমা হয়েছে। কিছু পাঠানোর আগে একজন ম্যানেজার অনুমোদন দেবেন।
+{0} of {1} have a phone. Only people with recorded permission are messaged.,{1} জনের মধ্যে {0} জনের ফোন আছে। শুধু নথিভুক্ত অনুমতি থাকা মানুষকে বার্তা পাঠানো হয়।
+Made in Capture Studio. Its rules are checked each time the audience is used.,ক্যাপচার স্টুডিওতে তৈরি। অডিয়েন্স ব্যবহারের প্রতিবার এর নিয়ম যাচাই হয়।
+"Everything a person has been sent and what they did with it, across all campaigns.","একজন মানুষকে যা কিছু পাঠানো হয়েছে এবং তিনি তা নিয়ে কী করেছেন, সব ক্যাম্পেইন মিলিয়ে।"
+"Start with a pilot: only the first people, and hold some back to measure the effect","পাইলট দিয়ে শুরু করুন: শুধু প্রথম কয়েকজন, আর প্রভাব মাপতে কিছু মানুষকে বাদ রাখুন"
+"Who a campaign goes to: prospects, CRM leads and contacts, customers, or people you pick.","ক্যাম্পেইন কাদের কাছে যায়: লিড, সিআরএম লিড ও যোগাযোগ, গ্রাহক, বা আপনার বেছে নেওয়া মানুষ।"
+"Each step is an approved template. Build or change templates in the builder, then come back.","প্রতিটি ধাপ একটি অনুমোদিত টেমপ্লেট। বিল্ডারে টেমপ্লেট বানান বা বদলান, তারপর ফিরে আসুন।"
+Campaign messages wait outside this window (server time). Leave it empty to send at any time.,এই সময়সীমার বাইরে ক্যাম্পেইনের বার্তা অপেক্ষা করে (সার্ভারের সময়)। যেকোনো সময় পাঠাতে ফাঁকা রাখুন।
+On,চালু
+API,এপিআই
+New,নতুন
+Copy,কপি
+Test,পরীক্ষা
+Calls,কল
+Check,যাচাই
+Forms,ফর্ম
+Known,পরিচিত
+Rules,নিয়ম
+Copied,কপি হয়েছে
+Fields,ফিল্ড
+Header,হেডার
+Import,ইম্পোর্ট
+Example,উদাহরণ
+Preview,প্রিভিউ
+Row {0},সারি {0}
+New form,নতুন ফর্ম
+Required,আবশ্যক
+Share it,শেয়ার করুন
+Webhooks,ওয়েবহুক
+Agreement,সম্মতি
+All forms,সব ফর্ম
+Counting…,গণনা চলছে…
+Full name,পুরো নাম
+Last name,পদবি
+None yet.,এখনো কিছু নেই।
+Subscribe,সাবস্ক্রাইব করুন
+Add a rule,একটি নিয়ম যোগ করুন
+Clean list,পরিষ্কার তালিকা
+Developers,ডেভেলপার
+First name,প্রথম নাম
+New secret,নতুন সিক্রেট
+new people,নতুন মানুষ
+Counted {0},গণনা করা হয়েছে {0}
+New segment,নতুন সেগমেন্ট
+New webhook,নতুন ওয়েবহুক
+All segments,সব সেগমেন্ট
+Edit webhook,ওয়েবহুক সম্পাদনা
+Skipped rows,বাদ পড়া সারি
+already known,আগে থেকেই পরিচিত
+double opt-in,ডাবল অপ্ট-ইন
+— leave out —,— বাদ দিন —
+No signups yet,এখনো কোনো সাইনআপ নেই
+Recent imports,সাম্প্রতিক ইম্পোর্ট
+Recent signups,সাম্প্রতিক সাইনআপ
+Server address,সার্ভারের ঠিকানা
+Test call: {0},পরীক্ষামূলক কল: {0}
+Try an address,একটি ঠিকানা পরীক্ষা করুন
+Delay (seconds),বিলম্ব (সেকেন্ড)
+Last signup {0},সর্বশেষ সাইনআপ {0}
+No imports yet.,এখনো কোনো ইম্পোর্ট নেই।
+Page of its own,নিজস্ব পাতা
+People who meet,যারা মেলে
+Who matches now,এখন কারা মেলে
+not checked yet,এখনো যাচাই হয়নি
+Name this import,এই ইম্পোর্টের নাম দিন
+No webhooks yet.,এখনো কোনো ওয়েবহুক নেই।
+Stay in the loop,আমাদের সঙ্গে থাকুন
+Saved: {0} people,সংরক্ষিত: {0} জন
+did you mean {0}?,আপনি কি {0} বোঝাতে চেয়েছেন?
+Tag everyone in it,সবাইকে ট্যাগ করুন
+AI assistants (MCP),এআই সহকারী (এমসিপি)
+Check new addresses,নতুন ঠিকানা যাচাই করুন
+repeats in the file,ফাইলের পুনরাবৃত্তি
+Check everyone again,সবাইকে আবার যাচাই করুন
+Could not be decided,সিদ্ধান্ত নেওয়া যায়নি
+Delete this segment?,এই সেগমেন্ট মুছবেন?
+Delete this webhook?,এই ওয়েবহুক মুছবেন?
+Nothing to check yet,যাচাই করার মতো কিছু নেই
+e.g. trade fair 2026,যেমন: বাণিজ্য মেলা ২০২৬
+left out (opted out),বাদ দেওয়া হয়েছে (আগে অপ্ট-আউট করেছেন)
+Each path starts with,প্রতিটি পথ শুরু হয়
+Everything is checked,সবকিছু যাচাই করা আছে
+Text me updates (SMS),এসএমএসে আমাকে আপডেট পাঠান
+{0} rows found in {1},{1} ফাইলে {0}টি সারি পাওয়া গেছে
+Invalid: never emailed,অবৈধ: কখনো ইমেইল পাঠানো হয় না
+Message me on WhatsApp,হোয়াটসঅ্যাপে আমাকে বার্তা পাঠান
+Tags to add to everyone,সবার জন্য যে ট্যাগ যোগ হবে
+used by {0} audience(s),{0}টি অডিয়েন্স এটি ব্যবহার করছে
+{0} of {1} people tagged,{1} জনের মধ্যে {0} জনকে ট্যাগ করা হয়েছে
+Tag everyone in this segment,এই সেগমেন্টের সবাইকে ট্যাগ করুন
+Import people from a CSV file,সিএসভি ফাইল থেকে মানুষ ইম্পোর্ট করুন
+Tags to add (comma separated),যোগ করার ট্যাগ (কমা দিয়ে আলাদা)
+Ask a manager to import people.,মানুষ ইম্পোর্ট করতে একজন ম্যানেজারকে বলুন।
+No address has been checked yet,এখনো কোনো ঠিকানা যাচাই হয়নি
+Where do these people come from?,এই মানুষগুলো কোথা থেকে এসেছেন?
+Copy it now. It is not shown again.,এখনই কপি করুন। এটি আর দেখানো হবে না।
+Publish the form before sharing it.,শেয়ার করার আগে ফর্মটি প্রকাশ করুন।
+add the key in Integrations → Email,ইন্টিগ্রেশন → ইমেইলে চাবি যোগ করুন
+Only a published form accepts signups.,শুধু প্রকাশিত ফর্মই সাইনআপ নেয়।
+Checking {0} addresses in the background,{0}টি ঠিকানা ব্যাকগ্রাউন্ডে যাচাই হচ্ছে
+"Risky: emailed, but may not reach a person","ঝুঁকিপূর্ণ: ইমেইল যায়, তবে কোনো মানুষের কাছে নাও পৌঁছাতে পারে"
+{0}% of checked addresses can be delivered,যাচাই করা ঠিকানার {0}% পৌঁছানো যায়
+Also offer an SMS opt-in (adds a phone field),এসএমএস অপ্ট-ইনও দিন (ফোন ফিল্ড যোগ হয়)
+Thank you! Please check your email to confirm.,ধন্যবাদ! নিশ্চিত করতে অনুগ্রহ করে আপনার ইমেইল দেখুন।
+Also offer a WhatsApp opt-in (adds a phone field),হোয়াটসঅ্যাপ অপ্ট-ইনও দিন (ফোন ফিল্ড যোগ হয়)
+"Yes, send me emails. I can unsubscribe at any time.","হ্যাঁ, আমাকে ইমেইল পাঠান। আমি যেকোনো সময় সাবস্ক্রিপশন বাতিল করতে পারি।"
+Make a new signing secret? The old one stops working.,নতুন স্বাক্ষরের সিক্রেট বানাবেন? পুরোনোটি আর কাজ করবে না।
+How did these people agree to hear from you? (required),এই মানুষগুলো কীভাবে আপনার কাছ থেকে শুনতে রাজি হয়েছেন? (আবশ্যক)
+e.g. Customers who asked for our newsletter at checkout,যেমন: যে গ্রাহকরা চেকআউটে আমাদের নিউজলেটার চেয়েছেন
+Delete this form? People who signed up stay on your list.,এই ফর্ম মুছবেন? যারা সাইনআপ করেছেন তারা আপনার তালিকায় থাকবেন।
+Put it on your website (paste before the closing body tag),এটি আপনার ওয়েবসাইটে বসান (বডি ট্যাগ বন্ধ হওয়ার আগে পেস্ট করুন)
+No segments yet. Try “opened an email in the last 30 days”.,এখনো কোনো সেগমেন্ট নেই। চেষ্টা করুন “গত ৩০ দিনে ইমেইল খুলেছেন”।
+Comma separated. Automations and segments can start from a tag.,কমা দিয়ে আলাদা। অটোমেশন ও সেগমেন্ট একটি ট্যাগ থেকে শুরু হতে পারে।
+"That file is too large. Split it into parts of 20,000 rows or fewer.","ফাইলটি অনেক বড়। এটিকে ২০,০০০ বা তার কম সারির ভাগে ভাগ করুন।"
+"No forms yet. Make one, publish it, and put it on your website or share its page.","এখনো কোনো ফর্ম নেই। একটি বানান, প্রকাশ করুন এবং আপনার ওয়েবসাইটে বসান বা তার পাতা শেয়ার করুন।"
+Ask them to confirm by email (recommended). They are not emailed by any campaign until they do.,ইমেইলে নিশ্চিত করতে বলুন (প্রস্তাবিত)। নিশ্চিত না করা পর্যন্ত কোনো ক্যাম্পেইন তাদের ইমেইল পাঠায় না।
+No,না
+For,জন্য
+Tag,ট্যাগ
+Yes,হ্যাঁ
+Call,কল
+Step,ধাপ
+Unit,একক
+Wait,অপেক্ষা
+Logic,যুক্তি
+Saved,সংরক্ষিত
+Create,তৈরি করুন
+Layout,বিন্যাস
+Choose…,বেছে নিন…
+Do this,এটি করুন
+If they,যদি তারা
+Numbers,সংখ্যা
+Trigger,ট্রিগার
+Webhook,ওয়েবহুক
+Any form,যেকোনো ফর্ম
+Enrolled,যুক্ত হয়েছেন
+Loading…,লোড হচ্ছে…
+Problems,সমস্যা
+Simulate,সিমুলেট
+none yet,এখনো কেউ নেই
+Any stage,যেকোনো ধাপ
+Condition,শর্ত
+Shortcuts,শর্টকাট
+Switch on,চালু করুন
+Add a step,একটি ধাপ যোগ করুন
+Start from,যা থেকে শুরু
+Task title,কাজের শিরোনাম
+Integration,ইন্টিগ্রেশন
+Starts here,এখান থেকে শুরু
+in progress,চলমান
+Not saved yet,এখনো সংরক্ষিত হয়নি
+Show the path,পথটি দেখান
+Which message,কোন বার্তা
+New automation,নতুন অটোমেশন
+Welcome series,স্বাগত ধারাবাহিক
+next check {0},পরবর্তী যাচাই {0}
+Enrol a segment,একটি সেগমেন্ট যুক্ত করুন
+remove the step,ধাপটি সরান
+Enrol one person,একজনকে যুক্ত করুন
+Enter an address,একটি ঠিকানা দিন
+Remove this step,এই ধাপটি সরান
+Stage (optional),পর্যায় (ঐচ্ছিক)
+Choose a template,একটি টেমপ্লেট বেছে নিন
+Edit (switch off),সম্পাদনা (বন্ধ করে)
+Check whether they,তারা কি করেছে তা যাচাই করুন
+Insert a step here,এখানে একটি ধাপ বসান
+Finishes after {0}.,শেষ হবে {0} পরে।
+Fix the problems first,আগে সমস্যাগুলো ঠিক করুন
+Re-engage quiet readers,নীরব পাঠকদের আবার সক্রিয় করুন
+deciding after {0} days,{0} দিন পরে সিদ্ধান্ত
+"Already in, or opted out","আগে থেকেই আছেন, বা অপ্ট-আউট করেছেন"
+Any message in this flow,এই ফ্লোর যেকোনো বার্তা
+Only this form (optional),শুধু এই ফর্ম (ঐচ্ছিক)
+Send an approved template,একটি অনুমোদিত টেমপ্লেট পাঠান
+"{0} enrolled, {1} skipped","{0} জন যুক্ত, {1} জন বাদ"
+"Nurture, then hand to sales","পরিচর্যা করুন, তারপর বিক্রয়ে হস্তান্তর করুন"
+"Top to bottom, or left to right","ওপর থেকে নিচে, বা বাঁ থেকে ডানে"
+Wait up to (days) before saying No,“না” বলার আগে সর্বোচ্চ অপেক্ষা (দিন)
+Let the same person go through it again,একই ব্যক্তিকে আবার এর মধ্য দিয়ে যেতে দিন
+Everything is in place. You can switch it on.,সবকিছু ঠিক আছে। আপনি এটি চালু করতে পারেন।
+"Pause for minutes, hours or days before moving on.","এগোনোর আগে কয়েক মিনিট, ঘণ্টা বা দিন থামুন।"
+"Email, SMS or WhatsApp to everyone who reaches this step.","যারা এই ধাপে পৌঁছান তাদের সবার কাছে ইমেইল, এসএমএস বা হোয়াটসঅ্যাপ।"
+Send the person's details to another system's web address.,ব্যক্তির তথ্য অন্য একটি সিস্টেমের ওয়েব ঠিকানায় পাঠান।
+Follow one person through the flow. Nothing is sent or changed.,একজন মানুষকে ফ্লোর মধ্য দিয়ে অনুসরণ করুন। কিছুই পাঠানো বা বদলানো হয় না।
+"You enrol people by hand or from a segment, on the automation's page.",আপনি হাতে বা একটি সেগমেন্ট থেকে অটোমেশনের পাতায় মানুষকে যুক্ত করেন।
+"Split into Yes and No: opened, clicked, replied, has a tag, is in a segment.","হ্যাঁ ও না-তে ভাগ করুন: খুলেছেন, ক্লিক করেছেন, উত্তর দিয়েছেন, ট্যাগ আছে, কোনো সেগমেন্টে আছেন।"
+No automations yet. Start from a ready-made flow and choose your own templates.,এখনো কোনো অটোমেশন নেই। তৈরি করা একটি ফ্লো থেকে শুরু করুন এবং নিজের টেমপ্লেট বেছে নিন।
+"Add or remove a tag, create a CRM task, notify the owner, change a field, or stop.","ট্যাগ যোগ বা সরান, সিআরএম কাজ তৈরি করুন, মালিককে জানান, ফিল্ড বদলান, বা থামুন।"
+Your system starts it for a person with the API: reckon_sales_agent.api_automation.trigger.,আপনার সিস্টেম এপিআই দিয়ে একজন মানুষের জন্য এটি শুরু করে: reckon_sales_agent.api_automation.trigger।
+"Everyone in the segment starts, and so does anyone who joins later (checked every half hour).","সেগমেন্টের সবাই শুরু করেন, এবং পরে যিনি যোগ দেন তিনিও (প্রতি আধা ঘণ্টায় যাচাই হয়)।"
+After,পরে
+To do,করণীয়
+Agents,এজেন্ট
+Got it,বুঝেছি
+Use {0},{0} ব্যবহার করুন
+All set.,সব ঠিক আছে।
+Reading…,পড়া হচ্ছে…
+Draft more,আরও খসড়া করুন
+Draft facts,তথ্যের খসড়া
+See my calls,আমার কল দেখুন
+Mobile number,মোবাইল নম্বর
+No facts yet.,এখনো কোনো তথ্য নেই।
+Start research,গবেষণা শুরু করুন
+Where you sell,আপনি যেখানে বিক্রি করেন
+Read my website,আমার ওয়েবসাইট পড়ুন
+Save and continue,সংরক্ষণ করে চালিয়ে যান
+Use Smart Sources,স্মার্ট সোর্স ব্যবহার করুন
+Let AI fill this in,এআই-কে এটি পূরণ করতে দিন
+Who makes the calls,কে কল করেন
+Approve ticked facts,টিক দেওয়া তথ্য অনুমোদন করুন
+Emails are signed by,ইমেইলে স্বাক্ষর করেন
+Open the Agent Studio,এজেন্ট স্টুডিও খুলুন
+Industries you sell to,যেসব শিল্পে আপনি বিক্রি করেন
+Whoever found the lead,যিনি লিড খুঁজে পেয়েছেন
+Tick at least one fact.,অন্তত একটি তথ্যে টিক দিন।
+The last research failed,সর্বশেষ গবেষণা ব্যর্থ হয়েছে
+Type your website first.,আগে আপনার ওয়েবসাইট লিখুন।
+Set up your AI sales team,আপনার এআই বিক্রয় দল গড়ুন
+Welcome to the sales team,বিক্রয় দলে স্বাগতম
+First name (said on calls),প্রথম নাম (কলে বলা হয়)
+Types of business that buy,যে ধরনের ব্যবসা কেনে
+Draft facts from my website,আমার ওয়েবসাইট থেকে তথ্যের খসড়া করুন
+Tune it in the Agent Studio,এজেন্ট স্টুডিওতে এটি ঠিক করে নিন
+{0} draft fact(s) to review,পর্যালোচনার জন্য {0}টি তথ্যের খসড়া
+What you sell (one sentence),আপনি কী বিক্রি করেন (এক বাক্যে)
+Competitors (never contacted),প্রতিযোগী (যাদের সঙ্গে কখনো যোগাযোগ করা হয় না)
+Web pages with contact details,যোগাযোগের তথ্যসহ ওয়েব পাতা
+Web search for verifying leads,লিড যাচাইয়ের জন্য ওয়েব সার্চ
+Not switched on by your provider,আপনার প্রোভাইডার এটি চালু করেননি
+Untick anything that is not true.,যা সত্য নয় তার টিক তুলে দিন।
+Say what you sell in one sentence.,আপনি কী বিক্রি করেন তা এক বাক্যে বলুন।
+e.g. Rahim from Reckon Technologies,যেমন: রেকন টেকনোলজিসের রহিম
+Products and services (one per line),পণ্য ও সেবা (প্রতি লাইনে একটি)
+Describe your business first (step 1).,আগে আপনার ব্যবসার বিবরণ দিন (ধাপ ১)।
+Approve leads automatically at fit score,এই মানানসই স্কোরে লিড নিজে থেকে অনুমোদন করুন
+How a day with your AI sales team works.,আপনার এআই বিক্রয় দলের সঙ্গে একটি দিন কেমন চলে।
+Reading your website and drafting facts…,আপনার ওয়েবসাইট পড়ে তথ্যের খসড়া করা হচ্ছে…
+Suggested: the priority 1 and 2 segments.,প্রস্তাবিত: অগ্রাধিকার ১ ও ২ সেগমেন্ট।
+Also send the daily digest to (one per line),দৈনিক ডাইজেস্টও পাঠান (প্রতি লাইনে একজন)
+"Business listings (Brave Places, Google Maps)","ব্যবসার তালিকা (ব্রেভ প্লেসেস, গুগল ম্যাপস)"
+Approved leads before a pilot campaign is drafted,পাইলট ক্যাম্পেইনের খসড়ার আগে অনুমোদিত লিড
+Segments chosen. The agents search them every week.,সেগমেন্ট বাছাই হয়েছে। এজেন্টরা প্রতি সপ্তাহে সেগুলোতে খোঁজে।
+Emails need a sender name and your business address.,ইমেইলের জন্য একটি প্রেরকের নাম ও আপনার ব্যবসার ঠিকানা লাগে।
+Researching your market. This page updates by itself.,আপনার বাজার নিয়ে গবেষণা চলছে। এই পাতা নিজে থেকে হালনাগাদ হয়।
+Suggested for your plan and scoring; change anything.,আপনার প্ল্যান ও স্কোরিং অনুযায়ী প্রস্তাবিত; যা খুশি বদলান।
+Smart Sources is on: every source above in one search.,স্মার্ট সোর্স চালু আছে: ওপরের সব উৎস এক অনুসন্ধানে।
+Your agents are working; follow them in the Agent Studio.,আপনার এজেন্টরা কাজ করছে; এজেন্ট স্টুডিওতে অনুসরণ করুন।
+Your business address (shown at the bottom of every email),আপনার ব্যবসার ঠিকানা (প্রতিটি ইমেইলের নিচে দেখানো হয়)
+The website could not be read. Fill in the fields below instead.,ওয়েবসাইট পড়া যায়নি। এর বদলে নিচের ঘরগুলো পূরণ করুন।
+"Two short steps, then the agents hand you your calls every morning.","দুটি ছোট ধাপ, তারপর এজেন্টরা প্রতি সকালে আপনার কলগুলো তুলে দেবে।"
+"Six steps, most of them done by AI. Every step can be changed later.","ছয়টি ধাপ, বেশিরভাগই এআই করে। প্রতিটি ধাপ পরে বদলানো যায়।"
+The AI writes short facts from your pages. Nothing is used until you approve it.,এআই আপনার পাতা থেকে ছোট তথ্য লেখে। আপনি অনুমোদন না দেওয়া পর্যন্ত কিছুই ব্যবহার হয় না।
+Autopilot is on. The agents work every hour; decisions come to your inbox and digest.,অটোপাইলট চালু। এজেন্টরা প্রতি ঘণ্টায় কাজ করে; সিদ্ধান্ত আপনার ইনবক্স ও ডাইজেস্টে আসে।
+"Pick what happened: Interested, Call back, No answer, Not interested or Wrong number.","কী ঘটেছে বেছে নিন: আগ্রহী, ফিরতি কল, উত্তর নেই, আগ্রহী নন, বা ভুল নম্বর।"
+"About two minutes. The agent reads the web about your industries, buyers and competitors.","প্রায় দুই মিনিট। এজেন্ট আপনার শিল্প, ক্রেতা ও প্রতিযোগীদের নিয়ে ওয়েব পড়ে।"
+The Research agent studies your market on the web and proposes customer segments to target.,গবেষণা এজেন্ট ওয়েবে আপনার বাজার পড়ে এবং টার্গেট করার জন্য গ্রাহক সেগমেন্টের প্রস্তাব দেয়।
+"Your name goes into the call scripts the agents write for you, and your number into the CRM.",আপনার নাম এজেন্টদের লেখা কল-স্ক্রিপ্টে এবং আপনার নম্বর সিআরএমে যায়।
+Tap the number in the Agent Studio's Calls card. The script says who they are and what to ask.,এজেন্ট স্টুডিওর কল কার্ডে নম্বরটি চাপুন। স্ক্রিপ্টে লেখা আছে তারা কারা এবং কী জিজ্ঞেস করবেন।
+"A digest arrives with today's calls: each business, its number and a script in English and Bangla.","আজকের কলসহ একটি ডাইজেস্ট আসে: প্রতিটি ব্যবসা, তার নম্বর ও ইংরেজি-বাংলায় একটি স্ক্রিপ্ট।"
+How,কীভাবে
+From,থেকে
+Main,মূল
+DRAFT,খসড়া
+Field,ফিল্ড
+Large,বড়
+Price,দাম
+Blocks,ব্লক
+Footer,ফুটার
+Medium,মাঝারি
+Mobile,মোবাইল
+Retire,অবসর দিন
+Spacer,ফাঁকা জায়গা
+to fix,ঠিক করতে হবে
+Buttons,বোতাম
+Columns,কলাম
+Desktop,ডেস্কটপ
+Divider,বিভাজক
+Heading,শিরোনাম
+Move up,ওপরে সরান
+Rewrite,নতুন করে লিখুন
+Saving…,সংরক্ষণ হচ্ছে…
+part(s),অংশ
+APPROVED,অনুমোদিত
+Add link,লিংক যোগ করুন
+Add rule,নিয়ম যোগ করুন
+Envelope,খাম
+is empty,ফাঁকা
+Drafting…,খসড়া হচ্ছে…
+Duplicate,অনুলিপি করুন
+Move down,নিচে সরান
+Send test,পরীক্ষামূলক পাঠান
+Signature,স্বাক্ষর
+Templates,টেমপ্লেট
+saved {0},সংরক্ষিত {0}
+Add button,বোতাম যোগ করুন
+Any status,যেকোনো অবস্থা
+Friendlier,আরও বন্ধুত্বপূর্ণ
+Preview as,যেভাবে দেখবেন
+[DOCUMENT],[নথি]
+AI drafting,এআই দিয়ে খসড়া
+Left column,বাঁ কলাম
+More direct,আরও সরাসরি
+No buttons.,কোনো বোতাম নেই।
+Quick reply,দ্রুত উত্তর
+Remove link,লিংক সরান
+Remove rule,নিয়ম সরান
+SMS content,এসএমএসের বিষয়বস্তু
+Suggestions,পরামর্শ
+Button label,বোতামের লেখা
+Closing line,সমাপনী লাইন
+Delete block,ব্লক মুছুন
+New template,নতুন টেমপ্লেট
+Preview: {0},প্রিভিউ: {0}
+Product card,পণ্যের কার্ড
+Product name,পণ্যের নাম
+Right column,ডান কলাম
+SMS template,এসএমএস টেমপ্লেট
+Social links,সোশ্যাল লিংক
+Subject line,সাবজেক্ট লাইন
+is not empty,ফাঁকা নয়
+Add a variant,একটি বিকল্প যোগ করুন
+Draft with AI,এআই দিয়ে খসড়া করুন
+Email preview,ইমেইলের প্রিভিউ
+Phone preview,ফোনের প্রিভিউ
+Ready to send,পাঠানোর জন্য প্রস্তুত
+Remove button,বোতাম সরান
+Save template,টেমপ্লেট সংরক্ষণ করুন
+Search fields,ফিল্ড খুঁজুন
+Template name,টেমপ্লেটের নাম
+Delete section,অংশ মুছুন
+Image alt text,ছবির বিকল্প লেখা
+Remove variant,বিকল্প সরান
+Saved sections,সংরক্ষিত অংশ
+Your sender ID,আপনার প্রেরকের আইডি
+[HEADER IMAGE],[শিরোনামের ছবি]
+Create and open,তৈরি করে খুলুন
+Duplicate block,ব্লকের অনুলিপি
+Dynamic content,পরিবর্তনশীল কনটেন্ট
+Link (https://),লিংক (https://)
+Make it shorter,আরও ছোট করুন
+Pre-send checks,পাঠানোর আগের পরীক্ষা
+Rewrite with AI,এআই দিয়ে নতুন করে লিখুন
+Save as section,অংশ হিসেবে সংরক্ষণ করুন
+Unsaved changes,অসংরক্ষিত পরিবর্তন
+Use in campaign,ক্যাম্পেইনে ব্যবহার করুন
+(no subject yet),(এখনো সাবজেক্ট নেই)
+A blank template,একটি ফাঁকা টেমপ্লেট
+Height in pixels,পিক্সেলে উচ্চতা
+LinkedIn message,লিংকডইন বার্তা
+Test sent to {0},{0}-এ পরীক্ষামূলক বার্তা পাঠানো হয়েছে
+WhatsApp preview,হোয়াটসঅ্যাপের প্রিভিউ
+Short description,সংক্ষিপ্ত বিবরণ
+Submitted to Meta,মেটার কাছে জমা দেওয়া হয়েছে
+AI: make it shorter,এআই: আরও ছোট করুন
+Needs Meta approval,মেটার অনুমোদন লাগবে
+No templates match.,কোনো টেমপ্লেট মেলেনি।
+Translate to Bangla,বাংলায় অনুবাদ করুন
+Translate to English,ইংরেজিতে অনুবাদ করুন
+Agent actions on send,পাঠানোর সময় এজেন্টের কাজ
+Start from a template,একটি টেমপ্লেট থেকে শুরু করুন
+What these people see,এই মানুষরা যা দেখেন
+Button link (https://),বোতামের লিংক (https://)
+Personalization fields,ব্যক্তিগতকরণের ফিল্ড
+AI: translate to Bangla,এআই: বাংলায় অনুবাদ
+Undo the last AI change,এআই-এর শেষ পরিবর্তনটি ফিরিয়ে নিন
+Image address (https://),ছবির ঠিকানা (https://)
+Delete the section “{0}”?,“{0}” অংশটি মুছবেন?
+WhatsApp Business template,হোয়াটসঅ্যাপ বিজনেস টেমপ্লেট
+Alt text: describe the image,বিকল্প লেখা: ছবিটির বর্ণনা দিন
+Link when clicked (optional),ক্লিক করলে লিংক (ঐচ্ছিক)
+A thin line between sections.,অংশগুলোর মাঝে একটি সরু রেখা।
+Everyone else sees (fallback),বাকিরা যা দেখেন (বিকল্প)
+Header text (no merge fields),হেডারের লেখা (মার্জ ফিল্ড ছাড়া)
+"Drag onto the message, or click","বার্তার ওপর টেনে আনুন, বা ক্লিক করুন"
+Send at each contact’s best time,প্রতিটি যোগাযোগের সবচেয়ে ভালো সময়ে পাঠান
+That starter has no {0} version.,সেই স্টার্টারের {0} সংস্করণ নেই।
+{0} per message ({1} when split),প্রতি বার্তায় {0} ({1} ভাগ হলে)
+No starters for this channel yet.,এই চ্যানেলের জন্য এখনো কোনো স্টার্টার নেই।
+Sample values: Meta reviews these,নমুনা মান: মেটা এগুলো পর্যালোচনা করে
+What should this message achieve?,এই বার্তা কী অর্জন করবে?
+To fix before this can be approved,অনুমোদনের আগে যা ঠিক করতে হবে
+Follow up automatically if no reply,উত্তর না এলে নিজে থেকে ফলো-আপ করুন
+Saved. Find it under Saved sections.,সংরক্ষিত। “সংরক্ষিত অংশ”-এ পাবেন।
+Shown after the subject in the inbox,ইনবক্সে সাবজেক্টের পরে দেখানো হয়
+Writes from your approved facts only,শুধু আপনার অনুমোদিত তথ্য থেকে লেখে
+Personalize each message from CRM data,সিআরএমের তথ্য দিয়ে প্রতিটি বার্তা ব্যক্তিগত করুন
+Hand off hot replies to the record owner,আগ্রহী উত্তর রেকর্ডের মালিকের কাছে দিন
+Replace what you have with this starter?,আপনার বর্তমান লেখা এই স্টার্টার দিয়ে বদলাবেন?
+"Your company sender, set in Integrations","আপনার কোম্পানির প্রেরক, ইন্টিগ্রেশনে ঠিক করা"
+Paragraphs (a blank line starts a new one),অনুচ্ছেদ (একটি ফাঁকা লাইনে নতুন অনুচ্ছেদ শুরু হয়)
+"Drag a block here, or click one on the left","একটি ব্লক এখানে টেনে আনুন, বা বাঁ দিকের একটিতে ক্লিক করুন"
+Sample values are used for the merge fields.,মার্জ ফিল্ডের জন্য নমুনা মান ব্যবহার হয়।
+Approved. It is submitted to Meta for review.,অনুমোদিত। এটি পর্যালোচনার জন্য মেটার কাছে জমা হয়েছে।
+Turn on AI in Sales Agent Settings to use AI.,এআই ব্যবহারে সেলস এজেন্ট সেটিংসে এআই চালু করুন।
+"Click into the text first, then choose a field.","আগে লেখার ভেতরে ক্লিক করুন, তারপর একটি ফিল্ড বেছে নিন।"
+"Merge fields become Meta variables {{1}}, {{2}}","মার্জ ফিল্ড মেটার ভেরিয়েবল {{1}}, {{2}} হয়ে যায়"
+https:// address of a sample for Meta to review,মেটার পর্যালোচনার জন্য একটি নমুনার https:// ঠিকানা
+"Say what the message should achieve, then draft.","বার্তাটি কী অর্জন করবে তা বলুন, তারপর খসড়া করুন।"
+Turn on AI in Sales Agent Settings to rewrite with AI.,এআই দিয়ে নতুন করে লিখতে সেলস এজেন্ট সেটিংসে এআই চালু করুন।
+"Add a later step to the campaign, with the days to wait.","ক্যাম্পেইনে একটি পরের ধাপ যোগ করুন, কত দিন অপেক্ষা করবেন তাসহ।"
+Always on: an interested reply creates a task for the owner.,সবসময় চালু: আগ্রহী উত্তর মালিকের জন্য একটি কাজ তৈরি করে।
+Not available yet. Use the sending window in Campaign Studio.,এখনো পাওয়া যায় না। ক্যাম্পেইন স্টুডিওর পাঠানোর সময়সীমা ব্যবহার করুন।
+Used as a step in a campaign: a person sends it from LinkedIn.,ক্যাম্পেইনের একটি ধাপ হিসেবে ব্যবহৃত: একজন মানুষ এটি লিংকডইন থেকে পাঠান।
+Needs Meta approval before it can be sent outside a conversation.,কথোপকথনের বাইরে পাঠানোর আগে মেটার অনুমোদন লাগে।
+Retire this template? Campaigns that already use it keep working.,এই টেমপ্লেট অবসর দেবেন? যে ক্যাম্পেইন এটি ব্যবহার করছে সেগুলো চলতে থাকবে।
+"Select a block, then choose Save as section on it to keep it for other emails.","একটি ব্লক বেছে তার “অংশ হিসেবে সংরক্ষণ” চাপুন, অন্য ইমেইলের জন্য রাখতে।"
+"Your business name and address, and an unsubscribe link, are added here when it is sent.","পাঠানোর সময় আপনার ব্যবসার নাম, ঠিকানা এবং আনসাবস্ক্রাইব লিংক এখানে যোগ হয়।"
+"Send a test of this email to your own address, with sample values? Nobody else receives it.",নমুনা মানসহ এই ইমেইলের একটি পরীক্ষা আপনার নিজের ঠিকানায় পাঠাবেন? আর কেউ এটি পাবেন না।
+"Added automatically when it is sent: your business name and address, and an unsubscribe link.","পাঠানোর সময় স্বয়ংক্রিয়ভাবে যোগ হয়: আপনার ব্যবসার নাম, ঠিকানা এবং আনসাবস্ক্রাইব লিংক।"
+"Build email, SMS, WhatsApp and LinkedIn messages once, approve them, and use them in any campaign.","ইমেইল, এসএমএস, হোয়াটসঅ্যাপ ও লিংকডইন বার্তা একবার বানান, অনুমোদন করুন, এবং যেকোনো ক্যাম্পেইনে ব্যবহার করুন।"
+When,কখন
+Buyers,ক্রেতা
+Copilot,কোপাইলট
+Signals,সংকেত
+Open job,কাজ খুলুন
+Searches,অনুসন্ধান
+Not ready,প্রস্তুত নয়
+Planning…,পরিকল্পনা হচ্ছে…
+Targeting,টার্গেটিং
+up to {0},সর্বোচ্চ {0}
+{0} leads,{0}টি লিড
+Set up {0},{0} সেটআপ করুন
+{0} at {1},"{0}, {1}-এ"
+Buyer roles,ক্রেতার ভূমিকা
+New profile,নতুন প্রোফাইল
+{0} results,{0}টি ফলাফল
+AI assist on,এআই সহায়তা চালু
+Priority {0},অগ্রাধিকার {0}
+Profile name,প্রোফাইলের নাম
+Source ready,উৎস প্রস্তুত
+Business name,ব্যবসার নাম
+Campaign name,ক্যাম্পেইনের নাম
+Company names,কোম্পানির নাম
+Leads per run,প্রতিবারে লিড
+Saved profile,প্রোফাইল সংরক্ষিত
+What you sell,আপনি কী বিক্রি করেন
+Your business,আপনার ব্যবসা
+e.g. hospital,যেমন: হাসপাতাল
+"Once, right now","একবার, এখনই"
+Ready to review,পর্যালোচনার জন্য প্রস্তুত
+Review & launch,পর্যালোচনা ও চালু
+Discovery stopped,খোঁজা থামানো হয়েছে
+Regions you serve,আপনি যেসব অঞ্চলে সেবা দেন
+Target industries,টার্গেট শিল্প
+Your market brief,আপনার বাজারের সারসংক্ষেপ
+Discovery complete,খোঁজা সম্পূর্ণ
+Problems you solve,আপনি যেসব সমস্যার সমাধান করেন
+Research my market,আমার বাজার নিয়ে গবেষণা করুন
+Use these segments,এই সেগমেন্টগুলো ব্যবহার করুন
+Continue to sources,উৎসে এগিয়ে যান
+Discovery cancelled,খোঁজা বাতিল হয়েছে
+e.g. Pharmaceutical,যেমন: ওষুধ শিল্প
+"Now, then {0} at {1}","এখন, তারপর {1}-এ {0}"
+Searches to run: {0},চালানোর অনুসন্ধান: {0}
+{0} is ready to use.,{0} ব্যবহারের জন্য প্রস্তুত।
+Leads to find per run,প্রতিবারে খোঁজার লিড
+Products and services,পণ্য ও সেবা
+Worker status unknown,ওয়ার্কারের অবস্থা অজানা
+{0} at {1} · next {2},"{0}, {1}-এ · পরবর্তী {2}"
+Business profile saved,ব্যবসার প্রোফাইল সংরক্ষিত
+Market research failed,বাজার গবেষণা ব্যর্থ হয়েছে
+Widen searches with AI,এআই দিয়ে অনুসন্ধান বিস্তৃত করুন
+"e.g. Dhaka, Chattogram","যেমন: ঢাকা, চট্টগ্রাম"
+Built from your profile,আপনার প্রোফাইল থেকে তৈরি
+Needs your offer solves,আপনার প্রস্তাবের সমাধান করা সমস্যা দরকার
+"e.g. DMS, van sales app","যেমন: ডিএমএস, ভ্যান সেলস অ্যাপ"
+Signs of a good customer,ভালো গ্রাহকের লক্ষণ
+Your discovery campaigns,আপনার খোঁজার ক্যাম্পেইন
+e.g. Pharmacies in Dhaka,যেমন: ঢাকার ফার্মেসি
+Competitors (never leads),প্রতিযোগী (কখনো লিড নয়)
+Import from won CRM deals,জেতা সিআরএম ডিল থেকে ইম্পোর্ট করুন
+"e.g. Pharmaceutical, FMCG","যেমন: ওষুধ, এফএমসিজি"
+Business types you sell to,আপনি যে ধরনের ব্যবসার কাছে বিক্রি করেন
+Buyer types (B2B segments),ক্রেতার ধরন (বি২বি সেগমেন্ট)
+Researching your market...,আপনার বাজার নিয়ে গবেষণা হচ্ছে...
+"Skip, I know who to target","এড়িয়ে যান, আমি জানি কাদের টার্গেট করব"
+{0} of {1} leads this month,এই মাসে {1}টির মধ্যে {0}টি লিড
+AI research on {0} web pages,{0}টি ওয়েব পাতায় এআই গবেষণা
+Exclude businesses mentioning,যেসব ব্যবসার উল্লেখ আছে তাদের বাদ দিন
+"Check the summary, then start.","সারসংক্ষেপ দেখে নিন, তারপর শুরু করুন।"
+"e.g. distributors, wholesalers","যেমন: পরিবেশক, পাইকারি বিক্রেতা"
+{0} targeting profiles created,{0}টি টার্গেটিং প্রোফাইল তৈরি হয়েছে
+Research websites automatically,ওয়েবসাইট স্বয়ংক্রিয়ভাবে গবেষণা করুন
+"Type Area, City and press Enter","এলাকা, শহর লিখে এন্টার চাপুন"
+"e.g. owner, procurement manager","যেমন: মালিক, ক্রয় ব্যবস্থাপক"
+I confirm we may use this source,আমি নিশ্চিত করছি যে আমরা এই উৎস ব্যবহার করতে পারি
+Show all lead sources (advanced),সব লিড উৎস দেখান (উন্নত)
+"e.g. stock-outs, slow collections","যেমন: স্টক শেষ হওয়া, ধীর আদায়"
+Tell the agent about your business,এজেন্টকে আপনার ব্যবসা সম্পর্কে বলুন
+Directory start URLs (one per line),ডিরেক্টরির শুরুর ইউআরএল (প্রতি লাইনে একটি)
+Your plan allows up to {0} per run.,আপনার প্ল্যানে প্রতিবারে সর্বোচ্চ {0}টি অনুমোদিত।
+"e.g. route planning, credit control","যেমন: রুট পরিকল্পনা, ক্রেডিট নিয়ন্ত্রণ"
+"e.g. several branches, own warehouse","যেমন: একাধিক শাখা, নিজস্ব গুদাম"
+{0} customers imported from won deals,জেতা ডিল থেকে {0} জন গ্রাহক ইম্পোর্ট হয়েছে
+What the agent could not confirm ({0}),এজেন্ট যা নিশ্চিত করতে পারেনি ({0})
+"e.g. pharmacy, medicine shop, ফার্মেসি","যেমন: ফার্মেসি, ওষুধের দোকান, ফার্মেসি"
+Please confirm you may use this source.,অনুগ্রহ করে নিশ্চিত করুন যে আপনি এই উৎস ব্যবহার করতে পারেন।
+Leads will appear here as they are found.,লিড পাওয়া গেলে এখানে দেখা যাবে।
+"e.g. distributors, wholesalers, pharmacies","যেমন: পরিবেশক, পাইকারি বিক্রেতা, ফার্মেসি"
+Add keywords or segments in the previous step.,আগের ধাপে কীওয়ার্ড বা সেগমেন্ট যোগ করুন।
+Your best customers (Name | website | industry),আপনার সেরা গ্রাহক (নাম | ওয়েবসাইট | শিল্প)
+AI suggestions added; remove any you don't want.,এআই-এর পরামর্শ যোগ হয়েছে; যেগুলো চান না সেগুলো সরিয়ে দিন।
+Runs in the background at this time (server time).,এই সময়ে ব্যাকগ্রাউন্ডে চলে (সার্ভারের সময়)।
+Adds related keywords and Bangla variants each run.,প্রতিবার সম্পর্কিত কীওয়ার্ড ও বাংলা রূপ যোগ করে।
+"Run once now, keep it running on a schedule, or both.","এখনই একবার চালান, সময়সূচিতে চালু রাখুন, বা দুটোই।"
+{keyword} and {location} are filled in for each search.,প্রতিটি অনুসন্ধানে {keyword} ও {location} বসে যায়।
+One per line. The agent looks for businesses like these.,প্রতি লাইনে একটি। এজেন্ট এই ধরনের ব্যবসা খোঁজে।
+Ask a Sales Agent admin or manager to set up this source.,এই উৎস সেটআপ করতে একজন সেলস এজেন্ট অ্যাডমিন বা ম্যানেজারকে বলুন।
+"The agent will run this campaign on {0} at {1}, then repeat.","এজেন্ট এই ক্যাম্পেইন {0} তারিখে {1}-এ চালাবে, তারপর পুনরাবৃত্তি করবে।"
+Type a word and press Enter to add it. Use English or Bangla.,একটি শব্দ লিখে এন্টার চাপলে যোগ হয়। ইংরেজি বা বাংলা ব্যবহার করুন।
+"Let AI suggest more keywords, Bangla variants and buyer types.","এআই আরও কীওয়ার্ড, বাংলা রূপ ও ক্রেতার ধরন প্রস্তাব করুক।"
+"Find emails, social profiles and buying signals, then score each lead.","ইমেইল, সোশ্যাল প্রোফাইল ও কেনার সংকেত খুঁজুন, তারপর প্রতিটি লিডের স্কোর করুন।"
+e.g. Distribution management software for FMCG and pharma distributors,যেমন: এফএমসিজি ও ফার্মা পরিবেশকদের জন্য ডিস্ট্রিবিউশন ম্যানেজমেন্ট সফটওয়্যার
+Data is kept per your provider's retention rules and the source's terms.,তথ্য আপনার প্রোভাইডারের সংরক্ষণ নিয়ম ও উৎসের শর্ত অনুযায়ী রাখা হয়।
+Done. Research and scoring continue in the background; leads appear in Prospect Review.,সম্পন্ন। গবেষণা ও স্কোরিং ব্যাকগ্রাউন্ডে চলছে; লিড লিড পর্যালোচনায় দেখা যাবে।
+The easiest choice is Smart Sources: it searches every source set up for your company at once.,সবচেয়ে সহজ পছন্দ স্মার্ট সোর্স: এটি আপনার কোম্পানির জন্য সেটআপ করা সব উৎসে একবারে খোঁজে।
+"Pick a source, describe who you sell to, and let the agent find, research and score leads for you.","একটি উৎস বেছে নিন, কাদের কাছে বিক্রি করেন তা বর্ণনা করুন, আর এজেন্ট আপনার জন্য লিড খুঁজে, গবেষণা করে ও স্কোর করবে।"
+Fold,ভাঁজ করুন
+Mine,আমার
+Wrote,লিখেছেন
+Expand,প্রসারিত করুন
+Nobody,কেউ না
+Consent,সম্মতি
+Discard,বাতিল করুন
+Syncing,সিঙ্ক হচ্ছে
+AI draft,এআই খসড়া
+now: {0},এখন: {0}
+Hide list,তালিকা লুকান
+Show list,তালিকা দেখান
+Watch out,সাবধান
+AI suggest,এআই-এর পরামর্শ
+Full width,পূর্ণ প্রস্থ
+Phone call,ফোন কল
+Sent ({0}),পাঠানো ({0})
+Unassigned,কাউকে দেওয়া হয়নি
+Draft ready,খসড়া প্রস্তুত
+Side column,পাশের কলাম
+Status: {0},অবস্থা: {0}
+Hide details,বিবরণ লুকান
+Show details,বিবরণ দেখান
+Nothing here.,এখানে কিছু নেই।
+Send template,টেমপ্লেট পাঠান
+Meta lead form,মেটা লিড ফর্ম
+Needs a person,একজন মানুষের দরকার
+Standard width,সাধারণ প্রস্থ
+Approve and send,অনুমোদন করে পাঠান
+Dock bottom left,নিচে বাঁয়ে বসান
+LinkedIn lead form,লিংকডইন লিড ফর্ম
+Edit before sending,পাঠানোর আগে সম্পাদনা করুন
+Updates arrive live,হালনাগাদ সঙ্গে সঙ্গে আসে
+"AI suggests, we send","এআই প্রস্তাব করে, আমরা পাঠাই"
+"AI summary, read-only","এআই-এর সারসংক্ষেপ, শুধু পড়ার জন্য"
+Follow-up task created,ফলো-আপ কাজ তৈরি হয়েছে
+"Search name, phone, tag","নাম, ফোন, ট্যাগ খুঁজুন"
+"no email, phone or chat","ইমেইল, ফোন বা চ্যাট নেই"
+Add a tag and press Enter,একটি ট্যাগ যোগ করে এন্টার চাপুন
+Or tell the AI what to say,অথবা এআই-কে বলুন কী বলতে হবে
+Approve and send this message?,এই বার্তা অনুমোদন করে পাঠাবেন?
+"Summary from CRM facts, read-only","সিআরএমের তথ্য থেকে সারসংক্ষেপ, শুধু পড়ার জন্য"
+Reconnecting; checking every minute,আবার সংযোগ হচ্ছে; প্রতি মিনিটে যাচাই চলছে
+Meeting proposal drafted in Meetings,মিটিংয়ের প্রস্তাবের খসড়া মিটিংসে করা হয়েছে
+Write your reply… (Ctrl+Enter to send),আপনার উত্তর লিখুন… (পাঠাতে Ctrl+Enter)
+Create a follow-up task on the CRM lead?,সিআরএম লিডে একটি ফলো-আপ কাজ তৈরি করবেন?
+Reading the conversation and writing a reply…,কথোপকথন পড়ে একটি উত্তর লেখা হচ্ছে…
+24-hour window closed: send an approved template,২৪ ঘণ্টার সময় শেষ: একটি অনুমোদিত টেমপ্লেট পাঠান
+A meeting fits here. Draft a meeting proposal for you to approve?,এখানে একটি মিটিং মানায়। আপনার অনুমোদনের জন্য মিটিংয়ের প্রস্তাবের খসড়া করবেন?
+This conversation could not be loaded. Pick it again from the list.,এই কথোপকথন লোড করা যায়নি। তালিকা থেকে আবার বেছে নিন।
+"No conversations yet. Replies, chats, texts, calls and lead forms appear here.","এখনো কোনো কথোপকথন নেই। উত্তর, চ্যাট, টেক্সট, কল ও লিড ফর্ম এখানে আসে।"
+Day,দিন
+Won,জিতেছে
+Stop,থামুন
+Leads,লিড
+7 days,৭ দিন
+Misfit,অমিল
+Period,সময়কাল
+Unsure,অনিশ্চিত
+of {0},{0}-এর মধ্যে
+30 days,৩০ দিন
+90 days,৯০ দিন
+Iterate,পুনরাবৃত্তি করুন
+Measure,মাপুন
+180 days,১৮০ দিন
+Answered,উত্তর দেওয়া হয়েছে
+Pipeline,পাইপলাইন
+Demo data,ডেমো তথ্য
+Too early,অনেক আগে
+Won value,জেতা অঙ্ক
+Agent work,এজেন্টের কাজ
+Reply rate,উত্তরের হার
+Leads found,পাওয়া লিড
+Messages in,আসা বার্তা
+vs previous,আগের তুলনায়
+Added to CRM,সিআরএমে যোগ হয়েছে
+Brave Places,ব্রেভ প্লেসেস
+Lead sources,লিড উৎস
+No data yet.,এখনো কোনো তথ্য নেই।
+Not measured,মাপা হয়নি
+Manual import,হাতে ইম্পোর্ট
+Median answer,মাঝারি উত্তরের সময়
+Smart Sources,স্মার্ট সোর্স
+Daily activity,দৈনিক কার্যকলাপ
+Ready to scale,বাড়ানোর জন্য প্রস্তুত
+calls assigned,কল দেওয়া হয়েছে
+No earlier data,আগের কোনো তথ্য নেই
+Research & data,গবেষণা ও তথ্য
+Show as a table,টেবিল হিসেবে দেখান
+buying comments,কেনার মন্তব্য
+outcomes logged,ফলাফল নথিভুক্ত
+Brave Web Search,ব্রেভ ওয়েব সার্চ
+Content & social,কনটেন্ট ও সোশ্যাল
+Looks like a fit,মানানসই মনে হচ্ছে
+Maps Browser Bot,ম্যাপস ব্রাউজার বট
+Positive replies,ইতিবাচক উত্তর
+answered at once,সঙ্গে সঙ্গে উত্তর দেওয়া হয়েছে
+Brave LLM Context,ব্রেভ এলএলএম কনটেক্সট
+AI triage verdicts,এআই বাছাইয়ের সিদ্ধান্ত
+Calls and AI triage,কল ও এআই বাছাই
+Analytics & forecast,বিশ্লেষণ ও পূর্বাভাস
+Google Maps · SerpAPI,গুগল ম্যাপস · সার্পএপিআই
+median time to answer,উত্তর দেওয়ার মাঝারি সময়
+Daily activity line chart,দৈনিক কার্যকলাপের রেখাচিত্র
+From discovery to revenue,আবিষ্কার থেকে আয় পর্যন্ত
+Google Maps · ScrapingBee,গুগল ম্যাপস · স্ক্র্যাপিংবি
+Google Maps · Scrapingdog,গুগল ম্যাপস · স্ক্র্যাপিংডগ
+Engagement & conversations,সম্পৃক্ততা ও কথোপকথন
+Agent work stacked bar chart,এজেন্টের কাজের স্তূপ চার্ট
+No leads in this period yet.,এই সময়ে এখনো কোনো লিড নেই।
+Actions the agents took each day,এজেন্টরা প্রতিদিন যে কাজ করেছে
+No conversations in this period.,এই সময়ে কোনো কথোপকথন নেই।
+No agent activity in this period.,এই সময়ে কোনো এজেন্ট কার্যকলাপ নেই।
+Which sources find leads that convert,কোন উৎসের লিড থেকে বিক্রি হয়
+Outreach (messages and answered calls),আউটরিচ (বার্তা ও উত্তর দেওয়া কল)
+"Last {0}, compared with the {0} before.","গত {0}, তার আগের {0}-এর সঙ্গে তুলনায়।"
+"Outreach results, pilots and AI analysis","আউটরিচের ফলাফল, পাইলট ও এআই বিশ্লেষণ"
+Leads found in the period and how far they got,এই সময়ে পাওয়া লিড এবং তারা কতদূর এগিয়েছে
+Which customer segments turn into replies and deals,কোন গ্রাহক সেগমেন্ট থেকে উত্তর ও ডিল আসে
+"Leads the agents found, and the outreach that followed",এজেন্টদের খুঁজে পাওয়া লিড এবং তার পর হওয়া আউটরিচ
+"Phone-first pilots, and how the AI sorted borderline leads","ফোন-আগে পাইলট, এবং এআই কীভাবে সীমারেখার লিড বাছাই করেছে"
+"Where leads talk to you, how fast they get an answer, and what it brings","লিডরা কোথায় আপনার সঙ্গে কথা বলে, কত দ্রুত উত্তর পায়, এবং তাতে কী আসে"
+No campaigns yet. The Content agent drafts one when a segment has enough approved leads.,এখনো কোনো ক্যাম্পেইন নেই। একটি সেগমেন্টে যথেষ্ট অনুমোদিত লিড হলে কনটেন্ট এজেন্ট একটি খসড়া করে।
+Book,বুক করুন
+Recent,সাম্প্রতিক
+To book,বুক করার
+Upcoming,আসন্ন
+Other time,অন্য সময়
+Reschedule,নতুন সময় ঠিক করুন
+Choose a time,একটি সময় বেছে নিন
+What happened?,কী ঘটেছে?
+Notes (what was agreed),নোট (কী ঠিক হয়েছে)
+New times proposed for approval,অনুমোদনের জন্য নতুন সময় প্রস্তাব করা হয়েছে
+Booked: in the calendar with a CRM task,বুক হয়েছে: ক্যালেন্ডারে ও সিআরএম কাজসহ
+Booked demos. Reminders arrive a day and an hour before.,বুক হওয়া ডেমো। অনুস্মারক এক দিন ও এক ঘণ্টা আগে আসে।
+Meetings that have ended. A no-show gets new times offered.,শেষ হওয়া মিটিং। যিনি আসেননি তাকে নতুন সময় দেওয়া হয়।
+"The lead is interested. Pick the time they chose, or another.","লিড আগ্রহী। তার বেছে নেওয়া সময়টি, বা অন্য একটি বেছে নিন।"
+Deal probability,ডিলের সম্ভাবনা
+Possible duplicate of,সম্ভাব্য পুনরাবৃত্তি:
+{0} prospects updated,{0}টি লিড হালনাগাদ হয়েছে
+Identity {0}% · {1} source(s),পরিচয় {0}% · {1}টি উৎস
+OK,ঠিক আছে
+Live,সরাসরি
+Apify,অ্যাপিফাই
+App ID,অ্যাপ আইডি
+Effort,প্রচেষ্টা
+Manage,পরিচালনা
+Set up,সেটআপ করুন
+Signed,স্বাক্ষরিত
+API key,এপিআই কী
+Checked,যাচাই হয়েছে
+Connect,সংযুক্ত করুন
+Gateway,গেটওয়ে
+Missing,নেই
+Routing,রাউটিং
+Sending,পাঠানো
+SerpAPI,সার্পএপিআই
+Signing,স্বাক্ষর
+Warm-up,ওয়ার্ম-আপ
+AI guide,এআই নির্দেশিকা
+Meta app,মেটা অ্যাপ
+Not used,ব্যবহার হচ্ছে না
+Send SMS,এসএমএস পাঠান
+Settings,সেটিংস
+Voice AI,ভয়েস এআই
+AI & team,এআই ও দল
+AI is off,এআই বন্ধ
+API token,এপিআই টোকেন
+Assistant,সহকারী
+Checklist,চেকলিস্ট
+Client ID,ক্লায়েন্ট আইডি
+Connected,সংযুক্ত
+Messaging,বার্তা পাঠানো
+Reference,রেফারেন্স
+Safe mode,নিরাপদ মোড
+Your team,আপনার দল
+{0} chats,{0}টি চ্যাট
+App secret,অ্যাপ সিক্রেট
+App set up,অ্যাপ সেটআপ হয়েছে
+Auth token,অথ টোকেন
+Current AI,বর্তমান এআই
+Default AI,ডিফল্ট এআই
+Limits set,সীমা ঠিক করা হয়েছে
+Needs keys,চাবি লাগবে
+Not set up,সেটআপ হয়নি
+Quick help,দ্রুত সাহায্য
+Script tag,স্ক্রিপ্ট ট্যাগ
+Your setup,আপনার সেটআপ
+AI requests,এআই অনুরোধ
+Account SID,অ্যাকাউন্ট এসআইডি
+Apify actor,অ্যাপিফাই অ্যাক্টর
+Calls & SMS,কল ও এসএমএস
+Default set,ডিফল্ট ঠিক করা হয়েছে
+Needs a key,একটি চাবি লাগবে
+ScrapingBee,স্ক্র্যাপিংবি
+Scrapingdog,স্ক্র্যাপিংডগ
+SerpAPI key,সার্পএপিআই কী
+Setup guide,সেটআপ নির্দেশিকা
+Unavailable,পাওয়া যায় না
+AI autopilot,এআই অটোপাইলট
+Brave Search,ব্রেভ সার্চ
+Claude model,ক্লড মডেল
+Country (gl),দেশ (জিএল)
+Email events,ইমেইল ইভেন্ট
+Lead routing,লিড রাউটিং
+Local AI key,লোকাল এআই কী
+Needs Twilio,টুইলিও লাগবে
+Sending pace,পাঠানোর গতি
+{0} accounts,{0}টি অ্যাকাউন্ট
+Brave API key,ব্রেভ এপিআই কী
+Client secret,ক্লায়েন্ট সিক্রেট
+Google Places,গুগল প্লেসেস
+Google Search,গুগল সার্চ
+Meta lead ads,মেটা লিড বিজ্ঞাপন
+Needs a token,একটি টোকেন লাগবে
+No limits set,কোনো সীমা ঠিক করা নেই
+Not connected,সংযুক্ত নয়
+Through Brevo,ব্রেভোর মাধ্যমে
+Emails per day,প্রতিদিন ইমেইল
+LinkedIn pages,লিংকডইন পেজ
+Recorded calls,রেকর্ড করা কল
+Social & leads,সোশ্যাল ও লিড
+Terms accepted,শর্ত মানা হয়েছে
+Tracking links,ট্র্যাকিং লিংক
+Use Twilio for,টুইলিও ব্যবহার করুন
+Webhook secret,ওয়েবহুক সিক্রেট
+need attention,মনোযোগ দরকার
+API key / token,এপিআই কী / টোকেন
+Answering calls,কল ধরা
+Apify API token,অ্যাপিফাই এপিআই টোকেন
+Connected pages,সংযুক্ত পেজ
+Explain with AI,এআই দিয়ে ব্যাখ্যা করুন
+Local AI server,লোকাল এআই সার্ভার
+Needs attention,মনোযোগ দরকার
+Phone number ID,ফোন নম্বর আইডি
+ScrapingBee key,স্ক্র্যাপিংবি কী
+Scrapingdog key,স্ক্র্যাপিংডগ কী
+Search or pick…,খুঁজুন বা বেছে নিন…
+System provider,সিস্টেম প্রোভাইডার
+Your Brevo plan,আপনার ব্রেভো প্ল্যান
+access ends {0},প্রবেশাধিকার শেষ হয় {0}
+the salesperson,বিক্রয়কর্মী
+Click-to-call on,ক্লিক-টু-কল চালু
+Google Maps data,গুগল ম্যাপসের তথ্য
+Needs an API key,একটি এপিআই কী লাগবে
+Needs the secret,সিক্রেট লাগবে
+Plans and limits,প্ল্যান ও সীমা
+Reconnect needed,আবার সংযোগ করতে হবে
+SMS (Bangladesh),এসএমএস (বাংলাদেশ)
+SSL Wireless SID,এসএসএল ওয়্যারলেস এসআইডি
+Through SendGrid,সেন্ডগ্রিডের মাধ্যমে
+Website research,ওয়েবসাইট গবেষণা
+{0} emails today,আজ {0}টি ইমেইল
+Anthropic API key,অ্যানথ্রপিক এপিআই কী
+App not installed,অ্যাপ ইনস্টল করা নেই
+Choose an account,একটি অ্যাকাউন্ট বেছে নিন
+New Email Account,নতুন ইমেইল অ্যাকাউন্ট
+Paste into Twilio,টুইলিওতে পেস্ট করুন
+Social publishing,সোশ্যাল প্রকাশনা
+Use Google Places,গুগল প্লেসেস ব্যবহার করুন
+AI voice assistant,এআই ভয়েস সহকারী
+Call-events secret,কল-ইভেন্টের সিক্রেট
+Connect lead forms,লিড ফর্ম সংযুক্ত করুন
+Connected accounts,সংযুক্ত অ্যাকাউন্ট
+Country (optional),দেশ (ঐচ্ছিক)
+Crawler user agent,ক্রলারের ইউজার এজেন্ট
+Internal companies,অভ্যন্তরীণ কোম্পানি
+Max page size (KB),পেজের সর্বোচ্চ আকার (কেবি)
+OAuth redirect URI,ওঅথ রিডাইরেক্ট ইউআরআই
+Read lead websites,লিডের ওয়েবসাইট পড়ুন
+Terms not accepted,শর্ত গ্রহণ করা হয়নি
+Website chat saved,ওয়েবসাইট চ্যাট সংরক্ষিত
+WhatsApp connected,হোয়াটসঅ্যাপ সংযুক্ত
+AI autopilot & team,এআই অটোপাইলট ও দল
+Google Maps browser,গুগল ম্যাপস ব্রাউজার
+LinkedIn lead forms,লিংকডইন লিড ফর্ম
+No outgoing account,কোনো আউটগোয়িং অ্যাকাউন্ট নেই
+Paste into SendGrid,সেন্ডগ্রিডে পেস্ট করুন
+Reading your setup…,আপনার সেটআপ পড়া হচ্ছে…
+Search integrations,ইন্টিগ্রেশন খুঁজুন
+Sending domain: {0},পাঠানোর ডোমেইন: {0}
+Use for Google Maps,গুগল ম্যাপসের জন্য ব্যবহার করুন
+Check addresses with,যাচাই করুন যার মাধ্যমে
+Facebook & Messenger,ফেসবুক ও মেসেঞ্জার
+New WhatsApp Account,নতুন হোয়াটসঅ্যাপ অ্যাকাউন্ট
+Webhook callback URL,ওয়েবহুক কলব্যাক ইউআরএল
+AI provider and model,এআই প্রোভাইডার ও মডেল
+Connect Twilio first.,আগে টুইলিও সংযুক্ত করুন।
+Connect with Facebook,ফেসবুকের মাধ্যমে সংযুক্ত করুন
+Connect with LinkedIn,লিংকডইনের মাধ্যমে সংযুক্ত করুন
+Email delivery events,ইমেইল ডেলিভারি ইভেন্ট
+Experimental browsers,পরীক্ষামূলক ব্রাউজার
+Google Places API key,গুগল প্লেসেস এপিআই কী
+Google Search browser,গুগল সার্চ ব্রাউজার
+Keep Maps data (days),ম্যাপসের তথ্য রাখুন (দিন)
+Max pages per website,প্রতি ওয়েবসাইটে সর্বোচ্চ পেজ
+Max places per search,প্রতি অনুসন্ধানে সর্বোচ্চ স্থান
+Needs the ARI address,এআরআই ঠিকানা লাগবে
+System provider setup,সিস্টেম প্রোভাইডার সেটআপ
+Use for Google Search,গুগল সার্চের জন্য ব্যবহার করুন
+It is shown only once.,এটি শুধু একবার দেখানো হয়।
+Max results per search,প্রতি অনুসন্ধানে সর্বোচ্চ ফলাফল
+Meta Graph API version,মেটা গ্রাফ এপিআই সংস্করণ
+Needs a signing secret,একটি সাইনিং সিক্রেট লাগবে
+Nothing connected yet.,এখনো কিছু সংযুক্ত হয়নি।
+Once for every Company,প্রতিটি কোম্পানির জন্য একবার
+Open platform settings,প্ল্যাটফর্ম সেটিংস খুলুন
+Publish approved posts,অনুমোদিত পোস্ট প্রকাশ করুন
+Connect your lead forms,আপনার লিড ফর্ম সংযুক্ত করুন
+Default places provider,ডিফল্ট প্লেসেস প্রোভাইডার
+Enable the Maps browser,ম্যাপস ব্রাউজার চালু করুন
+Fetch timeout (seconds),ফেচ টাইমআউট (সেকেন্ড)
+Install on your website,আপনার ওয়েবসাইটে ইনস্টল করুন
+Keep Places data (days),প্লেসেসের তথ্য রাখুন (দিন)
+Keep Search data (days),সার্চের তথ্য রাখুন (দিন)
+Make a new verify token,নতুন ভেরিফাই টোকেন তৈরি করুন
+No integration matches.,কোনো ইন্টিগ্রেশন মেলেনি।
+Office phone (Asterisk),অফিস ফোন (অ্যাস্টেরিস্ক)
+Saved · type to replace,সংরক্ষিত · বদলাতে লিখুন
+Bounces and unsubscribes,বাউন্স ও আনসাবস্ক্রাইব
+Accounts available to you,আপনার জন্য উপলব্ধ অ্যাকাউন্ট
+Check the tracking domain,ট্র্যাকিং ডোমেইন যাচাই করুন
+Connected {0} account(s).,{0}টি অ্যাকাউন্ট সংযুক্ত হয়েছে।
+Enable the Search browser,সার্চ ব্রাউজার চালু করুন
+Requests per market brief,প্রতি বাজার সংক্ষেপে অনুরোধ
+Addresses for the Meta app,মেটা অ্যাপের জন্য ঠিকানা
+Monthly limits per Company,প্রতি কোম্পানির মাসিক সীমা
+AI is on for every customer,সব গ্রাহকের জন্য এআই চালু
+Default web search provider,ডিফল্ট ওয়েব সার্চ প্রোভাইডার
+Through your Facebook Pages,আপনার ফেসবুক পেজের মাধ্যমে
+Address for the LinkedIn app,লিংকডইন অ্যাপের জন্য ঠিকানা
+Asterisk ARI address (HTTPS),অ্যাস্টেরিস্ক এআরআই ঠিকানা (এইচটিটিপিএস)
+Show the chat on our website,আমাদের ওয়েবসাইটে চ্যাট দেখান
+Default page context provider,ডিফল্ট পেজ কনটেক্সট প্রোভাইডার
+LinkedIn API version (YYYYMM),লিংকডইন এপিআই সংস্করণ (YYYYMM)
+Some pages were not connected,কিছু পেজ সংযুক্ত হয়নি
+Connect WhatsApp with Facebook,ফেসবুকের মাধ্যমে হোয়াটসঅ্যাপ সংযুক্ত করুন
+Delay between places (seconds),স্থানের মাঝে বিরতি (সেকেন্ড)
+Every reply waits for approval,প্রতিটি উত্তর অনুমোদনের অপেক্ষায় থাকে
+Phone number → A call comes in,ফোন নম্বর → কল আসে
+Make a new webhook verify token,নতুন ওয়েবহুক ভেরিফাই টোকেন তৈরি করুন
+Messaging Service SID (for RCS),মেসেজিং সার্ভিস এসআইডি (আরসিএসের জন্য)
+Sales team (one email per line),সেলস টিম (প্রতি লাইনে একটি ইমেইল)
+Signed Event Webhook public key,সাইন করা ইভেন্ট ওয়েবহুকের পাবলিক কী
+Waiting for the system provider,সিস্টেম প্রোভাইডারের অপেক্ষায়
+Caller ID (your 09-series number),কলার আইডি (আপনার ০৯-সিরিজের নম্বর)
+Only {0} allowlisted recipient(s),শুধু {0}টি অনুমোদিত প্রাপক
+Key (only if the server needs one),কী (শুধু সার্ভারের দরকার হলে)
+Send and receive WhatsApp messages,হোয়াটসঅ্যাপ বার্তা পাঠান ও গ্রহণ করুন
+From address (verified in SendGrid),প্রেরকের ঠিকানা (সেন্ডগ্রিডে যাচাই করা)
+Google Maps Platform terms reviewed,গুগল ম্যাপস প্ল্যাটফর্মের শর্ত পড়া হয়েছে
+Paste before </body> on every page:,প্রতিটি পেজে </body>-এর আগে পেস্ট করুন:
+{0} of {1} done · only you see this,{1}-এর মধ্যে {0}টি সম্পন্ন · শুধু আপনি দেখছেন
+Answer simple chat questions at once,সহজ চ্যাট প্রশ্নের তখনই উত্তর দিন
+Delay between result pages (seconds),ফলাফল পেজের মাঝে বিরতি (সেকেন্ড)
+"Check email health (SPF, DKIM, DMARC)","ইমেইলের স্বাস্থ্য যাচাই করুন (এসপিএফ, ডিকেআইএম, ডিএমএআরসি)"
+Companies with no subscription needed,যেসব কোম্পানির সাবস্ক্রিপশন লাগে না
+It always says it is an AI assistant.,এটি সবসময় বলে যে এটি একটি এআই সহকারী।
+Also checks every webhook's signature.,প্রতিটি ওয়েবহুকের স্বাক্ষরও যাচাই করে।
+OAuth redirect URI (Meta and LinkedIn),ওঅথ রিডাইরেক্ট ইউআরআই (মেটা ও লিংকডইন)
+One salesperson (named in Get started),একজন বিক্রয়কর্মী (শুরু করুনে নাম দেওয়া)
+Addresses for the Meta and LinkedIn apps,মেটা ও লিংকডইন অ্যাপের জন্য ঠিকানা
+Also verifies every webhook from Twilio.,টুইলিওর প্রতিটি ওয়েবহুকও যাচাই করে।
+"Paste into Meta: WhatsApp, Configuration","মেটায় পেস্ট করুন: হোয়াটসঅ্যাপ, কনফিগারেশন"
+The Apify actor that scrapes Google Maps,যে অ্যাপিফাই অ্যাক্টর গুগল ম্যাপস স্ক্র্যাপ করে
+Your system provider set up the Meta app,আপনার সিস্টেম প্রোভাইডার মেটা অ্যাপ সেটআপ করেছে
+Address to paste into your email provider,আপনার ইমেইল প্রোভাইডারে পেস্ট করার ঠিকানা
+Send SMS (only to leads with SMS consent),এসএমএস পাঠান (শুধু এসএমএস সম্মতি থাকা লিডকে)
+OpenAI models for customers who use OpenAI,যেসব গ্রাহক ওপেনএআই ব্যবহার করেন তাদের জন্য ওপেনএআই মডেল
+Answer incoming calls with the AI assistant,এআই সহকারী দিয়ে আসা কলের উত্তর দিন
+LinkedIn approved your Lead Sync API access,লিংকডইন আপনার লিড সিঙ্ক এপিআই অ্যাক্সেস অনুমোদন করেছে
+Sign in with Facebook and choose your Pages,ফেসবুকে সাইন ইন করে আপনার পেজ বেছে নিন
+Company pages you administer: approved posts,আপনার পরিচালিত কোম্পানি পেজ: অনুমোদিত পোস্ট
+"Use Brave Search (web, places, page context)","ব্রেভ সার্চ ব্যবহার করুন (ওয়েব, স্থান, পেজ কনটেক্সট)"
+Your system provider set up the LinkedIn app,আপনার সিস্টেম প্রোভাইডার লিংকডইন অ্যাপ সেটআপ করেছে
+Google's terms restrict scraping Google Maps.,গুগলের শর্ত গুগল ম্যাপস স্ক্র্যাপিং সীমিত করে।
+Mail Settings → Event Webhook → HTTP POST URL,মেল সেটিংস → ইভেন্ট ওয়েবহুক → এইচটিটিপি পোস্ট ইউআরএল
+Accept responsibility for Google Maps data use,গুগল ম্যাপসের তথ্য ব্যবহারের দায়িত্ব নিন
+Customers may use the AI set for their Company,গ্রাহকরা তাদের কোম্পানির জন্য নির্ধারিত এআই ব্যবহার করতে পারবেন
+Messages so far: Messenger {0} · Instagram {1},এ পর্যন্ত বার্তা: মেসেঞ্জার {0} · ইনস্টাগ্রাম {1}
+Notify URL in Brevo (Transactional → Webhooks),ব্রেভোতে নোটিফাই ইউআরএল (ট্রানজ্যাকশনাল → ওয়েবহুক)
+Share across the sales team (least busy first),সেলস টিমের মধ্যে ভাগ করুন (কম ব্যস্ত আগে)
+"Web search, places and page context from Brave","ব্রেভ থেকে ওয়েব সার্চ, স্থান ও পেজ কনটেক্সট"
+Your own PBX and a Bangladeshi IPTSP SIP trunk,আপনার নিজস্ব পিবিএক্স ও বাংলাদেশি আইপিটিএসপি এসআইপি ট্রাঙ্ক
+Your websites (one per line; empty allows any),আপনার ওয়েবসাইট (প্রতি লাইনে একটি; ফাঁকা থাকলে সবই চলবে)
+"BulkSMSBD, SSL Wireless or the platform gateway","বাল্কএসএমএসবিডি, এসএসএল ওয়্যারলেস বা প্ল্যাটফর্ম গেটওয়ে"
+"Calls, recordings, SMS and RCS from one account","একটি অ্যাকাউন্ট থেকে কল, রেকর্ডিং, এসএমএস ও আরসিএস"
+Paste this into the Meta app's webhook settings,এটি মেটা অ্যাপের ওয়েবহুক সেটিংসে পেস্ট করুন
+"RCS where the phone supports it, SMS otherwise.","ফোন সমর্থন করলে আরসিএস, না হলে এসএমএস।"
+Webhook callback URL (Meta: Page and Instagram),ওয়েবহুক কলব্যাক ইউআরএল (মেটা: পেজ ও ইনস্টাগ্রাম)
+Your outgoing mailbox for replies and campaigns,উত্তর ও ক্যাম্পেইনের জন্য আপনার আউটগোয়িং মেইলবক্স
+Accept responsibility for Google Search data use,গুগল সার্চের তথ্য ব্যবহারের দায়িত্ব নিন
+Also answer WhatsApp (inside the 24-hour window),হোয়াটসঅ্যাপেও উত্তর দিন (২৪ ঘণ্টার সময়ের মধ্যে)
+Your system provider has not set up this app yet.,আপনার সিস্টেম প্রোভাইডার এখনো এই অ্যাপ সেটআপ করেনি।
+Connect your Facebook Pages (Facebook & Messenger),আপনার ফেসবুক পেজ সংযুক্ত করুন (ফেসবুক ও মেসেঞ্জার)
+"Lead Gen form answers every hour, with a call task","প্রতি ঘণ্টায় লিড জেন ফর্মের উত্তর, কল কাজসহ"
+"Professional accounts: posts, messages and comments","প্রফেশনাল অ্যাকাউন্ট: পোস্ট, বার্তা ও মন্তব্য"
+Customers may use their own AI server address (HTTPS),গ্রাহকরা নিজেদের এআই সার্ভারের ঠিকানা (এইচটিটিপিএস) ব্যবহার করতে পারবেন
+Google Maps and Google Search results through SerpAPI,সার্পএপিআই-এর মাধ্যমে গুগল ম্যাপস ও গুগল সার্চের ফলাফল
+Turn on only after your team has read Google's terms.,আপনার দল গুগলের শর্ত পড়ার পরই চালু করুন।
+"Add an outgoing Email Account, or use Twilio SendGrid.","একটি আউটগোয়িং ইমেইল অ্যাকাউন্ট যোগ করুন, বা টুইলিও সেন্ডগ্রিড ব্যবহার করুন।"
+High-volume email with bounce and spam-report tracking,বাউন্স ও স্প্যাম-রিপোর্ট ট্র্যাকিংসহ বেশি পরিমাণে ইমেইল
+Phone number or Messaging Service → A message comes in,ফোন নম্বর বা মেসেজিং সার্ভিস → বার্তা আসে
+Your email provider signs each event with this secret.,আপনার ইমেইল প্রোভাইডার এই সিক্রেট দিয়ে প্রতিটি ইভেন্ট সাইন করে।
+"Pages: approved posts, Messenger chats, buying comments","পেজ: অনুমোদিত পোস্ট, মেসেঞ্জার চ্যাট, কেনার মন্তব্য"
+Paste the same text in the Meta app's webhook settings.,মেটা অ্যাপের ওয়েবহুক সেটিংসে একই লেখা পেস্ট করুন।
+Record calls (transcribed and summarised; tell callers),কল রেকর্ড করুন (লিখিত রূপ ও সারসংক্ষেপসহ; কলারকে জানান)
+Optional: turn on comment-to-chat in AI autopilot & team,ঐচ্ছিক: এআই অটোপাইলট ও দলে মন্তব্য-থেকে-চ্যাট চালু করুন
+"WhatsApp Business Cloud API: replies, templates, opt-ins","হোয়াটসঅ্যাপ বিজনেস ক্লাউড এপিআই: উত্তর, টেমপ্লেট, সম্মতি"
+Google Maps and Google Search results through ScrapingBee,স্ক্র্যাপিংবির মাধ্যমে গুগল ম্যাপস ও গুগল সার্চের ফলাফল
+Google Maps and Google Search results through Scrapingdog,স্ক্র্যাপিংডগের মাধ্যমে গুগল ম্যাপস ও গুগল সার্চের ফলাফল
+Share new conversations automatically (fewest open first),নতুন কথোপকথন নিজে থেকে ভাগ করুন (কম খোলা থাকা আগে)
+"The AI behind every agent, chosen by your system provider","প্রতিটি এজেন্টের পেছনের এআই, আপনার সিস্টেম প্রোভাইডারের বাছাই করা"
+"An OpenAI-compatible server you run, such as Ollama or vLLM","আপনার চালানো ওপেনএআই-সামঞ্জস্যপূর্ণ সার্ভার, যেমন ওলামা বা ভিএলএলএম"
+"Remind {0} when a chat waits longer than (minutes, 0 = off)","কোনো চ্যাট এর চেয়ে বেশি সময় (মিনিট, ০ = বন্ধ) অপেক্ষায় থাকলে {0}-কে মনে করান"
+Answer buying comments on our posts with one private message,আমাদের পোস্টে কেনার মন্তব্যের উত্তর একটি ব্যক্তিগত বার্তায় দিন
+One app for every customer: company pages and Lead Gen forms,সব গ্রাহকের জন্য একটি অ্যাপ: কোম্পানি পেজ ও লিড জেন ফর্ম
+Transcribes recorded calls and writes the summary to the CRM,রেকর্ড করা কলের লিখিত রূপ তৈরি করে সারসংক্ষেপ সিআরএমে লেখে
+Found,পাওয়া গেছে
+Replied,উত্তর এসেছে
+to book,বুক করতে
+Approved,অনুমোদিত
+Positive,ইতিবাচক
+Contacted,যোগাযোগ হয়েছে
+follow-ups,ফলো-আপ
+open deals,খোলা ডিল
+to approve,অনুমোদনের জন্য
+chats today,আজ চ্যাট
+need a push,তাগাদা দরকার
+Chat with us,আমাদের সঙ্গে চ্যাট করুন
+awaiting you,আপনার অপেক্ষায়
+calls to make,করার মতো কল
+min to answer,মিনিটে উত্তর
+Lead discovery,লিড আবিষ্কার
+do not contact,যোগাযোগ করবেন না
+facts approved,তথ্য অনুমোদিত
+90-day forecast,৯০ দিনের পূর্বাভাস
+Unknown action.,অজানা কাজ।
+Unknown source.,অজানা উৎস।
+Unknown status.,অজানা অবস্থা।
+Invalid message.,বার্তাটি সঠিক নয়।
+Invalid request.,অনুরোধটি সঠিক নয়।
+Unknown AI mode.,অজানা এআই মোড।
+need a next step,পরের ধাপ দরকার
+Choose a Company.,একটি কোম্পানি বেছে নিন।
+Targeting profile,টার্গেটিং প্রোফাইল
+Unknown decision.,অজানা সিদ্ধান্ত।
+Unknown provider.,অজানা প্রোভাইডার।
+duplicates marked,ডুপ্লিকেট চিহ্নিত
+Call transcription,কল ট্রান্সক্রিপশন
+Default AI provider,ডিফল্ট এআই প্রোভাইডার
+No active user {0}.,{0} নামে কোনো সক্রিয় ব্যবহারকারী নেই।
+Company is required.,কোম্পানি দিতে হবে।
+Meta app ID and secret,মেটা অ্যাপ আইডি ও সিক্রেট
+Decided in Agent Studio,এজেন্ট স্টুডিওতে সিদ্ধান্ত নেওয়া হয়েছে
+Enter at least one tag.,অন্তত একটি ট্যাগ লিখুন।
+Choose how often to run.,কত ঘন ঘন চলবে তা বেছে নিন।
+Give the section a name.,সেকশনটির একটি নাম দিন।
+The campaign is running.,ক্যাম্পেইন চলছে।
+Give the campaign a name.,ক্যাম্পেইনটির একটি নাম দিন।
+Give the template a name.,টেমপ্লেটটির একটি নাম দিন।
+Meta webhook verify token,মেটা ওয়েবহুক ভেরিফাই টোকেন
+Keep at least one segment.,অন্তত একটি সেগমেন্ট রাখুন।
+That request is not valid.,সেই অনুরোধ সঠিক নয়।
+This lead has no deal yet.,এই লিডের এখনো কোনো ডিল নেই।
+Approve the campaign first.,আগে ক্যাম্পেইন অনুমোদন করুন।
+Marked done in Agent Studio,এজেন্ট স্টুডিওতে সম্পন্ন চিহ্নিত
+Pause the automation first.,আগে অটোমেশন বিরতি দিন।
+Send a valid email address.,একটি সঠিক ইমেইল ঠিকানা দিন।
+This form is not available.,এই ফর্মটি পাওয়া যাচ্ছে না।
+Sales Agent user sync failed,সেলস এজেন্ট ইউজার সিঙ্ক ব্যর্থ হয়েছে
+Ask for AI suggestions first.,আগে এআই-এর পরামর্শ চান।
+LinkedIn client ID and secret,লিংকডইন ক্লায়েন্ট আইডি ও সিক্রেট
+Only drafts can be discarded.,শুধু খসড়া বাতিল করা যায়।
+Unknown call task or outcome.,অজানা কল কাজ বা ফলাফল।
+{0} is not an option for {1}.,{1}-এর জন্য {0} একটি বৈধ বিকল্প নয়।
+Give a reason for the override.,ওভাররাইডের একটি কারণ দিন।
+Switch the automation on first.,আগে অটোমেশন চালু করুন।
+"Choose Off, Assist or Auto-send.","বন্ধ, সহায়তা বা স্বয়ংক্রিয় পাঠানো বেছে নিন।"
+Not one of your Company's tasks.,এটি আপনার কোম্পানির কাজ নয়।
+This prospect is not in CRM yet.,এই প্রসপেক্ট এখনো সিআরএমে নেই।
+Not enabled by your provider yet.,আপনার প্রোভাইডার এখনো চালু করেনি।
+Pass a list of up to 200 records.,সর্বোচ্চ ২০০টি রেকর্ডের একটি তালিকা দিন।
+Save your business profile first.,আগে আপনার ব্যবসার প্রোফাইল সংরক্ষণ করুন।
+A discovery job is already running,একটি আবিষ্কারের কাজ ইতিমধ্যে চলছে
+Choose Qualified or Not Qualified.,যোগ্য বা অযোগ্য বেছে নিন।
+Choose at least one block to save.,সংরক্ষণ করতে অন্তত একটি ব্লক বেছে নিন।
+Monthly {0} limit reached for {1}.,{1}-এর জন্য মাসিক {0} সীমা শেষ।
+No lead source is switched on yet.,এখনো কোনো লিড উৎস চালু নেই।
+The automation is not switched on.,অটোমেশন চালু নেই।
+The template content is not valid.,টেমপ্লেটের বিষয়বস্তু সঠিক নয়।
+Write the window like 09:00-20:00.,সময় এভাবে লিখুন: 09:00-20:00।
+Choose who the audience is made of.,দর্শক কাদের নিয়ে গঠিত তা বেছে নিন।
+Preview the planned searches first.,আগে পরিকল্পিত অনুসন্ধানের প্রিভিউ দেখুন।
+Send a valid email or phone number.,একটি সঠিক ইমেইল বা ফোন নম্বর দিন।
+This unsubscribe link is not valid.,এই আনসাবস্ক্রাইব লিংকটি সঠিক নয়।
+The Asterisk ARI URL must use HTTPS.,অ্যাস্টেরিস্ক এআরআই ইউআরএল অবশ্যই এইচটিটিপিএস হতে হবে।
+The Sales Agent is disabled for {0}.,{0}-এর জন্য সেলস এজেন্ট বন্ধ আছে।
+The phone system did not answer: {0},ফোন সিস্টেম সাড়া দেয়নি: {0}
+Only the system provider can do this.,শুধু সিস্টেম প্রোভাইডার এটি করতে পারেন।
+"{0} must be a whole number, 0 or more.",{0} অবশ্যই ০ বা তার বেশি একটি পূর্ণ সংখ্যা হতে হবে।
+Only active campaigns take new members.,শুধু সক্রিয় ক্যাম্পেইন নতুন সদস্য নেয়।
+Something went wrong. Please try again.,কিছু ভুল হয়েছে। আবার চেষ্টা করুন।
+Submit the campaign for approval first.,আগে ক্যাম্পেইন অনুমোদনের জন্য জমা দিন।
+That change belongs to another Company.,সেই পরিবর্তন অন্য কোম্পানির।
+That person belongs to another Company.,সেই ব্যক্তি অন্য কোম্পানির।
+{0} is not one of this Company's users.,{0} এই কোম্পানির ব্যবহারকারী নয়।
+Prospects belong to different Companies.,প্রসপেক্টরা বিভিন্ন কোম্পানির।
+That segment belongs to another Company.,সেই সেগমেন্ট অন্য কোম্পানির।
+Already connected to another Company: {0},ইতিমধ্যে অন্য কোম্পানির সঙ্গে সংযুক্ত: {0}
+Accepted the AI's suggestion in Agent Studio,এজেন্ট স্টুডিওতে এআই-এর পরামর্শ গ্রহণ করা হয়েছে
+Say how this person agreed to hear from you.,এই ব্যক্তি কীভাবে আপনার কাছ থেকে শুনতে সম্মত হয়েছেন তা লিখুন।
+The phone system refused the call ({0}): {1},ফোন সিস্টেম কল প্রত্যাখ্যান করেছে ({0}): {1}
+Only the system provider can open this guide.,শুধু সিস্টেম প্রোভাইডার এই নির্দেশিকা খুলতে পারেন।
+The API needs a Sales Agent admin or manager.,এপিআই-এর জন্য সেলস এজেন্ট অ্যাডমিন বা ম্যানেজার লাগবে।
+"Add at least one keyword, segment or industry.","অন্তত একটি কীওয়ার্ড, সেগমেন্ট বা শিল্প যোগ করুন।"
+Ask a Sales Agent admin or manager to do this.,একজন সেলস এজেন্ট অ্যাডমিন বা ম্যানেজারকে এটি করতে বলুন।
+Your provider has not enabled this source yet.,আপনার প্রোভাইডার এখনো এই উৎস চালু করেনি।
+Your first name is needed for the call scripts.,কল স্ক্রিপ্টের জন্য আপনার প্রথম নাম দরকার।
+Add at least one step with an approved template.,অনুমোদিত টেমপ্লেটসহ অন্তত একটি ধাপ যোগ করুন।
+No one with that email or phone is on your list.,এই ইমেইল বা ফোনের কেউ আপনার তালিকায় নেই।
+Only draft or paused campaigns can be submitted.,শুধু খসড়া বা বিরতি দেওয়া ক্যাম্পেইন জমা দেওয়া যায়।
+This automation does not start from an API call.,এই অটোমেশন এপিআই কল থেকে শুরু হয় না।
+Approved; it goes out when the daily limit allows.,অনুমোদিত; দৈনিক সীমা অনুমতি দিলে পাঠানো হবে।
+Confirm what the agents may do on their own first.,আগে নিশ্চিত করুন এজেন্টরা নিজে থেকে কী করতে পারবে।
+Sign in with your own account to set your details.,আপনার বিবরণ ঠিক করতে নিজের অ্যাকাউন্টে সাইন ইন করুন।
+Only the system provider can change these settings.,শুধু সিস্টেম প্রোভাইডার এই সেটিংস বদলাতে পারেন।
+This record is not linked to a Sales Agent Company.,এই রেকর্ড কোনো সেলস এজেন্ট কোম্পানির সঙ্গে যুক্ত নয়।
+Your user has no email address to send the test to.,পরীক্ষা পাঠানোর জন্য আপনার ব্যবহারকারীর ইমেইল ঠিকানা নেই।
+No one with that email or phone is on your list yet.,এই ইমেইল বা ফোনের কেউ এখনো আপনার তালিকায় নেই।
+Ask a Sales Agent admin or manager to set up sources.,উৎস সেটআপ করতে একজন সেলস এজেন্ট অ্যাডমিন বা ম্যানেজারকে বলুন।
+Reckon SaaS Platform is required for the Sales Agent.,সেলস এজেন্টের জন্য রেকন এসএএস প্ল্যাটফর্ম আবশ্যক।
+Your provider has not enabled Google Maps sources yet.,আপনার প্রোভাইডার এখনো গুগল ম্যাপস উৎস চালু করেনি।
+An audience uses this segment. Remove the audience first.,একটি অডিয়েন্স এই সেগমেন্ট ব্যবহার করছে। আগে অডিয়েন্স সরান।
+Ask a Sales Agent admin or manager to approve CRM changes.,সিআরএম পরিবর্তন অনুমোদনের জন্য একজন সেলস এজেন্ট অ্যাডমিন বা ম্যানেজারকে বলুন।
+An automation uses this segment. Change the automation first.,একটি অটোমেশন এই সেগমেন্ট ব্যবহার করছে। আগে অটোমেশন বদলান।
+Say how this person agreed to hear from you (consent_statement).,এই ব্যক্তি কীভাবে আপনার কাছ থেকে শুনতে সম্মত হয়েছেন তা লিখুন (consent_statement)।
+Ask a Sales Agent admin or manager to change the business profile.,ব্যবসার প্রোফাইল বদলাতে একজন সেলস এজেন্ট অ্যাডমিন বা ম্যানেজারকে বলুন।
+Set up the phone system first (Sales Agent Settings → Phone system).,আগে ফোন সিস্টেম সেটআপ করুন (সেলস এজেন্ট সেটিংস → ফোন সিস্টেম)।
+"Campaign history is kept for prospects, leads, contacts and customers.","প্রসপেক্ট, লিড, কন্টাক্ট ও গ্রাহকদের ক্যাম্পেইন ইতিহাস রাখা হয়।"
+This audience is used by a campaign. Remove it from the campaign first.,এই অডিয়েন্স একটি ক্যাম্পেইনে ব্যবহৃত হচ্ছে। আগে ক্যাম্পেইন থেকে সরান।
+"Your plan runs {0} discovery job(s) at a time, and {1} is still running. ","আপনার প্ল্যানে একসঙ্গে {0}টি আবিষ্কারের কাজ চলে, এবং {1}টি এখনো চলছে।"
+"Turn on Enable Outgoing for that Email Account first, then choose it here.","আগে ওই ইমেইল অ্যাকাউন্টে আউটগোয়িং চালু করুন, তারপর এখানে বেছে নিন।"
+"No WhatsApp account has that name. Pick one from the list, or create it first.","এই নামে কোনো হোয়াটসঅ্যাপ অ্যাকাউন্ট নেই। তালিকা থেকে বেছে নিন, বা আগে তৈরি করুন।"
+"Enter the domain only, such as track.yourcompany.com (no https:// and no path).","শুধু ডোমেইন লিখুন, যেমন track.yourcompany.com (https:// ও পাথ ছাড়া)।"
+A test can be sent for email templates. Preview SMS and WhatsApp in the builder.,ইমেইল টেমপ্লেটের পরীক্ষা পাঠানো যায়। এসএমএস ও হোয়াটসঅ্যাপ বিল্ডারে প্রিভিউ দেখুন।
+"Agents may research, find, score and draft; launching and sending stay with a person.","এজেন্টরা গবেষণা, খোঁজা, স্কোর ও খসড়া করতে পারে; চালু ও পাঠানো মানুষের হাতে থাকে।"
+You have no phone extension yet: add yours under CRM Telephony Agent (SIP extension).,আপনার এখনো ফোন এক্সটেনশন নেই: সিআরএম টেলিফোনি এজেন্টে (এসআইপি এক্সটেনশন) যোগ করুন।
+"People are still in this automation. Pause it and let them finish, or stop them first.","এই অটোমেশনে এখনো মানুষ আছে। বিরতি দিয়ে শেষ হতে দিন, বা আগে তাদের থামান।"
+{0} has no active Sales Agent subscription. Vendors can list their own companies under ,{0}-এর কোনো সক্রিয় সেলস এজেন্ট সাবস্ক্রিপশন নেই। ভেন্ডররা নিজেদের কোম্পানি তালিকাভুক্ত করতে পারেন
+not available,পাওয়া যায় না
+Unknown channel.,অজানা চ্যানেল।
+Unknown outcome.,অজানা ফলাফল।
+Write a message.,একটি বার্তা লিখুন।
+This meeting is {0}.,এই মিটিং {0}।
+Write something first.,আগে কিছু লিখুন।
+No such deal stage: {0}.,এমন কোনো ডিল ধাপ নেই: {0}।
+Not your Company's deal.,এটি আপনার কোম্পানির ডিল নয়।
+Review the content first,আগে বিষয়বস্তু দেখুন
+That user is not active.,সেই ব্যবহারকারী সক্রিয় নয়।
+Monthly AI limit reached.,মাসিক এআই সীমা শেষ।
+Review the template first,আগে টেমপ্লেট দেখুন
+Add a social account first.,আগে একটি সোশ্যাল অ্যাকাউন্ট যোগ করুন।
+Approve the template first.,আগে টেমপ্লেট অনুমোদন করুন।
+Choose a time in the future.,ভবিষ্যতের একটি সময় বেছে নিন।
+Turn on AI to draft replies.,উত্তর খসড়া করতে এআই চালু করুন।
+Only drafts can be rewritten.,শুধু খসড়া নতুন করে লেখা যায়।
+Only drafts can be submitted.,শুধু খসড়া জমা দেওয়া যায়।
+Turn on AI to draft proposals.,প্রস্তাব খসড়া করতে এআই চালু করুন।
+Turn on AI to write templates.,টেমপ্লেট লিখতে এআই চালু করুন।
+The content check found issues:,বিষয়বস্তু যাচাইয়ে সমস্যা পাওয়া গেছে:
+That website cannot be read: {0},সেই ওয়েবসাইট পড়া যাচ্ছে না: {0}
+You cannot reply on {0} now: {1},আপনি এখন {0}-এ উত্তর দিতে পারবেন না: {1}
+Step {0}: unknown message template.,ধাপ {0}: অজানা বার্তা টেমপ্লেট।
+Submit the post for approval first.,আগে পোস্ট অনুমোদনের জন্য জমা দিন।
+This lead asked not to be contacted.,এই লিড যোগাযোগ না করতে বলেছেন।
+No written channel for this lead: {0},এই লিডের জন্য কোনো লিখিত চ্যানেল নেই: {0}
+This change has already been decided.,এই পরিবর্তনের সিদ্ধান্ত ইতিমধ্যে হয়ে গেছে।
+That record belongs to another Company.,সেই রেকর্ড অন্য কোম্পানির।
+"Choose Email, SMS, WhatsApp or LinkedIn.","ইমেইল, এসএমএস, হোয়াটসঅ্যাপ বা লিংকডইন বেছে নিন।"
+Choose at least one account to publish to.,প্রকাশ করার জন্য অন্তত একটি অ্যাকাউন্ট বেছে নিন।
+Step {0}: the template is not approved yet.,ধাপ {0}: টেমপ্লেট এখনো অনুমোদিত নয়।
+The AI returned no usable messages; try again.,এআই ব্যবহারযোগ্য কোনো বার্তা দেয়নি; আবার চেষ্টা করুন।
+This action cannot be proposed for that record.,সেই রেকর্ডের জন্য এই কাজ প্রস্তাব করা যায় না।
+Pause the campaign before rewriting its messages.,বার্তা নতুন করে লেখার আগে ক্যাম্পেইন বিরতি দিন।
+The system provider has not set up the {0} app yet.,সিস্টেম প্রোভাইডার এখনো {0} অ্যাপ সেটআপ করেনি।
+The system provider has not set up the Meta app yet.,সিস্টেম প্রোভাইডার এখনো মেটা অ্যাপ সেটআপ করেনি।
+Turn on AI in Sales Agent Settings to draft with AI.,এআই দিয়ে খসড়া করতে সেলস এজেন্ট সেটিংসে এআই চালু করুন।
+Turn on AI in Sales Agent Settings to write with AI.,এআই দিয়ে লিখতে সেলস এজেন্ট সেটিংসে এআই চালু করুন।
+Calls are allowed only between {0} (Bangladesh time).,কল শুধু {0}-এর মধ্যে অনুমোদিত (বাংলাদেশ সময়)।
+"Type your website, or a sentence about what you sell.","আপনার ওয়েবসাইট, বা আপনি কী বিক্রি করেন তার একটি বাক্য লিখুন।"
+Social publishing is switched off by the platform vendor.,প্ল্যাটফর্ম ভেন্ডর সোশ্যাল প্রকাশনা বন্ধ রেখেছে।
+An email template needs a subject before it can be approved.,ইমেইল টেমপ্লেট অনুমোদনের আগে একটি বিষয় লাগবে।
+Meta did not give a token. Try the WhatsApp connection again.,মেটা কোনো টোকেন দেয়নি। আবার হোয়াটসঅ্যাপ সংযোগ চেষ্টা করুন।
+This WhatsApp number is already connected to another Company.,এই হোয়াটসঅ্যাপ নম্বর ইতিমধ্যে অন্য কোম্পানির সঙ্গে সংযুক্ত।
+The sign-in code is missing. Start the WhatsApp connection again.,সাইন-ইন কোড নেই। আবার হোয়াটসঅ্যাপ সংযোগ শুরু করুন।
+Install the Frappe WhatsApp app (frappe_whatsapp) on this site first.,আগে এই সাইটে ফ্র্যাপে হোয়াটসঅ্যাপ অ্যাপ (frappe_whatsapp) ইনস্টল করুন।
+A LinkedIn message is sent by a person: use it as a step in a campaign.,লিংকডইন বার্তা একজন মানুষ পাঠান: এটি ক্যাম্পেইনের একটি ধাপ হিসেবে ব্যবহার করুন।
+Approved here. Install the frappe_whatsapp app to submit it to Meta for ,এখানে অনুমোদিত। মেটার কাছে জমা দিতে frappe_whatsapp অ্যাপ ইনস্টল করুন।
+Attach the sample {0} on the WhatsApp Template {1} before Meta can review it.,মেটা পর্যালোচনা করার আগে হোয়াটসঅ্যাপ টেমপ্লেট {1}-এ নমুনা {0} যুক্ত করুন।
+This sign-in link expired or belongs to someone else. Start again from Channels.,এই সাইন-ইন লিংকের মেয়াদ শেষ বা এটি অন্য কারও। চ্যানেল থেকে আবার শুরু করুন।
+This WhatsApp template has not been submitted to Meta yet (install frappe_whatsapp).,এই হোয়াটসঅ্যাপ টেমপ্লেট এখনো মেটার কাছে জমা দেওয়া হয়নি (frappe_whatsapp ইনস্টল করুন)।
+"Meta did not return the WhatsApp account and number. Finish the steps in Meta, then try again.",মেটা হোয়াটসঅ্যাপ অ্যাকাউন্ট ও নম্বর ফেরত দেয়নি। মেটায় ধাপগুলো শেষ করে আবার চেষ্টা করুন।
+AI,এআই
+At,এ
+Key,কী
+SMS,এসএমএস
+Use,ব্যবহার
+Body,মূল অংশ
+City,শহর
+Code,কোড
+File,ফাইল
+Goal,লক্ষ্য
+Kind,ধরন
+Lead,লিড
+Link,লিংক
+Mode,মোড
+Name,নাম
+Note,নোট
+Rows,সারি
+Size,আকার
+Tags,ট্যাগ
+Text,লেখা
+Time,সময়
+Tone,সুর
+Actor,কর্তা
+Agent,এজেন্ট
+Email,ইমেইল
+Error,ত্রুটি
+Facts,তথ্য
+Match,মিল
+Model,মডেল
+Month,মাস
+Notes,নোট
+Offer,অফার
+Owner,মালিক
+Phone,ফোন
+Pilot,পাইলট
+Scale,মাপকাঠি
+Steps,ধাপ
+Title,শিরোনাম
+Topic,বিষয়
+Value,মান
+Where,কোথায়
+Action,কাজ
+Button,বোতাম
+Detail,বিবরণ
+Domain,ডোমেইন
+Health,স্বাস্থ্য
+Issues,সমস্যা
+Limits,সীমা
+Market,বাজার
+Member,সদস্য
+Method,পদ্ধতি
+Now at,এখন আছে
+OpenAI,ওপেনএআই
+Opened,খোলা হয়েছে
+People,মানুষ
+Person,ব্যক্তি
+Reason,কারণ
+Record,রেকর্ড
+Status,অবস্থা
+Target,লক্ষ্য
+Timing,সময়সূচি
+Twilio,টুইলিও
+Visits,ভিজিট
+Account,অ্যাকাউন্ট
+Address,ঠিকানা
+Channel,চ্যানেল
+Clicked,ক্লিক হয়েছে
+Company,কোম্পানি
+Country,দেশ
+Enabled,চালু
+Ends on,শেষ হবে
+Keyword,কীওয়ার্ড
+Metrics,মেট্রিক্স
+Minutes,মিনিট
+Outcome,ফলাফল
+Post ID,পোস্ট আইডি
+Profile,প্রোফাইল
+Purpose,উদ্দেশ্য
+Regions,অঞ্চল
+Results,ফলাফল
+Segment,সেগমেন্ট
+Sent On,পাঠানোর তারিখ
+Signups,সাইনআপ
+Skipped,বাদ পড়েছে
+Started,শুরু হয়েছে
+Step No,ধাপ নম্বর
+Subject,বিষয়
+Summary,সারসংক্ষেপ
+Version,সংস্করণ
+AI Model,এআই মডেল
+AI Risks,এআই ঝুঁকি
+AI model,এআই মডেল
+ARI user,এআরআই ব্যবহারকারী
+Accounts,অ্যাকাউন্ট
+Analysis,বিশ্লেষণ
+Approval,অনুমোদন
+Audience,অডিয়েন্স
+Campaign,ক্যাম্পেইন
+Category,বিভাগ
+Channels,চ্যানেল
+End Date,শেষের তারিখ
+Findings,পর্যবেক্ষণ
+Finished,শেষ হয়েছে
+Greeting,অভিবাদন
+Hashtags,হ্যাশট্যাগ
+Headline,শিরোনাম
+Identity,পরিচয়
+Industry,শিল্প
+Job Type,কাজের ধরন
+Keywords,কীওয়ার্ড
+Language,ভাষা
+Last Job,শেষ কাজ
+Last run,শেষ চালানো
+Location,অবস্থান
+Outcomes,ফলাফল
+Platform,প্ল্যাটফর্ম
+Post URL,পোস্টের ইউআরএল
+Progress,অগ্রগতি
+Prospect,প্রসপেক্ট
+Provider,প্রোভাইডার
+Quantity,পরিমাণ
+Requests,অনুরোধ
+Segments,সেগমেন্ট
+Sequence,ক্রম
+Shown as,যেভাবে দেখানো হবে
+Statuses,অবস্থা
+Unknowns,অজানা বিষয়
+AI Effort,এআই প্রচেষ্টা
+AI Triage,এআই বাছাই
+Allowlist,অনুমোদিত তালিকা
+Autopilot,অটোপাইলট
+Caller ID,কলার আইডি
+Claude AI,ক্লড এআই
+Confirmed,নিশ্চিত
+Direction,দিক
+Fact Type,তথ্যের ধরন
+Fit Score,মানানসই স্কোর
+Form name,ফর্মের নাম
+Last Seen,শেষ দেখা
+Last call,শেষ কল
+Leave Out,বাদ দিন
+Main Text,মূল লেখা
+Never Say,কখনো বলবেন না
+Preheader,প্রিহেডার
+Recipient,প্রাপক
+Rows read,পড়া সারি
+Starts on,শুরু হবে
+Statement,বিবৃতি
+AI verdict,এআই-এর রায়
+Actor Type,কর্তার ধরন
+Automation,অটোমেশন
+Chat title,চ্যাটের শিরোনাম
+Checked On,যাচাইয়ের তারিখ
+Confidence,আস্থা
+Connection,সংযোগ
+Contact ID,কন্টাক্ট আইডি
+Counted at,গোনার সময়
+Decided by,সিদ্ধান্ত নিয়েছেন
+Decided on,সিদ্ধান্তের তারিখ
+Delay Days,বিলম্বের দিন
+Entry Type,এন্ট্রির ধরন
+Error Code,ত্রুটির কোড
+Event Time,ইভেন্টের সময়
+Event Type,ইভেন্টের ধরন
+Exclusions,বাদ
+Expires On,মেয়াদ শেষ হবে
+First Seen,প্রথম দেখা
+Hold-out %,হোল্ড-আউট %
+Invitation,আমন্ত্রণ
+Last Check,শেষ যাচাই
+Last Error,শেষ ত্রুটি
+Last Event,শেষ ইভেন্ট
+Last error,শেষ ত্রুটি
+Last visit,শেষ ভিজিট
+Lead owner,লিডের মালিক
+New people,নতুন মানুষ
+Next check,পরের যাচাই
+People now,এখন মানুষ
+Public key,পাবলিক কী
+Publish At,প্রকাশের সময়
+Query Text,অনুসন্ধানের লেখা
+Sales team,সেলস টিম
+Sent Count,পাঠানোর সংখ্যা
+Source Url,উৎসের ইউআরএল
+Start Date,শুরুর তারিখ
+Start URLs,শুরুর ইউআরএল
+Started At,শুরুর সময়
+Started by,শুরু করেছেন
+Tags added,যোগ করা ট্যাগ
+Triaged on,বাছাইয়ের তারিখ
+Usage Type,ব্যবহারের ধরন
+Value Hash,মানের হ্যাশ
+Your Offer,আপনার অফার
+AI provider,এআই প্রোভাইডার
+Apify Actor,অ্যাপিফাই অ্যাক্টর
+Approved By,অনুমোদন করেছেন
+Approved On,অনুমোদনের তারিখ
+Approved by,অনুমোদন করেছেন
+Approved on,অনুমোদনের তারিখ
+Assigned to,যাকে দেওয়া হয়েছে
+Brand Voice,ব্র্যান্ডের সুর
+Buyer Roles,ক্রেতার ভূমিকা
+Competitors,প্রতিযোগী
+Daily Limit,দৈনিক সীমা
+Description,বিবরণ
+Destination,গন্তব্য
+Email check,ইমেইল যাচাই
+Explanation,ব্যাখ্যা
+Finished At,শেষ হওয়ার সময়
+First visit,প্রথম ভিজিট
+Flow (JSON),ফ্লো (জেএসওএন)
+Imported by,ইম্পোর্ট করেছেন
+In Reply To,যার উত্তরে
+Last Run On,শেষ চালানোর তারিখ
+Last signup,শেষ সাইনআপ
+Last status,শেষ অবস্থা
+Local model,লোকাল মডেল
+Maps Rating,ম্যাপসের রেটিং
+Max Results,সর্বোচ্চ ফলাফল
+Measured On,মাপার তারিখ
+Merged Into,যার সঙ্গে মেলানো হয়েছে
+Meta app ID,মেটা অ্যাপ আইডি
+More agents,আরও এজেন্ট
+Need Signal,প্রয়োজনের সংকেত
+Next Run On,পরের চালানোর তারিখ
+Popup opens,পপআপ খোলে
+Record type,রেকর্ডের ধরন
+Reply Class,উত্তরের শ্রেণি
+Reply Count,উত্তরের সংখ্যা
+Resolved on,সমাধানের তারিখ
+Retry Count,পুনরায় চেষ্টার সংখ্যা
+SMS Consent,এসএমএস সম্মতি
+Salesperson,বিক্রয়কর্মী
+Sender Name,প্রেরকের নাম
+SerpAPI Key,সার্পএপিআই কী
+Source Type,উৎসের ধরন
+Starts when,শুরু হবে যখন
+Stop Reason,থামার কারণ
+Switched on,চালু করেছেন
+Tags to add,যোগ করার ট্যাগ
+Valid Until,বৈধ থাকবে
+Weight Need,প্রয়োজনের ওজন
+Who to Find,কাকে খুঁজবেন
+Why It Fits,কেন মানানসই
+AI Fit Score,এআই মানানসই স্কোর
+AI Rationale,এআই-এর যুক্তি
+AI reasoning,এআই-এর যুক্তি
+ARI password,এআরআই পাসওয়ার্ড
+Access Token,অ্যাক্সেস টোকেন
+Account Name,অ্যাকাউন্টের নাম
+Ai Generated,এআই তৈরি
+Area / Thana,এলাকা / থানা
+B2B Segments,বি২বি সেগমেন্ট
+Bounce Count,বাউন্সের সংখ্যা
+Company Size,কোম্পানির আকার
+Confirmed at,নিশ্চিতের সময়
+Connected by,সংযুক্ত করেছেন
+Consent Date,সম্মতির তারিখ
+Converted On,রূপান্তরের তারিখ
+Daily digest,দৈনিক সংক্ষেপ
+Error Detail,ত্রুটির বিবরণ
+Evidence Url,প্রমাণের ইউআরএল
+Field Policy,ফিল্ড নীতি
+File content,ফাইলের বিষয়বস্তু
+Fit Keywords,মানানসই কীওয়ার্ড
+Generated On,তৈরির তারিখ
+Industry Fit,শিল্প মিল
+Is Inference,অনুমান কি না
+Last call at,শেষ কলের সময়
+Last channel,শেষ চ্যানেল
+Last counted,শেষ গোনা
+LinkedIn app,লিংকডইন অ্যাপ
+Maps Reviews,ম্যাপসের রিভিউ
+Meeting days,মিটিংয়ের দিন
+Member Count,সদস্য সংখ্যা
+OpenAI model,ওপেনএআই মডেল
+Phone system,ফোন সিস্টেম
+Pilot Result,পাইলটের ফলাফল
+Profile Name,প্রোফাইলের নাম
+Published On,প্রকাশের তারিখ
+Requested by,অনুরোধ করেছেন
+Review Notes,পর্যালোচনার নোট
+Rules (JSON),নিয়ম (জেএসওএন)
+SMS provider,এসএমএস প্রোভাইডার
+Section name,সেকশনের নাম
+Segment name,সেগমেন্টের নাম
+Signed up at,সাইন আপের সময়
+Size Signals,আকারের সংকেত
+Sources Read,পড়া উৎস
+Target Count,লক্ষ্যমাত্রা
+Turned on by,চালু করেছেন
+Website chat,ওয়েবসাইট চ্যাট
+Weight Scale,ওজনের মাপকাঠি
+Who is in it,কারা আছে
+Why it ended,কেন শেষ হয়েছে
+With a phone,ফোনসহ
+AI Assessment,এআই মূল্যায়ন
+AI confidence,এআই-এর আস্থা
+Accent colour,অ্যাকসেন্ট রং
+Already known,আগে থেকে জানা
+Audience name,অডিয়েন্সের নাম
+Auto Approved,স্বয়ংক্রিয় অনুমোদিত
+Blocks (JSON),ব্লক (জেএসওএন)
+Body Template,মূল অংশের টেমপ্লেট
+Brevo API key,ব্রেভো এপিআই কী
+Business Name,ব্যবসার নাম
+Campaign Name,ক্যাম্পেইনের নাম
+Configuration,কনফিগারেশন
+Content Check,বিষয়বস্তু যাচাই
+Content check,বিষয়বস্তু যাচাই
+Created Count,তৈরির সংখ্যা
+Display Value,প্রদর্শিত মান
+Email sending,ইমেইল পাঠানো
+Fields (JSON),ফিল্ড (জেএসওএন)
+Language (hl),ভাষা (hl)
+Lead wrote at,লিড লিখেছে
+Meeting hours,মিটিংয়ের সময়
+Misfit marker,অমিলের চিহ্ন
+Need Keywords,প্রয়োজনের কীওয়ার্ড
+One per line.,প্রতি লাইনে একটি।
+Overridden By,ওভাররাইড করেছেন
+Pilot Verdict,পাইলটের রায়
+Progress Done,সম্পন্ন অগ্রগতি
+Refresh token,রিফ্রেশ টোকেন
+Reply message,উত্তরের বার্তা
+Researched At,গবেষণার সময়
+Researched On,গবেষণার তারিখ
+Review Status,পর্যালোচনার অবস্থা
+Run At (Time),চালানোর সময়
+Sales Meeting,সেলস মিটিং
+Sales Segment,সেলস সেগমেন্ট
+Sending hours,পাঠানোর সময়
+Updated Count,হালনাগাদের সংখ্যা
+What You Sell,আপনি কী বিক্রি করেন
+With an email,ইমেইলসহ
+Written by AI,এআই লিখেছে
+AI Suggestions,এআই-এর পরামর্শ
+Agreement text,সম্মতির বক্তব্য
+Ai Suggestions,এআই-এর পরামর্শ
+Best Customers,সেরা গ্রাহক
+Business Types,ব্যবসার ধরন
+Buying Signals,কেনার সংকেত
+CRM copilot on,সিআরএম কোপাইলট চালু
+Calendar event,ক্যালেন্ডার ইভেন্ট
+Combined Score,সম্মিলিত স্কোর
+Connector Name,কানেক্টরের নাম
+Connector Type,কানেক্টরের ধরন
+Consent Source,সম্মতির উৎস
+Contact person,যোগাযোগের ব্যক্তি
+Contactability,যোগাযোগযোগ্যতা
+Correlation Id,কো-রিলেশন আইডি
+Details (JSON),বিবরণ (জেএসওএন)
+Do Not Contact,যোগাযোগ করবেন না
+Human Override,মানুষের ওভাররাইড
+Ideal Customer,আদর্শ গ্রাহক
+Identity Notes,পরিচয়ের নোট
+Image Alt Text,ছবির বিকল্প লেখা
+Latest Insight,সর্বশেষ অন্তর্দৃষ্টি
+Market Summary,বাজারের সারসংক্ষেপ
+Name they gave,তাদের দেওয়া নাম
+Next Action On,পরের কাজের তারিখ
+OpenAI API key,ওপেনএআই এপিআই কী
+Our account ID,আমাদের অ্যাকাউন্ট আইডি
+Pages Reviewed,পর্যালোচিত পেজ
+Policy Outcome,নীতির ফলাফল
+Progress Total,মোট অগ্রগতি
+Prompt Version,প্রম্পটের সংস্করণ
+Proposed slots,প্রস্তাবিত সময়
+Reference Name,রেফারেন্স নাম
+Sales Audience,সেলস অডিয়েন্স
+Sales Campaign,সেলস ক্যাম্পেইন
+Scanner visits,স্ক্যানারের ভিজিট
+Scores (0-100),স্কোর (০-১০০)
+Sending record,পাঠানোর রেকর্ড
+Signing secret,সাইনিং সিক্রেট
+Switched on at,চালু করার সময়
+Switched on by,যিনি চালু করেছেন
+Who to include,কাদের অন্তর্ভুক্ত করবেন
+AI Intent Score,এআই আগ্রহের স্কোর
+Address (https),ঠিকানা (https)
+Agent Autopilot,এজেন্ট অটোপাইলট
+Ai Suggested On,এআই পরামর্শের তারিখ
+Apify API Token,অ্যাপিফাই এপিআই টোকেন
+Bangla Keywords,বাংলা কীওয়ার্ড
+Builder content,বিল্ডারের বিষয়বস্তু
+Campaign member,ক্যাম্পেইন সদস্য
+Channel Consent,চ্যানেল সম্মতি
+Chat widget key,চ্যাট উইজেট কী
+Converted Count,রূপান্তরের সংখ্যা
+Duplicate Count,ডুপ্লিকেটের সংখ্যা
+First real send,প্রথম আসল পাঠানো
+How they agreed,কীভাবে সম্মত হয়েছেন
+Idempotency Key,আইডেমপোটেন্সি কী
+Latest Research,সর্বশেষ গবেষণা
+Latest forecast,সর্বশেষ পূর্বাভাস
+Market Research,বাজার গবেষণা
+Meta app secret,মেটা অ্যাপ সিক্রেট
+New signal seen,নতুন সংকেত দেখা গেছে
+Normalized Name,স্বাভাবিকীকৃত নাম
+Offer / Product,অফার / পণ্য
+Opt-out keyword,অপ্ট-আউট কীওয়ার্ড
+Outreach Safety,আউটরিচ নিরাপত্তা
+Override Reason,ওভাররাইডের কারণ
+Per Query Limit,প্রতি অনুসন্ধানের সীমা
+Planned Queries,পরিকল্পিত অনুসন্ধান
+Profile Version,প্রোফাইলের সংস্করণ
+Prospects Found,পাওয়া প্রসপেক্ট
+Qualified Count,যোগ্যের সংখ্যা
+Recommendations,সুপারিশ
+Research Status,গবেষণার অবস্থা
+Scoring Version,স্কোরিংয়ের সংস্করণ
+Search Keywords,অনুসন্ধানের কীওয়ার্ড
+Search Requests,অনুসন্ধানের অনুরোধ
+Signup and tags,সাইনআপ ও ট্যাগ
+Social Profiles,সোশ্যাল প্রোফাইল
+Speech language,কথার ভাষা
+Subject variant,বিষয়ের রূপ
+Tracking domain,ট্র্যাকিং ডোমেইন
+Use AI (Claude),এআই ব্যবহার করুন (ক্লড)
+Website reading,ওয়েবসাইট পড়া
+Weight Evidence,প্রমাণের ওজন
+Weight Industry,শিল্পের ওজন
+Welcome message,স্বাগত বার্তা
+WhatsApp Opt-in,হোয়াটসঅ্যাপ সম্মতি
+WhatsApp footer,হোয়াটসঅ্যাপ ফুটার
+WhatsApp header,হোয়াটসঅ্যাপ হেডার
+Address checking,ঠিকানা যাচাই
+Approved Wording,অনুমোদিত শব্দাবলি
+Asterisk ARI URL,অ্যাস্টেরিস্ক এআরআই ইউআরএল
+Audience Segment,অডিয়েন্স সেগমেন্ট
+Brave Search API,ব্রেভ সার্চ এপিআই
+Business Profile,ব্যবসার প্রোফাইল
+CRM Organization,সিআরএম প্রতিষ্ঠান
+Calls go through,কল যায় যার মাধ্যমে
+Cancel Requested,বাতিলের অনুরোধ করা হয়েছে
+Confirmation key,নিশ্চিতকরণ কী
+Deal Probability,ডিলের সম্ভাবনা
+Default Language,ডিফল্ট ভাষা
+Duplicates Found,পাওয়া ডুপ্লিকেট
+Email check note,ইমেইল যাচাইয়ের নোট
+Email checked at,ইমেইল যাচাইয়ের সময়
+Evidence Excerpt,প্রমাণের উদ্ধৃতি
+Evidence Quality,প্রমাণের মান
+Exclude Keywords,বাদ দেওয়ার কীওয়ার্ড
+Field Provenance,ফিল্ডের উৎস
+Found By Sources,যে উৎসগুলো থেকে পাওয়া
+How they entered,কীভাবে এসেছেন
+Issues to Review,পর্যালোচনার সমস্যা
+Last run summary,শেষ চালানোর সারসংক্ষেপ
+Location or link,অবস্থান বা লিংক
+Message Language,বার্তার ভাষা
+Message template,বার্তার টেমপ্লেট
+Monthly AI Limit,মাসিক এআই সীমা
+Normalized Phone,স্বাভাবিকীকৃত ফোন
+Period (YYYY-MM),সময়কাল (YYYY-MM)
+Planned Searches,পরিকল্পিত অনুসন্ধান
+Review Threshold,পর্যালোচনার সীমা
+Sales Automation,সেলস অটোমেশন
+Sales CRM Action,সেলস সিআরএম কাজ
+Sales Import Job,সেলস ইম্পোর্ট কাজ
+Search Languages,অনুসন্ধানের ভাষা
+Search Providers,অনুসন্ধান প্রোভাইডার
+SendGrid API key,সেন্ডগ্রিড এপিআই কী
+Source Connector,উৎস কানেক্টর
+Source Reference,উৎসের রেফারেন্স
+Source Terms URL,উৎসের শর্তের ইউআরএল
+Subject Template,বিষয়ের টেমপ্লেট
+Token Expires On,টোকেনের মেয়াদ শেষ
+Website Research,ওয়েবসাইট গবেষণা
+What will change,কী বদলাবে
+WhatsApp account,হোয়াটসঅ্যাপ অ্যাকাউন্ট
+Where to Publish,কোথায় প্রকাশ করবেন
+e.g. qwen2.5:14b,যেমন: qwen2.5:14b
+Answer to a Reply,উত্তরের জবাব
+Anthropic API Key,অ্যানথ্রপিক এপিআই কী
+CRM Tasks Created,তৈরি সিআরএম কাজ
+Company overrides,কোম্পানির নিজস্ব সেটিং
+Dial plan context,ডায়াল প্ল্যান কনটেক্সট
+Division / Region,বিভাগ / অঞ্চল
+Entered this step,এই ধাপে ঢুকেছেন
+Evidence and Gaps,প্রমাণ ও ঘাটতি
+Failures in a row,পরপর ব্যর্থতা
+Gap variation (%),বিরতির তারতম্য (%)
+Google Places API,গুগল প্লেসেস এপিআই
+Interests / Needs,আগ্রহ / প্রয়োজন
+Minimum Fit Score,ন্যূনতম মানানসই স্কোর
+Minimum fit score,ন্যূনতম মানানসই স্কোর
+Negative Keywords,নেতিবাচক কীওয়ার্ড
+Priority (1 best),অগ্রাধিকার (১ সবচেয়ে ভালো)
+Probability Model,সম্ভাবনার মডেল
+Qualify Threshold,যোগ্যতার সীমা
+Recommended Offer,প্রস্তাবিত অফার
+Reference Doctype,রেফারেন্স ডকটাইপ
+Run Automatically,নিজে থেকে চালান
+SMS account / SID,এসএমএস অ্যাকাউন্ট / এসআইডি
+SMS sending hours,এসএমএস পাঠানোর সময়
+SSL Wireless SID.,এসএসএল ওয়্যারলেস এসআইডি।
+Sales Social Post,সেলস সোশ্যাল পোস্ট
+Sequence Position,ক্রমের অবস্থান
+Signed up through,যেভাবে সাইন আপ করেছেন
+Social Publishing,সোশ্যাল প্রকাশনা
+Target Industries,লক্ষ্য শিল্প
+Targeting Profile,টার্গেটিং প্রোফাইল
+Thank-you message,ধন্যবাদ বার্তা
+Track email opens,ইমেইল খোলা ট্র্যাক করুন
+Track link clicks,লিংক ক্লিক ট্র্যাক করুন
+Twilio auth token,টুইলিও অথ টোকেন
+Unsubscribe Count,আনসাবস্ক্রাইবের সংখ্যা
+Unsubscribe Token,আনসাবস্ক্রাইব টোকেন
+Weight Complexity,জটিলতার ওজন
+What visitors see,দর্শকরা যা দেখেন
+WhatsApp Business,হোয়াটসঅ্যাপ বিজনেস
+WhatsApp Template,হোয়াটসঅ্যাপ টেমপ্লেট
+WhatsApp category,হোয়াটসঅ্যাপ বিভাগ
+WhatsApp template,হোয়াটসঅ্যাপ টেমপ্লেট
+Write For Segment,যে সেগমেন্টের জন্য লিখবেন
+After they sign up,সাইন আপের পর
+CRM email template,সিআরএম ইমেইল টেমপ্লেট
+Call events secret,কল ইভেন্টের সিক্রেট
+Came from (record),যেখান থেকে এসেছে (রেকর্ড)
+Campaign autopilot,ক্যাম্পেইন অটোপাইলট
+Crawler User Agent,ক্রলারের ইউজার এজেন্ট
+Discovery Campaign,আবিষ্কার ক্যাম্পেইন
+Eligibility Reason,যোগ্যতার কারণ
+Email confirmation,ইমেইল নিশ্চিতকরণ
+Last Health Status,শেষ স্বাস্থ্য অবস্থা
+Leads synced until,লিড সিঙ্ক হয়েছে যতদিন
+LinkedIn client ID,লিংকডইন ক্লায়েন্ট আইডি
+Look and placement,চেহারা ও অবস্থান
+Max Page Size (KB),সর্বোচ্চ পেজ আকার (কেবি)
+Meetings Requested,অনুরোধ করা মিটিং
+OpenAI API address,ওপেনএআই এপিআই ঠিকানা
+Problems You Solve,যে সমস্যা আপনি সমাধান করেন
+Sales Capture Form,সেলস ক্যাপচার ফর্ম
+Sales Chat Message,সেলস চ্যাট বার্তা
+Sales Conversation,সেলস কথোপকথন
+Sales Market Brief,সেলস বাজার সংক্ষেপ
+Sales Tracked Link,সেলস ট্র্যাক করা লিংক
+Sales Usage Ledger,সেলস ব্যবহার খতিয়ান
+Segments to Target,লক্ষ্য করার সেগমেন্ট
+Send email through,যার মাধ্যমে ইমেইল পাঠাবেন
+Sender ID / number,প্রেরক আইডি / নম্বর
+Steps taken (JSON),নেওয়া ধাপ (জেএসওএন)
+Task Due in (Days),কাজের সময়সীমা (দিনে)
+Twilio Account SID,টুইলিও অ্যাকাউন্ট এসআইডি
+Video meeting link,ভিডিও মিটিং লিংক
+WhatsApp variables,হোয়াটসঅ্যাপ ভেরিয়েবল
+ZeroBounce API key,জিরোবাউন্স এপিআই কী
+Agreement on record,রেকর্ডে থাকা সম্মতি
+Allowed Path Prefix,অনুমোদিত পাথের শুরু
+Buying Signal Score,কেনার সংকেতের স্কোর
+Chat on our website,আমাদের ওয়েবসাইটে চ্যাট
+Checks and approval,যাচাই ও অনুমোদন
+Daily Message Limit,দৈনিক বার্তার সীমা
+Evidence Confidence,প্রমাণের আস্থা
+Identity Confidence,পরিচয়ের আস্থা
+Latest Market Brief,সর্বশেষ বাজার সংক্ষেপ
+Lead Search Routing,লিড অনুসন্ধানের রাউটিং
+Max Concurrent Jobs,একসঙ্গে সর্বোচ্চ কাজ
+Max Results Per Job,প্রতি কাজে সর্বোচ্চ ফলাফল
+Monthly Request Cap,মাসিক অনুরোধের সীমা
+Next Search in Plan,পরিকল্পনার পরের অনুসন্ধান
+Offer an SMS opt-in,এসএমএস সম্মতির সুযোগ দিন
+Personalise with AI,এআই দিয়ে ব্যক্তিগত করুন
+Platform message ID,প্ল্যাটফর্মের বার্তা আইডি
+Provider Message Id,প্রোভাইডারের বার্তা আইডি
+Record Twilio calls,টুইলিও কল রেকর্ড করুন
+Repeats in the file,ফাইলে পুনরাবৃত্ত
+SMS API key / token,এসএমএস এপিআই কী / টোকেন
+Sales Campaign Step,সেলস ক্যাম্পেইন ধাপ
+Sales Discovery Job,সেলস আবিষ্কারের কাজ
+Sales Planned Query,সেলস পরিকল্পিত অনুসন্ধান
+Sales Qualification,সেলস যোগ্যতা
+Sales Research Fact,সেলস গবেষণার তথ্য
+ScrapingBee API Key,স্ক্র্যাপিংবি এপিআই কী
+Scrapingdog API Key,স্ক্র্যাপিংডগ এপিআই কী
+Search Country (gl),অনুসন্ধানের দেশ (gl)
+Separate Dimensions,আলাদা মাত্রা
+Skipped rows (JSON),বাদ পড়া সারি (জেএসওএন)
+Source & Provenance,উৎস ও প্রমাণ
+Template Parameters,টেমপ্লেটের প্যারামিটার
+Twilio phone number,টুইলিও ফোন নম্বর
+Waiting for message,বার্তার অপেক্ষায়
+Weights (total 100),ওজন (মোট ১০০)
+WhatChimp API token,হোয়াটচিম্প এপিআই টোকেন
+Your Best Customers,আপনার সেরা গ্রাহক
+Your own AI API key,আপনার নিজস্ব এআই এপিআই কী
+AI Scoring & Replies,এআই স্কোরিং ও উত্তর
+Agent actions (JSON),এজেন্টের কাজ (জেএসওএন)
+Approval Fingerprint,অনুমোদনের ফিঙ্গারপ্রিন্ট
+Brave Search API Key,ব্রেভ সার্চ এপিআই কী
+Brevo emails per day,ব্রেভোতে প্রতিদিন ইমেইল
+Brevo webhook secret,ব্রেভো ওয়েবহুক সিক্রেট
+Competitors to watch,নজরে রাখার প্রতিযোগী
+Field Storage Policy,ফিল্ড সংরক্ষণ নীতি
+Imported From CRM On,সিআরএম থেকে ইম্পোর্টের তারিখ
+Latest Qualification,সর্বশেষ যোগ্যতা
+Max Pages per Search,প্রতি অনুসন্ধানে সর্বোচ্চ পেজ
+Pilot Audience Limit,পাইলট অডিয়েন্সের সীমা
+Positive Reply Count,ইতিবাচক উত্তরের সংখ্যা
+Qualification Status,যোগ্যতার অবস্থা
+Reply Classification,উত্তরের শ্রেণিবিন্যাস
+Sales Agent Activity,সেলস এজেন্ট কার্যকলাপ
+Sales Agent Settings,সেলস এজেন্ট সেটিংস
+Sales Automation Run,সেলস অটোমেশন রান
+Sales Knowledge Item,সেলস জ্ঞান আইটেম
+Sales Market Segment,সেলস বাজার সেগমেন্ট
+Sales Provider Usage,সেলস প্রোভাইডার ব্যবহার
+Sales Social Account,সেলস সোশ্যাল অ্যাকাউন্ট
+Search Language (hl),অনুসন্ধানের ভাষা (hl)
+Speech-to-text model,স্পিচ-টু-টেক্সট মডেল
+Webhook verify token,ওয়েবহুক ভেরিফাই টোকেন
+What the business is,ব্যবসাটি কী
+Column mapping (JSON),কলাম ম্যাপিং (জেএসওএন)
+Email Delivery Events,ইমেইল ডেলিভারি ইভেন্ট
+Enable AI for Tenants,টেন্যান্টদের জন্য এআই চালু করুন
+Google Places API Key,গুগল প্লেসেস এপিআই কী
+Max Pages per Website,প্রতি ওয়েবসাইটে সর্বোচ্চ পেজ
+Max Places per Search,প্রতি অনুসন্ধানে সর্বোচ্চ স্থান
+Monthly Message Limit,মাসিক বার্তার সীমা
+Popup delay (seconds),পপআপের বিলম্ব (সেকেন্ড)
+Possible Duplicate Of,সম্ভাব্য ডুপ্লিকেট
+Products and Services,পণ্য ও সেবা
+Public Business Email,প্রকাশ্য ব্যবসায়িক ইমেইল
+Public Business Phone,প্রকাশ্য ব্যবসায়িক ফোন
+Qualification Profile,যোগ্যতা প্রোফাইল
+Rate Limit Per Minute,প্রতি মিনিটে সীমা
+Receive messages here,এখানে বার্তা গ্রহণ করুন
+Sales Audience Member,সেলস অডিয়েন্স সদস্য
+Sales Campaign Member,সেলস ক্যাম্পেইন সদস্য
+Sales Provider Budget,সেলস প্রোভাইডার বাজেট
+Sales Research Report,সেলস গবেষণা প্রতিবেদন
+Sales Target Location,সেলস লক্ষ্য অবস্থান
+Signals re-checked on,সংকেত আবার যাচাই হয়েছে
+Warm-up: daily growth,ওয়ার্ম-আপ: দৈনিক বৃদ্ধি
+What Is Still Unknown,এখনো কী অজানা
+AI Extraction Fallback,এআই এক্সট্র্যাকশন বিকল্প
+Approved Audience Size,অনুমোদিত অডিয়েন্সের আকার
+Auto-Approvals per Day,দৈনিক স্বয়ংক্রিয় অনুমোদন
+Ideal Customer Profile,আদর্শ গ্রাহকের প্রোফাইল
+Leads to find per week,সপ্তাহে খুঁজে পাওয়ার লিড
+LinkedIn client secret,লিংকডইন ক্লায়েন্ট সিক্রেট
+Max Results per Search,প্রতি অনুসন্ধানে সর্বোচ্চ ফলাফল
+Meta Graph API Version,মেটা গ্রাফ এপিআই সংস্করণ
+Monthly Research Limit,মাসিক গবেষণার সীমা
+Operational Complexity,পরিচালনাগত জটিলতা
+Sales Business Profile,সেলস ব্যবসার প্রোফাইল
+Sales Campaign Insight,সেলস ক্যাম্পেইন অন্তর্দৃষ্টি
+Sales Message Template,সেলস বার্তার টেমপ্লেট
+Sales Outreach Message,সেলস আউটরিচ বার্তা
+Sales Source Connector,সেলস উৎস কানেক্টর
+Sales Template Section,সেলস টেমপ্লেট সেকশন
+Source Policy Reviewed,উৎসের নীতি পর্যালোচিত
+Speech-to-text service,স্পিচ-টু-টেক্সট সেবা
+Webhook Signing Secret,ওয়েবহুক সাইনিং সিক্রেট
+Webhook signing secret,ওয়েবহুক সাইনিং সিক্রেট
+WhatsApp sends through,হোয়াটসঅ্যাপ যার মাধ্যমে পাঠায়
+Why a person is needed,কেন একজন মানুষ দরকার
+Came from (record type),যেখান থেকে এসেছে (রেকর্ডের ধরন)
+Campaign sending window,ক্যাম্পেইন পাঠানোর সময়
+Default Places Provider,ডিফল্ট প্লেসেস প্রোভাইডার
+Enable Website Research,ওয়েবসাইট গবেষণা চালু করুন
+Expand Searches with AI,এআই দিয়ে অনুসন্ধান বাড়ান
+Fetch Timeout (Seconds),ফেচ টাইমআউট (সেকেন্ড)
+Human Approval Required,মানুষের অনুমোদন আবশ্যক
+Industries / Categories,শিল্প / বিভাগ
+Last WhatsApp From Them,তাদের শেষ হোয়াটসঅ্যাপ
+Linked Facebook Page ID,সংযুক্ত ফেসবুক পেজ আইডি
+Local AI server address,লোকাল এআই সার্ভারের ঠিকানা
+Monthly Discovery Limit,মাসিক আবিষ্কারের সীমা
+Offer a WhatsApp opt-in,হোয়াটসঅ্যাপ সম্মতির সুযোগ দিন
+Sales Suppression Entry,সেলস সাপ্রেশন এন্ট্রি
+Sales Targeting Profile,সেলস টার্গেটিং প্রোফাইল
+Send from Email Account,যে ইমেইল অ্যাকাউন্ট থেকে পাঠাবেন
+What Your Company Sells,আপনার কোম্পানি কী বিক্রি করে
+WhatsApp buttons (JSON),হোয়াটসঅ্যাপ বোতাম (জেএসওএন)
+Brave Country (optional),ব্রেভ দেশ (ঐচ্ছিক)
+Classify Replies with AI,এআই দিয়ে উত্তরের শ্রেণি ঠিক করুন
+Contact pages checked on,যোগাযোগ পেজ যাচাইয়ের তারিখ
+Day-before reminder sent,আগের দিনের অনুস্মারক পাঠানো হয়েছে
+Enable Social Publishing,সোশ্যাল প্রকাশনা চালু করুন
+Google Maps Lead Sources,গুগল ম্যাপস লিড উৎস
+Meeting length (minutes),মিটিংয়ের দৈর্ঘ্য (মিনিট)
+Minimum Deal Probability,ন্যূনতম ডিলের সম্ভাবনা
+Monthly Provider Budgets,মাসিক প্রোভাইডার বাজেট
+Only people with a phone,শুধু ফোন আছে এমন মানুষ
+Outbound Sending Enabled,বহির্গামী পাঠানো চালু
+Research & Qualification,গবেষণা ও যোগ্যতা যাচাই
+Sales Discovery Campaign,সেলস আবিষ্কার ক্যাম্পেইন
+Sales Social Post Target,সেলস সোশ্যাল পোস্টের লক্ষ্য
+Seconds between messages,বার্তার মাঝে সেকেন্ড
+WhatsApp Template Values,হোয়াটসঅ্যাপ টেমপ্লেটের মান
+0 turns the reminder off.,০ দিলে অনুস্মারক বন্ধ হয়।
+Caption for This Platform,এই প্ল্যাটফর্মের ক্যাপশন
+Edited in Capture Studio.,ক্যাপচার স্টুডিওতে সম্পাদিত।
+Hour-before reminder sent,এক ঘণ্টা আগের অনুস্মারক পাঠানো হয়েছে
+Next Start After This Run,এই রানের পর পরের শুরু
+Only people with an email,শুধু ইমেইল আছে এমন মানুষ
+Pilot With Hold-out Group,হোল্ড-আউট গ্রুপসহ পাইলট
+Prospect Retention (Days),প্রসপেক্ট সংরক্ষণ (দিন)
+Requests per Market Brief,প্রতি বাজার সংক্ষেপে অনুরোধ
+Require a Contact Channel,যোগাযোগের একটি চ্যানেল আবশ্যক
+Sales Communication Event,সেলস যোগাযোগ ইভেন্ট
+Transcribe recorded calls,রেকর্ড করা কলের লিখিত রূপ তৈরি করুন
+WhatChimp phone number ID,হোয়াটচিম্প ফোন নম্বর আইডি
+AI Share of Combined Score,সম্মিলিত স্কোরে এআই-এর অংশ
+Calls and follow-ups go to,কল ও ফলো-আপ যাবে যার কাছে
+Connect callers to (phone),কলারদের সংযুক্ত করুন (ফোন)
+Content Check and Approval,বিষয়বস্তু যাচাই ও অনুমোদন
+Google Search Lead Sources,গুগল সার্চ লিড উৎস
+Maps Data Retention (Days),ম্যাপসের তথ্য সংরক্ষণ (দিন)
+Only send to the allowlist,শুধু অনুমোদিত তালিকায় পাঠান
+Sales Webhook Subscription,সেলস ওয়েবহুক সাবস্ক্রিপশন
+Targeting Profiles Created,তৈরি টার্গেটিং প্রোফাইল
+Warm up the sending domain,পাঠানোর ডোমেইন ওয়ার্ম-আপ করুন
+Warm-up: emails on day one,ওয়ার্ম-আপ: প্রথম দিনে ইমেইল
+What a Good Fit Looks Like,ভালো মানানসই কেমন হয়
+AI confidence needed to act,কাজ করতে এআই-এর প্রয়োজনীয় আস্থা
+Default Web Search Provider,ডিফল্ট ওয়েব সার্চ প্রোভাইডার
+Drawn in Automation Studio.,অটোমেশন স্টুডিওতে আঁকা।
+Left out (opted out before),বাদ দেওয়া (আগে অপ্ট-আউট করেছেন)
+Messaging Service SID (MG…),মেসেজিং সার্ভিস এসআইডি (MG…)
+Minimum Evidence Confidence,ন্যূনতম প্রমাণের আস্থা
+Pause All Outbound Activity,সব বহির্গামী কার্যক্রম থামান
+Restricted Fields Expire On,সীমাবদ্ধ ফিল্ডের মেয়াদ শেষ
+Sales Qualification Profile,সেলস যোগ্যতা প্রোফাইল
+Stop for anyone who replies,যিনি উত্তর দেন তার জন্য থামুন
+Subject variants (A/B test),বিষয়ের রূপ (এ/বি পরীক্ষা)
+"e.g. en-US, en-IN or bn-BD.","যেমন: en-US, en-IN বা bn-BD।"
+Ask them to confirm by email,ইমেইলে নিশ্চিত করতে বলুন
+Enable SerpAPI (Google Maps),সার্পএপিআই চালু করুন (গুগল ম্যাপস)
+Local AI (OpenAI-compatible),লোকাল এআই (ওপেনএআই-সামঞ্জস্যপূর্ণ)
+Search Data Retention (Days),সার্চের তথ্য সংরক্ষণ (দিন)
+Where these people came from,এই মানুষগুলো কোথা থেকে এসেছে
+AI autopilot replies on chats,চ্যাটে এআই অটোপাইলটের উত্তর
+Auto-Approve Strong Prospects,শক্তিশালী প্রসপেক্ট স্বয়ংক্রিয় অনুমোদন
+Crawler (Permitted Directory),ক্রলার (অনুমোদিত ডিরেক্টরি)
+Default Page Context Provider,ডিফল্ট পেজ কনটেক্সট প্রোভাইডার
+Let AI decide clear-cut leads,স্পষ্ট লিড এআই ঠিক করুক
+LinkedIn API Version (YYYYMM),লিংকডইন এপিআই সংস্করণ (YYYYMM)
+Places Field Retention (Days),প্লেসেসের ফিল্ড সংরক্ষণ (দিন)
+Sales Agent Platform Settings,সেলস এজেন্ট প্ল্যাটফর্ম সেটিংস
+Sent Under Policy (No Person),নীতির অধীনে পাঠানো (কোনো ব্যক্তি নয়)
+Short text under the headline,শিরোনামের নিচে ছোট লেখা
+WhatsApp sample values (JSON),হোয়াটসঅ্যাপের নমুনা মান (জেএসওএন)
+Buying signals before re-check,আবার যাচাইয়ের আগে কেনার সংকেত
+Delay Between Places (Seconds),স্থানের মাঝে বিরতি (সেকেন্ড)
+Enable Google Places Connector,গুগল প্লেসেস কানেক্টর চালু করুন
+Enable SerpAPI (Google Search),সার্পএপিআই চালু করুন (গুগল সার্চ)
+Event webhook verification key,ইভেন্ট ওয়েবহুক যাচাইয়ের কী
+"Messages per hour, per channel",প্রতি ঘণ্টায় প্রতি চ্যানেলে বার্তা
+Also send the manager digest to,ম্যানেজার ডাইজেস্টও পাঠান যাকে
+Autopilot also answers WhatsApp,অটোপাইলট হোয়াটসঅ্যাপেও উত্তর দেয়
+Calling hours (Bangladesh time),কলের সময় (বাংলাদেশ সময়)
+Email safety and deliverability,ইমেইলের নিরাপত্তা ও ডেলিভারি
+Permission for SMS and WhatsApp,এসএমএস ও হোয়াটসঅ্যাপের অনুমতি
+Postal Address for Email Footer,ইমেইল ফুটারের ডাক ঠিকানা
+Use the AI set for each Company,প্রতিটি কোম্পানির নির্ধারিত এআই ব্যবহার করুন
+Website Confirmed by Web Search,ওয়েব সার্চে নিশ্চিত ওয়েবসাইট
+Approved leads before a campaign,ক্যাম্পেইনের আগে অনুমোদিত লিড
+Conversations agent on autopilot,অটোপাইলটে থাকা কথোপকথন
+Delay Between Requests (Seconds),অনুরোধের মাঝে বিরতি (সেকেন্ড)
+Enable ScrapingBee (Google Maps),স্ক্র্যাপিংবি চালু করুন (গুগল ম্যাপস)
+Enable Scrapingdog (Google Maps),স্ক্র্যাপিংডগ চালু করুন (গুগল ম্যাপস)
+Give call and follow-up tasks to,কল ও ফলো-আপ কাজ দিন যাকে
+Page / Account / Organization ID,পেজ / অ্যাকাউন্ট / প্রতিষ্ঠান আইডি
+Sender email (verified in Brevo),প্রেরকের ইমেইল (ব্রেভোতে যাচাই করা)
+Vendor Use (System Manager only),ভেন্ডরের ব্যবহার (শুধু সিস্টেম ম্যানেজার)
+Visitors must tick the agreement,দর্শকদের সম্মতিতে টিক দিতে হবে
+Websites that may show this form,যেসব ওয়েবসাইট এই ফর্ম দেখাতে পারবে
+What this message should achieve,এই বার্তা কী অর্জন করবে
+From email (verified in SendGrid),প্রেরকের ইমেইল (সেন্ডগ্রিডে যাচাই করা)
+Websites allowed to show the chat,যেসব ওয়েবসাইট চ্যাট দেখাতে পারবে
+Create CRM Leads for Auto-Approved,স্বয়ংক্রিয়ভাবে অনুমোদিতদের জন্য সিআরএম লিড তৈরি করুন
+Enable Apify (Google Maps Scraper),অ্যাপিফাই চালু করুন (গুগল ম্যাপস স্ক্র্যাপার)
+Enable ScrapingBee (Google Search),স্ক্র্যাপিংবি চালু করুন (গুগল সার্চ)
+Enable Scrapingdog (Google Search),স্ক্র্যাপিংডগ চালু করুন (গুগল সার্চ)
+Go to this address instead (https),এর বদলে এই ঠিকানায় যান (https)
+These people agreed to receive SMS,এই মানুষগুলো এসএমএস পেতে সম্মত হয়েছেন
+Your own AI server address (HTTPS),আপনার নিজস্ব এআই সার্ভারের ঠিকানা (এইচটিটিপিএস)
+Google Maps Platform Terms Reviewed,গুগল ম্যাপস প্ল্যাটফর্মের শর্ত পড়া হয়েছে
+One per line; they are never leads.,প্রতি লাইনে একটি; এরা কখনো লিড নয়।
+Choose market segments automatically,বাজারের সেগমেন্ট নিজে থেকে বাছুন
+Conversations: AI autopilot and team,কথোপকথন: এআই অটোপাইলট ও দল
+Delay Between Result Pages (Seconds),ফলাফল পেজের মাঝে বিরতি (সেকেন্ড)
+Empty: the post's main text is used.,ফাঁকা থাকলে পোস্টের মূল লেখা ব্যবহার হয়।
+Research New Prospects Automatically,নতুন প্রসপেক্টের গবেষণা নিজে থেকে করুন
+Create CRM Tasks for Positive Replies,ইতিবাচক উত্তরের জন্য সিআরএম কাজ তৈরি করুন
+Remind us when a chat waits (minutes),চ্যাট অপেক্ষায় থাকলে মনে করান (মিনিট)
+Your 09-series number from the IPTSP.,আইপিটিএসপি থেকে পাওয়া আপনার ০৯-সিরিজের নম্বর।
+Answer Routine Questions Automatically,নিয়মিত প্রশ্নের উত্তর নিজে থেকে দিন
+Assign new conversations automatically,নতুন কথোপকথন নিজে থেকে ভাগ করুন
+Local AI key (if the server needs one),লোকাল এআই কী (সার্ভারের দরকার হলে)
+"One per line: email, @domain or phone.","প্রতি লাইনে একটি: ইমেইল, @ডোমেইন বা ফোন।"
+Plan Limits (blank = platform default),প্ল্যানের সীমা (ফাঁকা = প্ল্যাটফর্মের ডিফল্ট)
+WhatsApp header text or sample address,হোয়াটসঅ্যাপ হেডারের লেখা বা নমুনা ঠিকানা
+Allow a Company's own AI server address,কোম্পানির নিজস্ব এআই সার্ভারের ঠিকানা অনুমোদন করুন
+Enable google_maps_browser_experimental,google_maps_browser_experimental চালু করুন
+"Cities or areas you serve, one per line.","আপনি যে শহর বা এলাকায় সেবা দেন, প্রতি লাইনে একটি।"
+AI voice assistant answers incoming calls,এআই ভয়েস সহকারী আসা কলের উত্তর দেয়
+Enable google_search_browser_experimental,google_search_browser_experimental চালু করুন
+"Meta app (Facebook, Instagram, Messenger)","মেটা অ্যাপ (ফেসবুক, ইনস্টাগ্রাম, মেসেঞ্জার)"
+Required before any external source runs.,কোনো বাইরের উৎস চালানোর আগে আবশ্যক।
+Stored normalised; shown masked in lists.,স্বাভাবিকীকৃত অবস্থায় সংরক্ষিত; তালিকায় আড়াল করে দেখানো হয়।
+WhatsApp Embedded Signup configuration ID,হোয়াটসঅ্যাপ এমবেডেড সাইনআপ কনফিগারেশন আইডি
+"Words that show a good fit, one per line.","ভালো মানানসই বোঝায় এমন শব্দ, প্রতি লাইনে একটি।"
+e.g. https://pbx.example.com:8089 (HTTPS),যেমন: https://pbx.example.com:8089 (এইচটিটিপিএস)
+"Comma separated, e.g. newsletter, website.","কমা দিয়ে আলাদা করুন, যেমন: newsletter, website।"
+Answer buying comments in a private message,কেনার মন্তব্যের উত্তর ব্যক্তিগত বার্তায় দিন
+Default Plan Limits (per Company per Month),ডিফল্ট প্ল্যানের সীমা (প্রতি কোম্পানি প্রতি মাসে)
+Experimental: Headless Browser (Playwright),পরীক্ষামূলক: হেডলেস ব্রাউজার (প্লেরাইট)
+Internal Companies (no subscription needed),অভ্যন্তরীণ কোম্পানি (সাবস্ক্রিপশন লাগে না)
+BulkSMSBD API key or SSL Wireless API token.,বাল্কএসএমএসবিডি এপিআই কী বা এসএসএল ওয়্যারলেস এপিআই টোকেন।
+Share of eligible members held out (max 50).,যোগ্য সদস্যদের যত অংশ বাইরে রাখা হবে (সর্বোচ্চ ৫০)।
+"Words that rule a company out, one per line.","কোম্পানিকে বাদ দেয় এমন শব্দ, প্রতি লাইনে একটি।"
+"How consent was obtained (form, call, event).","সম্মতি কীভাবে নেওয়া হয়েছে (ফর্ম, কল, ইভেন্ট)।"
+"One per line, e.g. 'Dhaka', 'Gulshan, Dhaka'.","প্রতি লাইনে একটি, যেমন 'ঢাকা', 'গুলশান, ঢাকা'।"
+Two-letter country code Google searches from.,যে দেশ থেকে গুগল অনুসন্ধান করবে তার দুই অক্ষরের কোড।
+WhatChimp → Settings → API Developer Console.,হোয়াটচিম্প → সেটিংস → এপিআই ডেভেলপার কনসোল।
+A Brevo account (the free plan sends 300 emails a day) and its API key,একটি ব্রেভো অ্যাকাউন্ট (ফ্রি প্ল্যানে দিনে ৩০০টি ইমেইল যায়) ও তার এপিআই কী
+A SendGrid API key and a verified sender address,একটি সেন্ডগ্রিড এপিআই কী ও যাচাই করা প্রেরকের ঠিকানা
+A Twilio phone number (and a Messaging Service ID if you want RCS),একটি টুইলিও ফোন নম্বর (আরসিএস চাইলে একটি মেসেজিং সার্ভিস আইডিও)
+A WhatsApp Business account with a phone number that is not used on the normal WhatsApp app,"একটি হোয়াটসঅ্যাপ বিজনেস অ্যাকাউন্ট, যার ফোন নম্বর সাধারণ হোয়াটসঅ্যাপ অ্যাপে ব্যবহার হয় না"
+A description of your ideal customer used to search for leads.,লিড খোঁজার জন্য ব্যবহৃত আপনার আদর্শ গ্রাহকের বর্ণনা।
+A record of what every AI agent did and who approved it. Useful for audits.,প্রতিটি এআই এজেন্ট কী করেছে এবং কে অনুমোদন দিয়েছে তার রেকর্ড। অডিটের জন্য কাজে লাগে।
+Access to the company’s Facebook Business account to approve the connection,সংযোগ অনুমোদনের জন্য কোম্পানির ফেসবুক বিজনেস অ্যাকাউন্টে অ্যাক্সেস
+Admin access to that Facebook Page,সেই ফেসবুক পেজের অ্যাডমিন অ্যাক্সেস
+Admin access to the Facebook Page,ফেসবুক পেজের অ্যাডমিন অ্যাক্সেস
+Admin access to the Facebook Page that runs the lead ads,যে ফেসবুক পেজ লিড বিজ্ঞাপন চালায় তার অ্যাডমিন অ্যাক্সেস
+Admin access to the LinkedIn ad account,লিংকডইন বিজ্ঞাপন অ্যাকাউন্টের অ্যাডমিন অ্যাক্সেস
+Admin access to the LinkedIn company page,লিংকডইন কোম্পানি পেজের অ্যাডমিন অ্যাক্সেস
+Advice the AI gave on how to improve a campaign. You decide whether to use it.,ক্যাম্পেইন কীভাবে ভালো করা যায় সে বিষয়ে এআই-এর পরামর্শ। ব্যবহার করবেন কি না আপনি ঠিক করবেন।
+Agreement from your team that callers are told it is an AI assistant,আপনার দলের সম্মতি যে কলারদের জানানো হবে এটি একটি এআই সহকারী
+An Instagram professional account linked to a Facebook Page,একটি ফেসবুক পেজের সঙ্গে যুক্ত ইনস্টাগ্রাম প্রফেশনাল অ্যাকাউন্ট
+"An outgoing email account on the company domain, or an API key from an email service","কোম্পানির ডোমেইনে একটি আউটগোয়িং ইমেইল অ্যাকাউন্ট, বা কোনো ইমেইল সেবার এপিআই কী"
+Approval from LinkedIn for lead form access,লিড ফর্মে প্রবেশের জন্য লিংকডইনের অনুমোদন
+Ask your IT person for,আপনার আইটি ব্যক্তির কাছে যা চাইবেন
+Confirmation that the WhatChimp plan allows sending through its API,নিশ্চিতকরণ যে হোয়াটচিম্প প্ল্যান এপিআই দিয়ে পাঠানোর অনুমতি দেয়
+Copy a message for your IT person,আপনার আইটি ব্যক্তির জন্য একটি বার্তা কপি করুন
+"Each message the agents drafted or sent, and whether a person approved it.","এজেন্টরা কোন বার্তা খসড়া করেছে বা পাঠিয়েছে, এবং কোনো মানুষ অনুমোদন করেছে কি না।"
+Every campaign and where it stands. Open “Campaigns” for the friendlier view.,প্রতিটি ক্যাম্পেইন ও তার অবস্থা। সহজ দৃশ্যের জন্য “ক্যাম্পেইন” খুলুন।
+"Everything that happened to a message: delivered, opened, clicked, replied, bounced.","বার্তার ক্ষেত্রে যা ঘটেছে: পৌঁছেছে, খোলা হয়েছে, ক্লিক হয়েছে, উত্তর এসেছে, বাউন্স হয়েছে।"
+Facts about your business that the AI is allowed to use in messages and replies.,আপনার ব্যবসার যেসব তথ্য এআই বার্তা ও উত্তরে ব্যবহার করতে পারে।
+"Hello,","নমস্কার/আসসালামু আলাইকুম,"
+Inbox and Meetings,ইনবক্স ও মিটিং
+Message copied. Paste it into an email or chat.,বার্তা কপি হয়েছে। ইমেইল বা চ্যাটে পেস্ট করুন।
+Need help?,সাহায্য দরকার?
+Nothing technical. Decide with your manager what the AI may answer on its own.,কারিগরি কিছু নয়। এআই নিজে থেকে কী উত্তর দিতে পারবে তা আপনার ম্যানেজারের সঙ্গে ঠিক করুন।
+Nothing: your system provider chooses the AI. Ask them if it shows as off.,কিছু নয়: এআই আপনার সিস্টেম প্রোভাইডার বেছে নেন। বন্ধ দেখালে তাদের জিজ্ঞেস করুন।
+"Our server’s address added to the provider’s allowed list, if they ask for one","প্রোভাইডার চাইলে, তাদের অনুমোদিত তালিকায় আমাদের সার্ভারের ঠিকানা যোগ করা"
+People who must never be contacted. Add someone here and they are skipped everywhere.,যাদের কখনো যোগাযোগ করা যাবে না। এখানে কাউকে যোগ করলে সবখানে তাকে বাদ দেওয়া হয়।
+Permission to read leads on that Page,সেই পেজের লিড পড়ার অনুমতি
+"Platform use of outside services, for the system provider.","বাইরের সেবার প্ল্যাটফর্ম-ব্যবহার, সিস্টেম প্রোভাইডারের জন্য।"
+Please send the values to me by a safe channel (not in a group chat). Thank you.,অনুমোদনের অপেক্ষায় বা ইতিমধ্যে প্রকাশিত সোশ্যাল মিডিয়া পোস্ট।
+Replay the welcome tour,স্বাগত ট্যুর আবার দেখুন
+Saved groups of people made by rules. They update themselves.,নিয়ম দিয়ে তৈরি মানুষের সংরক্ষিত গোষ্ঠী। এগুলো নিজে থেকে হালনাগাদ হয়।
+Saved lead searches. Each one says what to look for and where.,সংরক্ষিত লিড অনুসন্ধান। প্রতিটিতে বলা আছে কী ও কোথায় খুঁজতে হবে।
+Searches running or finished in the background. Look here if a search seems stuck.,ব্যাকগ্রাউন্ডে চলমান বা শেষ হওয়া অনুসন্ধান। কোনোটি আটকে মনে হলে এখানে দেখুন।
+Short market research notes the AI wrote about the kind of customers you want.,আপনি যে ধরনের গ্রাহক চান সে সম্পর্কে এআই-এর লেখা সংক্ষিপ্ত বাজার গবেষণার নোট।
+Skip,এড়িয়ে যান
+Social media posts waiting for approval or already published.,অনুমোদনের অপেক্ষায় বা ইতিমধ্যে প্রকাশিত সোশ্যাল মিডিয়া পোস্ট।
+Someone to add Brevo’s DNS records to the domain,ডোমেইনে ব্রেভোর ডিএনএস রেকর্ড যোগ করার একজন
+Someone to add SendGrid’s DNS records to the domain,ডোমেইনে সেন্ডগ্রিডের ডিএনএস রেকর্ড যোগ করার একজন
+Someone to paste our web addresses into the Twilio console,টুইলিও কনসোলে আমাদের ওয়েব ঠিকানা পেস্ট করার একজন
+Someone who can add SPF and DKIM records to the domain’s DNS,ডোমেইনের ডিএনএসে এসপিএফ ও ডিকেআইএম রেকর্ড যোগ করতে পারেন এমন একজন
+Someone who can paste one line of code into the website,ওয়েবসাইটে এক লাইন কোড পেস্ট করতে পারেন এমন একজন
+Someone who can sign in to Facebook and tick the Pages to connect,ফেসবুকে সাইন ইন করে সংযোগের জন্য পেজ বেছে নিতে পারেন এমন একজন
+Someone who can sign in to LinkedIn and approve the connection,লিংকডইনে সাইন ইন করে সংযোগ অনুমোদন করতে পারেন এমন একজন
+Step {0} of {1},ধাপ {0} / {1}
+"The Facebook, Instagram and LinkedIn accounts connected to this tool.","এই টুলের সঙ্গে সংযুক্ত ফেসবুক, ইনস্টাগ্রাম ও লিংকডইন অ্যাকাউন্ট।"
+The SMS provider API key and sender ID (BulkSMSBD or SSL Wireless),এসএমএস প্রোভাইডারের এপিআই কী ও প্রেরক আইডি (বাল্কএসএমএসবিডি বা এসএসএল ওয়্যারলেস)
+The Twilio Account SID and Auth Token,টুইলিও অ্যাকাউন্ট এসআইডি ও অথ টোকেন
+The WhatChimp API token and phone number ID,হোয়াটচিম্প এপিআই টোকেন ও ফোন নম্বর আইডি
+The address of the office phone system (HTTPS) and a user name and password for it,অফিস ফোন সিস্টেমের ঠিকানা (এইচটিটিপিএস) এবং তার একটি ইউজার নেম ও পাসওয়ার্ড
+The groups of people campaigns are sent to.,যেসব মানুষের গোষ্ঠীকে ক্যাম্পেইন পাঠানো হয়।
+The list of websites where the chat may appear,যেসব ওয়েবসাইটে চ্যাট দেখানো যাবে তার তালিকা
+The rules used to score leads. Change these only if scores feel wrong.,লিড স্কোর করার নিয়ম। স্কোর ঠিক মনে না হলে তবেই এগুলো বদলান।
+"The score the agent gave each lead, and why.",এজেন্ট প্রতিটি লিডকে যে স্কোর দিয়েছে এবং কেন।
+The sender email address verified in Brevo,ব্রেভোতে যাচাই করা প্রেরকের ইমেইল ঠিকানা
+This short tour shows where things are. It takes under a minute and you will only see it once.,এই ছোট ট্যুরে দেখানো হবে কোথায় কী আছে। এক মিনিটেরও কম সময় লাগে এবং একবারই দেখবেন।
+Twilio connected first,আগে টুইলিও সংযুক্ত করা
+We are connecting “{0}” to our Reckon Sales Agent ({1}). Could you please arrange the following?,আমরা “{0}” আমাদের রেকন সেলস এজেন্টের ({1}) সঙ্গে সংযুক্ত করছি। অনুগ্রহ করে নিচের বিষয়গুলোর ব্যবস্থা করে দিতে পারবেন?
+Welcome to your AI sales team,আপনার এআই সেলস টিমে স্বাগতম
+What the agent learned about a lead from its website and other public sources.,লিডের ওয়েবসাইট ও অন্যান্য প্রকাশ্য উৎস থেকে এজেন্ট যা জেনেছে।
+What you have used this month against your plan limits.,আপনার প্ল্যানের সীমার বিপরীতে এই মাসে আপনি যা ব্যবহার করেছেন।
+What your business sells and to whom. The agents read this before they write anything.,আপনার ব্যবসা কী বিক্রি করে এবং কাদের কাছে। এজেন্টরা কিছু লেখার আগে এটি পড়ে।
+Where leads are searched for. Your system provider switches these on.,কোথায় লিড খোঁজা হয়। আপনার সিস্টেম প্রোভাইডার এগুলো চালু করেন।
+Who is inside each campaign and how far they have got.,প্রতিটি ক্যাম্পেইনে কে আছেন এবং কতদূর এগিয়েছেন।
+Your 09-series number from the phone provider,ফোন প্রোভাইডারের কাছ থেকে পাওয়া আপনার ০৯-সিরিজের নম্বর

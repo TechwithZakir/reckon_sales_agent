@@ -153,3 +153,7 @@
 .sch-dot.ok { background: var(--sch-ok); }
 .sch-dot.bad { background: var(--sch-bad); }
 .sch-link-new { display: inline-block; margin-top: 4px; font-size: 12px; }
+
+.sch-it { margin: 12px 18px 0; padding: 10px 14px; border-radius: 12px; background: var(--sch-soft); border: 1px dashed var(--sch-line); font-size: 13px; }
+.sch-it ul { margin: 6px 0 8px 18px; padding: 0; }
+.sch-it li { margin-bottom: 2px; }

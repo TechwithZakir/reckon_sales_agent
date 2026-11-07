@@ -65,6 +65,12 @@
 			<dl style="display:grid;grid-template-columns:130px 1fr;gap:4px 12px;margin:0">${WORDS.map(([w, t]) => `<dt style="font-weight:600">${e(w)}</dt><dd style="margin:0">${e(t)}</dd>`).join("")}</dl>
 			<p class="text-muted" style="margin-top:14px;font-size:12px">${__("Nothing is sent to a customer without a person’s approval, unless a manager has switched autopilot on.")}</p></div>`);
 		d.show();
+		d.fields_dict.body.$wrapper.append(`<p style="margin-top:10px"><a href="#" class="rsa-replay">${__("Replay the welcome tour")}</a></p>`);
+		d.fields_dict.body.$wrapper.find(".rsa-replay").on("click", (ev) => {
+			ev.preventDefault();
+			d.hide();
+			if (window.rsa_run_tour) setTimeout(window.rsa_run_tour, 300);
+		});
 	}
 
 	function attach() {
