@@ -4,6 +4,8 @@
 	frappe.pages["campaign-studio"].on_page_load = function (wrapper) {
 		const page = frappe.ui.make_app_page({ parent: wrapper, title: __("Campaign Studio"), single_column: true });
 		page.add_inner_button(__("Message Templates"), () => frappe.set_route("sales-templates"));
+		page.add_inner_button(__("Capture Studio"), () => frappe.set_route("capture-studio"));
+		page.add_inner_button(__("Automation Studio"), () => frappe.set_route("automation-studio"));
 		page.add_inner_button(__("Agent Studio"), () => frappe.set_route("sales-agent"));
 		wrapper.studio = new Studio(page);
 	};
@@ -20,7 +22,7 @@
 	const TABS = [["overview", __("Overview")], ["campaigns", __("Campaigns")], ["audiences", __("Audiences")],
 		["recipients", __("Recipients")], ["autopilot", __("Copilot & Autopilot")]];
 	const TEMP = { "Hot": "hot", "Warm": "warm", "Cold": "cold", "Opted out": "out" };
-	const AUDIENCE_TYPES = ["Prospects", "CRM Leads", "CRM Contacts", "Customers", "Specific people"];
+	const AUDIENCE_TYPES = ["Prospects", "CRM Leads", "CRM Contacts", "Customers", "Specific people", "Segment"];
 	const ACTIONS = {
 		new_audience: __("New audience"), pilot: __("New campaign"), call_hot: __("See who"), pause: __("Open campaign"),
 		narrow_audience: __("Open campaign"), scale: __("Open campaign"), rewrite_subject: __("Open templates"),
@@ -468,8 +470,10 @@
 					fields: [
 						{ fieldname: "audience_name", fieldtype: "Data", label: __("Name"), reqd: 1 },
 						{ fieldname: "audience_type", fieldtype: "Select", label: __("Who is in it"), reqd: 1, options: AUDIENCE_TYPES.join("\n"), default: "Prospects" },
+						{ fieldname: "segment", fieldtype: "Link", options: "Sales Segment", label: __("Segment"), depends_on: "eval:doc.audience_type=='Segment'",
+							mandatory_depends_on: "eval:doc.audience_type=='Segment'", description: __("Made in Capture Studio. Its rules are checked each time the audience is used.") },
 						{ fieldname: "description", fieldtype: "Small Text", label: __("Description") },
-						{ fieldname: "sb_filters", fieldtype: "Section Break", depends_on: "eval:doc.audience_type!='Specific people'" },
+						{ fieldname: "sb_filters", fieldtype: "Section Break", depends_on: "eval:!['Specific people','Segment'].includes(doc.audience_type)" },
 						{ fieldname: "status_filter", fieldtype: "Small Text", label: __("Statuses (comma separated)"), depends_on: only(["CRM Leads"]) },
 						{ fieldname: "source_filter", fieldtype: "Data", label: __("Source"), depends_on: only(["Prospects", "CRM Leads"]) },
 						{ fieldname: "owner_filter", fieldtype: "Link", options: "User", label: __("Owner"), depends_on: only(["CRM Leads"]) },

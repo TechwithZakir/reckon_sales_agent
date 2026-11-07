@@ -8,6 +8,8 @@ dry run). No network calls: outbound stays in dry run and the AI is off.
 
 from __future__ import annotations
 
+import json
+
 import frappe
 
 COMPANY = "CI Smoke Ltd"
@@ -114,6 +116,96 @@ def run() -> None:
             frappe.set_user("Administrator")
 
     check("Companies stay separate", isolation)
+
+    def capture_segments_automation():
+        # Lead capture, segments, CSV import and an automation, end to end on real tables. The Company is made internal for
+        # this check (no subscription in CI); the change is rolled back with everything else.
+        from reckon_sales_agent import api_automation, api_capture, api_segments
+        from reckon_sales_agent.automation import engine as auto
+        from reckon_sales_agent.automation import flow as fl
+        from reckon_sales_agent.campaigns import (
+            capture,
+            capture_service,
+            import_service,
+            segment_service,
+        )
+        from reckon_sales_agent.campaigns.audience_resolve import resolve
+        from reckon_sales_agent.campaigns.tag_service import add_tags
+        from reckon_sales_agent.providers.channels import reachability
+
+        frappe.db.set_single_value("Sales Agent Platform Settings", "internal_companies", company)
+        frappe.clear_document_cache("Sales Agent Platform Settings", "Sales Agent Platform Settings")
+        tag = "ci" + frappe.generate_hash(length=5).lower()
+        form = frappe.get_doc({"doctype": "Sales Capture Form", "company": company, "form_name": "CI form", "status": "Published",
+                               "tags": tag, "double_opt_in": 1, "require_consent": 1,
+                               "fields_json": json.dumps([{"key": "email"}, {"key": "first_name"}])}).insert(ignore_permissions=True)
+        assert form.slug and len(form.slug) == 10, form.slug
+        email = f"ci-{frappe.generate_hash(length=6).lower()}@example.com"
+        result = capture_service.submit(form.slug, {"email": email, "first_name": "Ci", "consent": "on"}, "127.0.0.1")
+        assert result["ok"], result
+        row = frappe.db.get_value("Sales Prospect", {"company": company, "email": email}, ["name", "optin_status", "optin_token"], as_dict=True)
+        assert row and row.optin_status == "Unconfirmed" and row.optin_token, row
+        person = frappe.get_doc("Sales Prospect", row.name)
+        assert not reachability("Email", person, get_settings(company))[0], "an unconfirmed signup must not be emailed"
+        assert capture_service.confirm(row.optin_token), "confirmation refused"
+        person.reload()
+        assert person.optin_status == "Confirmed" and tag in (person.tags or ""), (person.optin_status, person.tags)
+        assert reachability("Email", person, get_settings(company))[0]
+        assert capture_service.submit(form.slug, {"email": "bot@example.com", capture.HONEYPOT: "spam"}, "")["ok"]
+        assert not frappe.db.exists("Sales Prospect", {"company": company, "email": "bot@example.com"}), "a bot signup was recorded"
+        assert not capture_service.submit(form.slug, {"email": "not-an-email"}, "")["ok"]
+        assert api_capture.form(form.name)["recent"], "the signup is not listed"
+        assert any(r["name"] == form.name for r in api_capture.forms())
+
+        seg = frappe.get_doc({"doctype": "Sales Segment", "company": company, "segment_name": "CI tagged",
+                              "rules": json.dumps([{"field": "tag", "op": "has", "value": tag}])}).insert(ignore_permissions=True)
+        assert segment_service.refresh(seg.name) == 1, "the segment should hold the confirmed signup"
+        assert segment_service.person_in(company, person.name, seg.name)
+        assert api_segments.preview([{"field": "tag", "op": "has", "value": tag}], "All")["total"] == 1
+        assert any(r["name"] == seg.name for r in api_segments.segment_list())
+        audience = frappe.get_doc({"doctype": "Sales Audience", "company": company, "audience_name": "CI segment audience",
+                                   "audience_type": "Segment", "segment": seg.name}).insert(ignore_permissions=True)
+        assert len(resolve(audience)) == 1
+
+        other = f"imp-{frappe.generate_hash(length=6).lower()}@example.com"
+        job = frappe.get_doc({"doctype": "Sales Import Job", "company": company, "label": "CI import", "status": "Queued", "total": 2,
+                              "payload": f"email,name,tags\n{other},Imp One,vip\nnot-an-email,Bad,\n",
+                              "mapping": json.dumps(["email", "contact_name", "tags"]), "started_by": "Administrator",
+                              "source_label": "ci", "consent_statement": "CI test people who agreed"}).insert(ignore_permissions=True)
+        import_service.run_job(job.name)
+        job.reload()
+        assert job.status == "Done" and job.created == 1 and job.skipped == 1, (job.status, job.created, job.skipped, job.problems)
+        assert (frappe.db.get_value("Sales Prospect", {"company": company, "email": other}, "tags") or "") == "vip"
+
+        trigger_tag = "go" + frappe.generate_hash(length=4).lower()
+        flow = {"start": "n1", "nodes": {
+            "n1": {"type": "trigger", "config": {"event": "tag_added", "tag": trigger_tag}, "next": "n2"},
+            "n2": {"type": "action", "config": {"do": "add_tag", "value": "ci-done"}, "next": "n3"},
+            "n3": {"type": "wait", "config": {"amount": 1, "unit": "minutes"}, "next": None}}}
+        flow_doc = frappe.get_doc({"doctype": "Sales Automation", "company": company, "automation_name": "CI flow",
+                                   "flow": json.dumps(flow)}).insert(ignore_permissions=True)
+        assert fl.issues(auto.flow_of(flow_doc), auto.template_status(company)) == []
+        assert auto.activate(flow_doc, "Administrator")["status"] == "Active"
+        assert not flow_doc.campaign, "a flow with no message step needs no campaign"
+        add_tags(company, person.name, trigger_tag, "ci")  # the trigger: a tag is added
+        run = frappe.db.get_value("Sales Automation Run", {"automation": flow_doc.name, "prospect": person.name}, "name")
+        assert run, "the tag did not start the automation"
+        auto.advance_run(run)
+        state = frappe.get_doc("Sales Automation Run", run)
+        assert state.status == "Waiting" and state.current_node == "n3", (state.status, state.current_node, state.stop_reason)
+        assert "ci-done" in (frappe.db.get_value("Sales Prospect", person.name, "tags") or "")
+        frappe.db.set_value("Sales Automation Run", run, "node_entered_on", frappe.utils.add_to_date(frappe.utils.now_datetime(), minutes=-5))
+        auto.advance_run(run)
+        assert frappe.db.get_value("Sales Automation Run", run, "status") == "Completed"
+        detail = api_automation.automation(flow_doc.name)
+        assert detail["status"] == "Active" and detail["stats"]["total"] == 1, detail["stats"]
+        assert api_automation.catalog()["triggers"]
+        assert any(r["name"] == flow_doc.name for r in api_automation.automations())
+        assert api_automation.simulate(flow)["path"]
+        assert api_automation.check(flow)["issues"] == []
+        assert api_automation.runs(flow_doc.name)
+
+    check("Capture, segments, import and automations", capture_segments_automation)
     frappe.db.rollback()  # leave the CI site as it was (the Company stays for the next run)
     if failures:
         raise AssertionError("Smoke test failed:\n" + "\n".join(failures))

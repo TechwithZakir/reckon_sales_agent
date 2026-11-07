@@ -17,6 +17,8 @@ MEETINGS_PAGE = "sales-meetings"
 TEMPLATES_PAGE = "sales-templates"
 CHANNELS_PAGE = "sales-channels"
 CAMPAIGN_STUDIO_PAGE = "campaign-studio"
+CAPTURE_STUDIO_PAGE = "capture-studio"
+AUTOMATION_STUDIO_PAGE = "automation-studio"
 HOME_ROUTE = f"/desk/{HOME_PAGE}"
 WORKSPACE_SIDEBAR = "Sales Agent"
 
@@ -70,6 +72,11 @@ COMPANY_DOCTYPES = (
     "Sales Audience",
     "Sales Tracked Link",
     "Sales Template Section",
+    "Sales Capture Form",
+    "Sales Segment",
+    "Sales Import Job",
+    "Sales Automation",
+    "Sales Automation Run",
 )
 CHILD_DOCTYPES = ("Sales Planned Query", "Sales Research Fact", "Sales Campaign Step", "Sales Target Location",
                   "Sales Market Segment", "Sales Provider Budget", "Sales Social Post Target",
@@ -108,7 +115,8 @@ LOOKUP_ONLY_DOCTYPES = frozenset(
     | set(CRM_DOCTYPES)
 )
 ALLOWED_PAGES = frozenset({HOME_PAGE, REVIEW_PAGE, ANALYTICS_PAGE, STUDIO_PAGE, SETUP_PAGE, INBOX_PAGE, MEETINGS_PAGE,
-                           TEMPLATES_PAGE, CHANNELS_PAGE, CAMPAIGN_STUDIO_PAGE, "print", "user-profile", "home"})
+                           TEMPLATES_PAGE, CHANNELS_PAGE, CAMPAIGN_STUDIO_PAGE, CAPTURE_STUDIO_PAGE,
+                           AUTOMATION_STUDIO_PAGE, "print", "user-profile", "home"})
 
 LEAD_SOURCE = "Sales Agent"
 

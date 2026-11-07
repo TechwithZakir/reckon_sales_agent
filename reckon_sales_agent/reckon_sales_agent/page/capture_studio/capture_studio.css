@@ -1,0 +1,54 @@
+/* Capture Studio: signup forms, segments and import. Uses Reckon Aura variables when present, Frappe's otherwise. */
+.cap {
+	--cap-accent: var(--aura-accent, var(--primary, #2a78d6));
+	--cap-soft: color-mix(in srgb, var(--cap-accent) 12%, transparent);
+	--cap-card: var(--aura-surface, var(--card-bg, #fff));
+	--cap-line: var(--aura-line, var(--border-color, #e3e5ea));
+	--cap-muted: var(--aura-muted, var(--text-muted, #6b7280));
+	--cap-ok: #0ca30c; --cap-bad: #d03b3b; --cap-warn: #d97706;
+	max-width: 1180px; margin: 0 auto; padding: 8px 4px 40px;
+}
+.cap h3 { margin: 0 0 8px; font-size: 15px; font-weight: 650; }
+.cap h4 { margin: 14px 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--cap-muted); }
+.cap-muted { color: var(--cap-muted); font-size: 12px; }
+.cap-tabs { display: flex; gap: 4px; flex-wrap: wrap; background: var(--cap-card); border: 1px solid var(--cap-line); border-radius: 12px; padding: 4px; margin-bottom: 12px; }
+.cap-tab { border: 0; background: transparent; color: var(--cap-muted); padding: 7px 14px; border-radius: 9px; font-size: 13px; font-weight: 600; }
+.cap-tab.on { background: var(--cap-soft); color: var(--cap-accent); }
+.cap-card { background: var(--cap-card); border: 1px solid var(--cap-line); border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; }
+.cap-bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.cap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.cap-split { display: grid; grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr); gap: 14px; align-items: start; }
+.cap-badge { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 999px; background: var(--cap-soft); color: var(--cap-accent); font-weight: 600; white-space: nowrap; }
+.cap-badge.Published, .cap-badge.Done, .cap-badge.ok { color: var(--cap-ok); background: color-mix(in srgb, var(--cap-ok) 12%, transparent); }
+.cap-badge.Draft, .cap-badge.Queued, .cap-badge.Running { color: var(--cap-warn); background: color-mix(in srgb, var(--cap-warn) 12%, transparent); }
+.cap-badge.Failed { color: var(--cap-bad); background: color-mix(in srgb, var(--cap-bad) 12%, transparent); }
+.cap-empty { padding: 28px; text-align: center; color: var(--cap-muted); }
+.cap-num { display: flex; gap: 14px; margin: 8px 0; }
+.cap-num b { display: block; font-size: 20px; line-height: 1.2; }
+.cap-num span { color: var(--cap-muted); font-size: 12px; }
+.cap-form label { display: block; font-size: 12px; color: var(--cap-muted); margin-bottom: 10px; }
+.cap-form label .form-control, .cap-form label select { margin-top: 3px; }
+.cap-form .cap-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.cap-check { display: flex; gap: 8px; align-items: center; font-size: 13px; margin: 6px 0; color: inherit; }
+.cap-check input { margin: 0; }
+.cap-fields { border: 1px solid var(--cap-line); border-radius: 10px; margin-bottom: 10px; }
+.cap-fields > div { display: grid; grid-template-columns: 24px 1fr 110px 80px; gap: 8px; align-items: center; padding: 6px 10px; border-top: 1px solid var(--cap-line); font-size: 13px; }
+.cap-fields > div:first-child { border-top: 0; }
+.cap-preview { border: 1px dashed var(--cap-line); border-radius: 12px; padding: 16px; background: var(--cap-card); position: sticky; top: 70px; }
+.cap-preview h4 { margin-top: 0; }
+.cap-pf { font-size: 14px; }
+.cap-pf input[type=text], .cap-pf input[type=email], .cap-pf input[type=tel] { display: block; width: 100%; margin: 3px 0 9px; padding: 8px; border: 1px solid var(--cap-line); border-radius: 8px; background: transparent; }
+.cap-pf button { border: 0; color: #fff; padding: 9px 16px; border-radius: 8px; width: 100%; }
+.cap-code { display: flex; gap: 6px; align-items: center; background: var(--cap-soft); border-radius: 8px; padding: 6px 10px; margin: 6px 0; }
+.cap-code code { flex: 1; font-size: 12px; overflow-x: auto; white-space: nowrap; background: transparent; padding: 0; }
+.cap-table { width: 100%; font-size: 13px; border-collapse: collapse; }
+.cap-table th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--cap-muted); padding: 6px 8px; }
+.cap-table td { padding: 8px; border-top: 1px solid var(--cap-line); vertical-align: top; }
+.cap-rule { display: grid; grid-template-columns: 1.3fr 1fr 1.2fr 32px; gap: 8px; margin-bottom: 8px; align-items: center; }
+.cap-rule .form-control { margin: 0; }
+.cap-sample { font-size: 12px; color: var(--cap-muted); margin-top: 6px; }
+.cap-map { display: grid; grid-template-columns: minmax(120px, 1fr) minmax(150px, 1fr) 2fr; gap: 8px; align-items: center; padding: 6px 0; border-top: 1px solid var(--cap-line); font-size: 13px; }
+.cap-map:first-child { border-top: 0; }
+.cap-bar-progress { height: 8px; background: var(--cap-soft); border-radius: 6px; overflow: hidden; }
+.cap-bar-progress i { display: block; height: 100%; background: var(--cap-accent); }
+@media (max-width: 860px) { .cap-split { grid-template-columns: 1fr; } .cap-preview { position: static; } .cap-rule { grid-template-columns: 1fr 1fr; } .cap-map { grid-template-columns: 1fr; } }

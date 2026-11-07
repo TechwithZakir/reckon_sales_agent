@@ -12,7 +12,14 @@ import frappe
 from frappe.utils import now_datetime, nowdate
 
 from reckon_sales_agent.campaigns import audience as rules
-from reckon_sales_agent.campaigns.audience import CONTACTS, CUSTOMERS, LEADS, PROSPECTS, SPECIFIC
+from reckon_sales_agent.campaigns.audience import (
+    CONTACTS,
+    CUSTOMERS,
+    LEADS,
+    PROSPECTS,
+    SEGMENT,
+    SPECIFIC,
+)
 
 LIMIT = 5000
 LEAD_FIELDS = ("name", "lead_name", "first_name", "last_name", "organization", "email", "mobile_no", "phone")
@@ -131,9 +138,21 @@ def _specific(a) -> list[dict | None]:
     return out
 
 
+def _segment(a) -> list[dict | None]:
+    from reckon_sales_agent.campaigns.segment_service import recipients
+
+    if not a.get("segment"):
+        return []
+    segment = frappe.get_doc("Sales Segment", a.segment)
+    if segment.company != a.company:
+        frappe.throw(frappe._("That segment belongs to another Company."), frappe.PermissionError)
+    return recipients(segment)
+
+
 def resolve(a) -> list[dict]:
     """The people the audience includes right now: one row per person, with at least one address."""
-    builders = {PROSPECTS: _prospects, LEADS: _leads, CONTACTS: _contacts, CUSTOMERS: _customers, SPECIFIC: _specific}
+    builders = {PROSPECTS: _prospects, LEADS: _leads, CONTACTS: _contacts, CUSTOMERS: _customers, SPECIFIC: _specific,
+                SEGMENT: _segment}
     rows = rules.dedupe([r for r in builders[a.audience_type](a) if r])
     if a.get("require_email"):
         rows = [r for r in rows if r["email"]]

@@ -27,6 +27,7 @@
   "head_col",
   "discovery_campaign",
   "audience",
+  "automation",
   "minimum_fit_score",
   "daily_limit",
   "start_date",
@@ -142,6 +143,14 @@
    "label": "Audience",
    "options": "Sales Audience",
    "description": "Who this campaign goes to. Leave empty to use the discovery campaign above."
+  },
+  {
+   "fieldname": "automation",
+   "fieldtype": "Link",
+   "label": "Automation",
+   "options": "Sales Automation",
+   "read_only": 1,
+   "description": "Set when this record belongs to an automation (see Automation Studio)."
   },
   {
    "fieldname": "minimum_fit_score",

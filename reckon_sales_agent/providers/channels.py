@@ -42,7 +42,11 @@ def html_to_text(value: str) -> str:
 def reachability(channel: str, prospect, settings) -> tuple[bool, str, str | None]:
     """(reachable, reason, recipient) for one channel."""
     if channel == "Email":
-        return (True, "Public business email.", prospect.email) if prospect.email else (False, "No email.", None)
+        if not prospect.email:
+            return False, "No email.", None
+        if prospect.get("optin_status") == "Unconfirmed":
+            return False, "The email address is not confirmed yet.", None  # double opt-in: nothing until they confirm
+        return True, "Public business email.", prospect.email
     if channel in ("SMS", "WhatsApp"):
         phone = normalize_phone(prospect.phone)
         if not phone:

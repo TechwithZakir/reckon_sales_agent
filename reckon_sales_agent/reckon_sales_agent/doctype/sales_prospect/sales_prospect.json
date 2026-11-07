@@ -93,7 +93,14 @@
   "whatsapp_last_inbound",
   "consent_col",
   "consent_source",
-  "consent_date"
+  "consent_date",
+  "capture_section",
+  "tags",
+  "optin_status",
+  "optin_token",
+  "signup_form",
+  "signup_at",
+  "confirmed_at"
  ],
  "fields": [
   {
@@ -573,6 +580,50 @@
    "fieldname": "consent_date",
    "fieldtype": "Date",
    "label": "Consent Date"
+  },
+  {
+   "fieldname": "capture_section",
+   "fieldtype": "Section Break",
+   "label": "Signup and tags"
+  },
+  {
+   "fieldname": "tags",
+   "fieldtype": "Small Text",
+   "label": "Tags",
+   "description": "Comma separated. Segments and automations read them."
+  },
+  {
+   "fieldname": "optin_status",
+   "fieldtype": "Select",
+   "label": "Email confirmation",
+   "options": "\nUnconfirmed\nConfirmed",
+   "read_only": 1,
+   "description": "Empty: not from a signup form. Unconfirmed people are not emailed until they confirm."
+  },
+  {
+   "fieldname": "optin_token",
+   "fieldtype": "Data",
+   "label": "Confirmation key",
+   "hidden": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "signup_form",
+   "fieldtype": "Data",
+   "label": "Signed up through",
+   "read_only": 1
+  },
+  {
+   "fieldname": "signup_at",
+   "fieldtype": "Datetime",
+   "label": "Signed up at",
+   "read_only": 1
+  },
+  {
+   "fieldname": "confirmed_at",
+   "fieldtype": "Datetime",
+   "label": "Confirmed at",
+   "read_only": 1
   }
  ],
  "permissions": [

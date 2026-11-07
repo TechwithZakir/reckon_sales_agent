@@ -134,6 +134,8 @@ for _doctype in _NAMED_BY_FIELD:
 doc_events["Communication"]["after_insert"] = "reckon_sales_agent.campaigns.engine.handle_communication"
 doc_events["Communication"]["on_update"] = "reckon_sales_agent.agents.engagement_agent.handle_communication_status"
 doc_events["CRM Deal"]["after_insert"] = "reckon_sales_agent.campaigns.engine.handle_deal"
+# A deal that changes stage starts the automations that begin on a stage.
+doc_events["CRM Deal"]["on_update"] = "reckon_sales_agent.automation.engine.on_deal_update"
 # Leads synced from Meta lead forms (Frappe CRM Lead Syncing) start the speed-to-lead flow.
 doc_events["CRM Lead"]["after_insert"] = "reckon_sales_agent.leads_bridge.on_crm_lead_insert"
 # Inbound WhatsApp replies (only fires when the frappe_whatsapp app is installed).
@@ -143,7 +145,9 @@ doc_events["WhatsApp Message"] = {"after_insert": "reckon_sales_agent.campaigns.
                                   "on_update": "reckon_sales_agent.campaigns.engine.handle_whatsapp_status"}
 
 # The short link in a campaign message: /l/<code> records the click and redirects.
-website_route_rules = [{"from_route": "/l/<code>", "to_route": "l"}]
+website_route_rules = [{"from_route": "/l/<code>", "to_route": "l"},
+                       # A hosted signup form: /f/<key> sends the visitor to the form page.
+                       {"from_route": "/f/<slug>", "to_route": "f"}]
 
 scheduler_events = {
     "hourly": [
@@ -161,6 +165,7 @@ scheduler_events = {
     ],
     "cron": {
         "*/5 * * * *": ["reckon_sales_agent.agents.chat.remind_waiting"],  # chats waiting too long
+        "1-59/5 * * * *": ["reckon_sales_agent.automation.engine.run_due"],  # automation runs whose wait is over (offset by a minute)
         "*/10 * * * *": ["reckon_sales_agent.campaigns.engine.run_paced_send"],  # approved messages, one at a time
         "0 8 * * *": ["reckon_sales_agent.agents.digest.send_all"],  # the morning digest (server time)
     },

@@ -1,0 +1,175 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Automation",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-11-07 12:00:00.000000",
+ "modified": "2026-11-07 12:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 0,
+ "issingle": 0,
+ "editable_grid": 0,
+ "track_changes": 0,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "field_order": [
+  "company",
+  "automation_name",
+  "status",
+  "trigger_event",
+  "description",
+  "stop_on_reply",
+  "flow",
+  "approval_section",
+  "campaign",
+  "activated_by",
+  "activated_on",
+  "webhook_secret"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "search_index": 1,
+   "remember_last_selected_value": 1
+  },
+  {
+   "fieldname": "automation_name",
+   "fieldtype": "Data",
+   "label": "Name",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nActive\nPaused",
+   "default": "Draft",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "trigger_event",
+   "fieldtype": "Data",
+   "label": "Starts when",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "stop_on_reply",
+   "fieldtype": "Check",
+   "label": "Stop for anyone who replies",
+   "default": "1"
+  },
+  {
+   "fieldname": "flow",
+   "fieldtype": "Long Text",
+   "label": "Flow (JSON)",
+   "description": "Drawn in Automation Studio."
+  },
+  {
+   "fieldname": "approval_section",
+   "fieldtype": "Section Break",
+   "label": "Switched on"
+  },
+  {
+   "fieldname": "campaign",
+   "fieldtype": "Link",
+   "label": "Sending record",
+   "options": "Sales Campaign",
+   "read_only": 1,
+   "description": "The record that keeps this automation's messages, approvals and results together."
+  },
+  {
+   "fieldname": "activated_by",
+   "fieldtype": "Link",
+   "label": "Switched on by",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "activated_on",
+   "fieldtype": "Datetime",
+   "label": "Switched on at",
+   "read_only": 1
+  },
+  {
+   "fieldname": "webhook_secret",
+   "fieldtype": "Password",
+   "label": "Webhook signing secret",
+   "description": "Signs the calls of webhook steps (header X-Reckon-Signature, HMAC-SHA256 of the body)."
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Vendor Superuser",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Admin",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "delete": 1
+  },
+  {
+   "role": "Reckon Sales Agent User",
+   "read": 1,
+   "report": 1,
+   "export": 1
+  }
+ ],
+ "autoname": "format:AUTO-{#####}",
+ "naming_rule": "Expression",
+ "title_field": "automation_name",
+ "show_title_field_in_link": 1
+}

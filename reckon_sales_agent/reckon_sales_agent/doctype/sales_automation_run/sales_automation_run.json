@@ -1,0 +1,194 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Automation Run",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-11-07 12:00:00.000000",
+ "modified": "2026-11-07 12:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 0,
+ "issingle": 0,
+ "editable_grid": 0,
+ "track_changes": 0,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "field_order": [
+  "company",
+  "automation",
+  "prospect",
+  "status",
+  "current_node",
+  "node_entered_on",
+  "wake_at",
+  "waiting_message",
+  "member",
+  "source",
+  "stop_reason",
+  "started_on",
+  "finished_on",
+  "path",
+  "idempotency_key"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "search_index": 1,
+   "remember_last_selected_value": 1
+  },
+  {
+   "fieldname": "automation",
+   "fieldtype": "Link",
+   "label": "Automation",
+   "options": "Sales Automation",
+   "reqd": 1,
+   "in_list_view": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "prospect",
+   "fieldtype": "Link",
+   "label": "Person",
+   "options": "Sales Prospect",
+   "reqd": 1,
+   "in_list_view": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Active\nWaiting\nCompleted\nStopped\nFailed",
+   "default": "Active",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "current_node",
+   "fieldtype": "Data",
+   "label": "Now at"
+  },
+  {
+   "fieldname": "node_entered_on",
+   "fieldtype": "Datetime",
+   "label": "Entered this step"
+  },
+  {
+   "fieldname": "wake_at",
+   "fieldtype": "Datetime",
+   "label": "Next check",
+   "search_index": 1
+  },
+  {
+   "fieldname": "waiting_message",
+   "fieldtype": "Link",
+   "label": "Waiting for message",
+   "options": "Sales Outreach Message"
+  },
+  {
+   "fieldname": "member",
+   "fieldtype": "Link",
+   "label": "Campaign member",
+   "options": "Sales Campaign Member"
+  },
+  {
+   "fieldname": "source",
+   "fieldtype": "Data",
+   "label": "How they entered"
+  },
+  {
+   "fieldname": "stop_reason",
+   "fieldtype": "Data",
+   "label": "Why it ended"
+  },
+  {
+   "fieldname": "started_on",
+   "fieldtype": "Datetime",
+   "label": "Started"
+  },
+  {
+   "fieldname": "finished_on",
+   "fieldtype": "Datetime",
+   "label": "Finished"
+  },
+  {
+   "fieldname": "path",
+   "fieldtype": "Long Text",
+   "label": "Steps taken (JSON)"
+  },
+  {
+   "fieldname": "idempotency_key",
+   "fieldtype": "Data",
+   "label": "Key",
+   "unique": 1,
+   "hidden": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Vendor Superuser",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Admin",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "delete": 1
+  },
+  {
+   "role": "Reckon Sales Agent User",
+   "read": 1,
+   "report": 1,
+   "export": 1
+  }
+ ],
+ "autoname": "format:RUN-{######}",
+ "naming_rule": "Expression",
+ "title_field": "prospect",
+ "show_title_field_in_link": 1
+}

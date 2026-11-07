@@ -1,6 +1,6 @@
 """Audiences: who a campaign goes to (pure: no Frappe imports, so the rules are unit-tested directly).
 
-An audience is one of five kinds. Four are rule-based and re-read the records each time they are used; one is a hand-
+An audience is one of six kinds. Five are rule-based and re-read the records each time they are used; one is a hand-
 picked list:
 
 * Prospects: Sales Prospects the team approved (filter by fit score, city, industry and where they came from).
@@ -8,6 +8,7 @@ picked list:
 * CRM Contacts: contacts in Frappe CRM.
 * Customers: CRM contacts with a won deal.
 * Specific people: a list of named people, each a record from any of the above or just an email and a phone.
+* Segment: a saved segment (campaigns.segments): its rules decide who is in, every time.
 
 Every kind is resolved to the same recipient shape, de-duplicated by email and phone, and then turned into Sales
 Prospects so the campaign engine, consent rules and suppression list apply to all of them in the same way.
@@ -22,7 +23,8 @@ LEADS = "CRM Leads"
 CONTACTS = "CRM Contacts"
 CUSTOMERS = "Customers"
 SPECIFIC = "Specific people"
-AUDIENCE_TYPES = (PROSPECTS, LEADS, CONTACTS, CUSTOMERS, SPECIFIC)
+SEGMENT = "Segment"
+AUDIENCE_TYPES = (PROSPECTS, LEADS, CONTACTS, CUSTOMERS, SPECIFIC, SEGMENT)
 
 # The records a specific person can point at. "CRM Deal" stands for the customer behind a won deal.
 REFERENCE_DOCTYPES = ("Sales Prospect", "CRM Lead", "Contact", "CRM Deal")

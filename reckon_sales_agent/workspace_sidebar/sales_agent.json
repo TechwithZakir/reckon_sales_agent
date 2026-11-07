@@ -107,6 +107,50 @@
   },
   {
    "type": "Link",
+   "label": "Capture Studio",
+   "link_to": "capture-studio",
+   "link_type": "Page",
+   "icon": "users",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Automation Studio",
+   "link_to": "automation-studio",
+   "link_type": "Page",
+   "icon": "workflow",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Signup Forms",
+   "link_to": "Sales Capture Form",
+   "link_type": "DocType",
+   "icon": "edit",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
+   "label": "Segments",
+   "link_to": "Sales Segment",
+   "link_type": "DocType",
+   "icon": "filter",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
    "label": "Audiences",
    "link_to": "Sales Audience",
    "link_type": "DocType",

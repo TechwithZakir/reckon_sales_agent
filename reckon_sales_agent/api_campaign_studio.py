@@ -29,7 +29,7 @@ from reckon_sales_agent.usage import assert_entitled, get_settings, log_activity
 TOP = 10
 AUDIENCE_FIELDS = ("audience_name", "audience_type", "description", "status_filter", "source_filter", "owner_filter",
                    "city_filter", "industry_filter", "minimum_fit_score", "require_email", "require_phone",
-                   "sms_opt_in", "whatsapp_opt_in", "opt_in_source")
+                   "sms_opt_in", "whatsapp_opt_in", "opt_in_source", "segment")
 MEMBER_FIELDS = ("reference_doctype", "reference_name", "person_name", "email", "phone")
 
 
@@ -99,7 +99,9 @@ def campaigns() -> list[dict]:
     fields = ["name", "campaign_name", "status", "audience", "language", "member_count", "sent_count", "open_count",
               "click_count", "reply_count", "positive_reply_count", "bounce_count", "unsubscribe_count", "meeting_count",
               "converted_count", "content_status", "start_date", "modified"]
-    rows = frappe.get_all("Sales Campaign", filters={"company": company}, fields=fields, order_by="modified desc", limit=200)
+    # An automation's own sending record is shown in Automation Studio, not in this list.
+    rows = frappe.get_all("Sales Campaign", filters={"company": company, "automation": ["is", "not set"]}, fields=fields,
+                          order_by="modified desc", limit=200)
     channels: dict[str, set] = {}
     if rows:
         for step in frappe.get_all("Sales Campaign Step", filters={"parenttype": "Sales Campaign",
@@ -235,7 +237,7 @@ def audiences() -> list[dict]:
     assert_entitled(company)
     rows = frappe.get_all("Sales Audience", filters={"company": company},
                           fields=["name", "audience_name", "audience_type", "description", "size", "size_email",
-                                  "size_phone", "last_refreshed", "sms_opt_in", "whatsapp_opt_in"],
+                                  "size_phone", "last_refreshed", "sms_opt_in", "whatsapp_opt_in", "segment"],
                           order_by="modified desc", limit=200)
     used = {r.audience: r.n for r in frappe.db.sql(
         "select audience, count(*) as n from `tabSales Campaign` where company = %s and ifnull(audience, '') != '' "

@@ -51,8 +51,9 @@ class AudienceTests(unittest.TestCase):
         self.assertEqual(audience.split_list("New, Contacted\nNew ,, Qualified"), ["New", "Contacted", "Qualified"])
         self.assertEqual(audience.split_list(None), [])
 
-    def test_five_kinds_of_audience(self):
-        self.assertEqual(audience.AUDIENCE_TYPES, ("Prospects", "CRM Leads", "CRM Contacts", "Customers", "Specific people"))
+    def test_six_kinds_of_audience(self):
+        self.assertEqual(audience.AUDIENCE_TYPES, ("Prospects", "CRM Leads", "CRM Contacts", "Customers", "Specific people",
+                                                   "Segment"))
 
 
 class TrackingTests(unittest.TestCase):

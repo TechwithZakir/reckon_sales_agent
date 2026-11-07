@@ -1,0 +1,286 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Capture Form",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-11-07 12:00:00.000000",
+ "modified": "2026-11-07 12:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 0,
+ "issingle": 0,
+ "editable_grid": 0,
+ "track_changes": 0,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "field_order": [
+  "company",
+  "form_name",
+  "slug",
+  "status",
+  "form_type",
+  "content_section",
+  "headline",
+  "description",
+  "button_label",
+  "fields_json",
+  "consent_text",
+  "require_consent",
+  "ask_sms",
+  "ask_whatsapp",
+  "after_section",
+  "double_opt_in",
+  "tags",
+  "thank_you_message",
+  "redirect_url",
+  "look_section",
+  "accent_color",
+  "allowed_origins",
+  "popup_trigger",
+  "popup_delay",
+  "stats_section",
+  "submissions",
+  "confirmed_count",
+  "last_submission"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "search_index": 1,
+   "remember_last_selected_value": 1
+  },
+  {
+   "fieldname": "form_name",
+   "fieldtype": "Data",
+   "label": "Form name",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "slug",
+   "fieldtype": "Data",
+   "label": "Public key",
+   "read_only": 1,
+   "unique": 1,
+   "in_list_view": 1,
+   "description": "Part of the public address of this form. It is made for you and never changes."
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nPublished",
+   "default": "Draft",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "form_type",
+   "fieldtype": "Select",
+   "label": "Shown as",
+   "options": "Embedded\nPopup\nHosted page",
+   "default": "Hosted page",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "content_section",
+   "fieldtype": "Section Break",
+   "label": "What visitors see"
+  },
+  {
+   "fieldname": "headline",
+   "fieldtype": "Data",
+   "label": "Headline",
+   "default": "Stay in the loop"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Short text under the headline"
+  },
+  {
+   "fieldname": "button_label",
+   "fieldtype": "Data",
+   "label": "Button",
+   "default": "Subscribe"
+  },
+  {
+   "fieldname": "fields_json",
+   "fieldtype": "Long Text",
+   "label": "Fields (JSON)",
+   "description": "Edited in Capture Studio."
+  },
+  {
+   "fieldname": "consent_text",
+   "fieldtype": "Small Text",
+   "label": "Agreement text",
+   "default": "Yes, send me emails. I can unsubscribe at any time."
+  },
+  {
+   "fieldname": "require_consent",
+   "fieldtype": "Check",
+   "label": "Visitors must tick the agreement",
+   "default": "1"
+  },
+  {
+   "fieldname": "ask_sms",
+   "fieldtype": "Check",
+   "label": "Offer an SMS opt-in"
+  },
+  {
+   "fieldname": "ask_whatsapp",
+   "fieldtype": "Check",
+   "label": "Offer a WhatsApp opt-in"
+  },
+  {
+   "fieldname": "after_section",
+   "fieldtype": "Section Break",
+   "label": "After they sign up"
+  },
+  {
+   "fieldname": "double_opt_in",
+   "fieldtype": "Check",
+   "label": "Ask them to confirm by email",
+   "default": "1",
+   "description": "They are only emailed after they click the link in the confirmation email."
+  },
+  {
+   "fieldname": "tags",
+   "fieldtype": "Small Text",
+   "label": "Tags to add",
+   "description": "Comma separated, e.g. newsletter, website."
+  },
+  {
+   "fieldname": "thank_you_message",
+   "fieldtype": "Small Text",
+   "label": "Thank-you message",
+   "default": "Thank you! Please check your email to confirm."
+  },
+  {
+   "fieldname": "redirect_url",
+   "fieldtype": "Data",
+   "label": "Go to this address instead (https)"
+  },
+  {
+   "fieldname": "look_section",
+   "fieldtype": "Section Break",
+   "label": "Look and placement"
+  },
+  {
+   "fieldname": "accent_color",
+   "fieldtype": "Data",
+   "label": "Accent colour",
+   "default": "#4f46e5"
+  },
+  {
+   "fieldname": "allowed_origins",
+   "fieldtype": "Small Text",
+   "label": "Websites that may show this form",
+   "description": "One address per line, e.g. https://www.example.com. Empty means any website."
+  },
+  {
+   "fieldname": "popup_trigger",
+   "fieldtype": "Select",
+   "label": "Popup opens",
+   "options": "Delay\nScroll\nExit intent",
+   "default": "Delay"
+  },
+  {
+   "fieldname": "popup_delay",
+   "fieldtype": "Int",
+   "label": "Popup delay (seconds)",
+   "default": "8"
+  },
+  {
+   "fieldname": "stats_section",
+   "fieldtype": "Section Break",
+   "label": "Results"
+  },
+  {
+   "fieldname": "submissions",
+   "fieldtype": "Int",
+   "label": "Signups",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "confirmed_count",
+   "fieldtype": "Int",
+   "label": "Confirmed",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "last_submission",
+   "fieldtype": "Datetime",
+   "label": "Last signup",
+   "read_only": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Vendor Superuser",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Admin",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "delete": 1
+  },
+  {
+   "role": "Reckon Sales Agent User",
+   "read": 1,
+   "report": 1,
+   "export": 1
+  }
+ ],
+ "autoname": "format:FORM-{#####}",
+ "naming_rule": "Expression",
+ "title_field": "form_name",
+ "show_title_field_in_link": 1
+}

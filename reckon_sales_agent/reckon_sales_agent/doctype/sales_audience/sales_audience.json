@@ -19,6 +19,7 @@
   "company",
   "audience_name",
   "audience_type",
+  "segment",
   "description",
   "filters_section",
   "status_filter",
@@ -64,12 +65,20 @@
    "fieldname": "audience_type",
    "fieldtype": "Select",
    "label": "Who is in it",
-   "options": "Prospects\nCRM Leads\nCRM Contacts\nCustomers\nSpecific people",
+   "options": "Prospects\nCRM Leads\nCRM Contacts\nCustomers\nSpecific people\nSegment",
    "default": "Prospects",
    "reqd": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "description": "Prospects: approved Sales Prospects. CRM Leads and Contacts: records in Frappe CRM. Customers: contacts with a won deal. Specific people: a list you pick."
+   "description": "Prospects: approved Sales Prospects. CRM Leads and Contacts: records in Frappe CRM. Customers: contacts with a won deal. Specific people: a list you pick. Segment: a saved segment's rules, checked every time."
+  },
+  {
+   "fieldname": "segment",
+   "fieldtype": "Link",
+   "label": "Segment",
+   "options": "Sales Segment",
+   "depends_on": "eval:doc.audience_type=='Segment'",
+   "mandatory_depends_on": "eval:doc.audience_type=='Segment'"
   },
   {
    "fieldname": "description",

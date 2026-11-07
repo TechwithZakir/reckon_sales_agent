@@ -520,6 +520,12 @@ def _instrument(message, settings) -> None:
 def _advance(campaign, member) -> None:
     if member.status != "Active":
         return  # answers to replies do not move a stopped sequence
+    if campaign.get("automation"):
+        from reckon_sales_agent.automation.engine import message_sent
+
+        message_sent(member)  # the automation's own run decides what comes next
+        _refresh_metrics(campaign.name)
+        return
     steps = sorted(campaign.steps, key=lambda s: s.step_no)
     position = (member.sequence_position or 0) + 1
     if position >= len(steps):
@@ -685,7 +691,7 @@ def receive_reply(message_name: str, text: str, source_key: str, channel: str) -
     member = frappe.get_doc("Sales Campaign Member", message.member)
     rule_class = classify_rules(text)
     action = actions_for(rule_class)
-    if action["stop"]:
+    if action["stop"] and _stops_on_reply(member):
         member.db_set({"status": "Stopped", "stop_reason": "replied", "last_event": "replied",
                        "reply_classification": rule_class, "next_action_on": None})
         _cancel_pending(member.name, "Recipient replied.")
@@ -741,7 +747,7 @@ def classify_and_follow_up(message_name: str, text: str, source_key: str, rule_c
     if action["suppress"]:
         _suppress_member(message.company, member, message.get("channel") or "Email", f"reply {source_key}",
                          "Complaint" if final == "complaint" else "Unsubscribed")
-    if action["stop"] and member.status == "Active":
+    if action["stop"] and member.status == "Active" and _stops_on_reply(member):
         member.db_set({"status": "Stopped", "stop_reason": "replied", "next_action_on": None})
         _cancel_pending(member.name, "Recipient replied.")
     record_event(message, action["event"], f"{action['event']}:{source_key}", detail=summary or final)
@@ -783,8 +789,20 @@ def classify_and_follow_up(message_name: str, text: str, source_key: str, rule_c
 
         start_meeting(message.prospect, f"replied: {final.replace('_', ' ')}")  # slots, invitation drafted
     _refresh_metrics(message.campaign)
+    try:
+        from reckon_sales_agent.automation.engine import fire
+
+        fire(message.company, "reply_received", message.prospect, source="reply")
+    except Exception:
+        frappe.log_error(title="Sales Agent automation trigger failed", message=f"reply for {message.prospect}")
     log_activity(message.company, f"reply_{final}", member, summary, "agent" if ai_class else "provider")
     frappe.db.commit()
+
+
+def _stops_on_reply(member) -> bool:
+    """A reply stops a campaign's sequence. An automation can choose to carry on (it may branch on the reply instead)."""
+    automation = frappe.db.get_value("Sales Campaign", member.campaign, "automation")
+    return True if not automation else bool(frappe.db.get_value("Sales Automation", automation, "stop_on_reply"))
 
 
 def _suppress_member(company: str, member, channel: str, source: str, reason: str = "Unsubscribed") -> None:
@@ -897,8 +915,8 @@ def run_campaign_tick() -> None:
         campaign = frappe.get_doc("Sales Campaign", name)
         try:
             assert_entitled(campaign.company)
-            if get_settings(campaign.company).kill_switch:
-                continue
+            if get_settings(campaign.company).kill_switch or campaign.get("automation"):
+                continue  # an automation's messages are drafted by its own runs
             draft_due_messages(campaign)
             frappe.db.commit()
         except NotEntitled:

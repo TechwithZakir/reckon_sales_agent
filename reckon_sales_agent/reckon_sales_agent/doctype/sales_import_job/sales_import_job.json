@@ -1,0 +1,235 @@
+{
+ "doctype": "DocType",
+ "name": "Sales Import Job",
+ "module": "Reckon Sales Agent",
+ "owner": "Administrator",
+ "creation": "2026-11-07 12:00:00.000000",
+ "modified": "2026-11-07 12:00:00.000000",
+ "modified_by": "Administrator",
+ "custom": 0,
+ "engine": "InnoDB",
+ "istable": 0,
+ "issingle": 0,
+ "editable_grid": 0,
+ "track_changes": 0,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "field_order": [
+  "company",
+  "label",
+  "status",
+  "file_name",
+  "tags",
+  "source_label",
+  "consent_statement",
+  "results_section",
+  "total",
+  "processed",
+  "created",
+  "updated",
+  "skipped",
+  "repeats",
+  "suppressed",
+  "problems",
+  "started_by",
+  "started_on",
+  "finished_on",
+  "payload",
+  "mapping"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "search_index": 1,
+   "remember_last_selected_value": 1
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "label": "Name",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Queued\nRunning\nDone\nFailed",
+   "default": "Queued",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "file_name",
+   "fieldtype": "Data",
+   "label": "File"
+  },
+  {
+   "fieldname": "tags",
+   "fieldtype": "Small Text",
+   "label": "Tags added"
+  },
+  {
+   "fieldname": "source_label",
+   "fieldtype": "Data",
+   "label": "Where these people came from"
+  },
+  {
+   "fieldname": "consent_statement",
+   "fieldtype": "Small Text",
+   "label": "Agreement on record",
+   "description": "What the person who imported them stated about how they agreed to hear from you."
+  },
+  {
+   "fieldname": "results_section",
+   "fieldtype": "Section Break",
+   "label": "Results"
+  },
+  {
+   "fieldname": "total",
+   "fieldtype": "Int",
+   "label": "Rows",
+   "read_only": 1
+  },
+  {
+   "fieldname": "processed",
+   "fieldtype": "Int",
+   "label": "Rows read",
+   "read_only": 1
+  },
+  {
+   "fieldname": "created",
+   "fieldtype": "Int",
+   "label": "New people",
+   "read_only": 1
+  },
+  {
+   "fieldname": "updated",
+   "fieldtype": "Int",
+   "label": "Already known",
+   "read_only": 1
+  },
+  {
+   "fieldname": "skipped",
+   "fieldtype": "Int",
+   "label": "Skipped",
+   "read_only": 1
+  },
+  {
+   "fieldname": "repeats",
+   "fieldtype": "Int",
+   "label": "Repeats in the file",
+   "read_only": 1
+  },
+  {
+   "fieldname": "suppressed",
+   "fieldtype": "Int",
+   "label": "Left out (opted out before)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "problems",
+   "fieldtype": "Long Text",
+   "label": "Skipped rows (JSON)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "started_by",
+   "fieldtype": "Link",
+   "label": "Imported by",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "started_on",
+   "fieldtype": "Datetime",
+   "label": "Started",
+   "read_only": 1
+  },
+  {
+   "fieldname": "finished_on",
+   "fieldtype": "Datetime",
+   "label": "Finished",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payload",
+   "fieldtype": "Long Text",
+   "label": "File content",
+   "hidden": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "mapping",
+   "fieldtype": "Small Text",
+   "label": "Column mapping (JSON)",
+   "hidden": 1,
+   "read_only": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Vendor Superuser",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Admin",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Reckon Sales Agent Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "delete": 1
+  },
+  {
+   "role": "Reckon Sales Agent User",
+   "read": 1,
+   "report": 1,
+   "export": 1
+  }
+ ],
+ "autoname": "format:IMP-{#####}",
+ "naming_rule": "Expression",
+ "title_field": "label",
+ "show_title_field_in_link": 1
+}
