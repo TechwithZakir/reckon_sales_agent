@@ -63,6 +63,22 @@ def config(slug: str | None = None) -> dict:
     return capture_service.public_config(form)
 
 
+def _posted() -> dict:
+    """What the visitor sent. Frappe hands a function only the arguments in its signature, so the rest is read from the request
+    body itself (live test: reading ``form_dict`` alone saw nothing but the key)."""
+    data: dict = {}
+    request = getattr(frappe, "request", None)
+    if request is not None:
+        try:
+            data.update({k: v for k, v in request.form.items() if isinstance(v, str)})
+        except Exception:
+            pass
+    for key, value in frappe.form_dict.items():
+        if isinstance(value, (str, int, float)):
+            data.setdefault(key, value)
+    return data
+
+
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 def submit(slug: str | None = None) -> dict:
     """A visitor's signup. The form's key says which Company it is; everything else is untrusted."""
@@ -72,7 +88,7 @@ def submit(slug: str | None = None) -> dict:
         return {"ok": False, "errors": {"form": _("This form is not available.")}}
     _cors(form)
     frappe.set_user("Administrator")  # the visitor is nobody; the Company is decided by the form, never by the visitor
-    data = {k: v for k, v in frappe.form_dict.items() if isinstance(v, (str, int, float))}
+    data = _posted()
     ip = str(getattr(frappe.local, "request_ip", "") or "")[:64]
     try:
         result = capture_service.submit(slug, data, ip)

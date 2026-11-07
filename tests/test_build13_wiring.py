@@ -129,6 +129,14 @@ class GuestEndpointTests(unittest.TestCase):
         self.assertLess(confirm.index('frappe.request.method == "POST"'), confirm.index("capture_service.confirm(token)"))
         self.assertIn('method="post"', confirm)
 
+    def test_a_signup_is_read_from_the_request_body(self):
+        """Live test: every signup was refused, because form_dict held nothing but the key."""
+        source = read("api_capture.py")
+        submit = source.split("def submit(")[1].split("def _page(")[0]
+        self.assertIn("data = _posted()", submit)
+        posted = source.split("def _posted(")[1].split("@frappe.whitelist")[0]
+        self.assertIn("request.form.items()", posted)
+
     def test_the_company_is_decided_by_the_form_never_by_the_visitor(self):
         source = read("campaigns", "capture_service.py")
         self.assertNotIn('data.get("company")', source)
