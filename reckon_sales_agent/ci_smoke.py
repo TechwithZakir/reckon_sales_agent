@@ -133,6 +133,8 @@ def run() -> None:
         from reckon_sales_agent.campaigns.tag_service import add_tags
         from reckon_sales_agent.providers.channels import reachability
 
+        frappe.set_user("Administrator")
+        frappe.form_dict["company"] = company  # the earlier check switched users, which clears the acting Company
         frappe.db.set_single_value("Sales Agent Platform Settings", "internal_companies", company)
         frappe.clear_document_cache("Sales Agent Platform Settings", "Sales Agent Platform Settings")
         tag = "ci" + frappe.generate_hash(length=5).lower()
