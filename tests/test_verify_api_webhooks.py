@@ -263,5 +263,17 @@ class DeveloperPageTests(unittest.TestCase):
         self.assertIn('f: "verify_provider"', script)
 
 
+class LiveFindingTests(unittest.TestCase):
+    def test_the_events_call_filters_before_it_limits(self):
+        """Live test: events(type='opened', limit=5) took the five oldest events, then filtered them, and returned nothing."""
+        body = read("api_public.py").split("def events(")[1].split("@frappe.whitelist")[0]
+        self.assertLess(body.index("if type:"), body.index("rows = rows[-wanted:]"))
+        self.assertIn("limit=50000", body)
+
+    def test_the_clean_list_does_not_claim_a_percentage_before_anything_is_checked(self):
+        script = read("reckon_sales_agent", "page", "capture_studio", "capture_studio.js")
+        self.assertIn("No address has been checked yet", script)
+
+
 if __name__ == "__main__":
     unittest.main()

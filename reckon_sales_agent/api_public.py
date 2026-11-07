@@ -162,9 +162,11 @@ def automations() -> list[dict]:
 def events(since: str = "", type: str = "", limit: int = 200) -> list[dict]:  # noqa: A002 - "type" is the public parameter name
     """What happened to messages (sent, opened, clicked, replied, bounced, unsubscribed ...), oldest first."""
     company = _company()
-    rows = people.events(company, since=since or None, limit=max(1, min(int(limit or 200), MAX_LIST)))
-    if type:
+    wanted = max(1, min(int(limit or 200), MAX_LIST))
+    rows = people.events(company, since=since or None, limit=50000)
+    if type:  # filter first, then keep the latest ones (live test: limiting first returned nothing for a rare type)
         rows = [r for r in rows if r["event_type"] == type]
+    rows = rows[-wanted:]
     return [{"event": r["event_type"], "at": r["event_time"], "person": r.get("prospect"), "campaign": r.get("campaign"),
              "message": r.get("message"), "channel": r.get("channel")} for r in rows]
 
