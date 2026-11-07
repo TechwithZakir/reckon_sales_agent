@@ -120,6 +120,10 @@ def enroll_many(auto, prospects: list[str], source: str = "manual") -> dict:
 
 def _finish(run, status: str, reason: str) -> None:
     run.db_set({"status": status, "stop_reason": reason[:140], "finished_on": now_datetime(), "wake_at": None, "waiting_message": None})
+    if status == "Completed":
+        from reckon_sales_agent.campaigns.webhook_service import emit_person
+
+        emit_person(run.company, "automation_completed", run.prospect, automation=run.automation, reason=reason[:140])
     if run.get("member"):
         member = frappe.db.get_value("Sales Campaign Member", run.member, ["status", "campaign"], as_dict=True)
         if member and member.status == "Active":

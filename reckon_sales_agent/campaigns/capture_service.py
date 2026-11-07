@@ -80,6 +80,9 @@ def submit(slug: str, data: dict, ip: str = "") -> dict:
         consent_source=capture.consent_source(form.form_name, form.slug, nowdate()))
     if outcome in ("suppressed", "do_not_contact") or not prospect:
         return ok  # opted out before: the same answer, so a form cannot be used to find out who opted out
+    from reckon_sales_agent.campaigns.verify_service import check_later
+
+    check_later(prospect)
     frappe.db.set_value("Sales Capture Form", form.name, {"submissions": (form.submissions or 0) + 1,
                                                           "last_submission": now_datetime()}, update_modified=False)
     state = frappe.db.get_value("Sales Prospect", prospect, ["optin_status", "optin_token"], as_dict=True)
@@ -89,6 +92,9 @@ def submit(slug: str, data: dict, ip: str = "") -> dict:
         _signed_up(form.company, prospect, form.slug)
     for tag in tag_rules.normalize(form.tags):
         _tag_event(form.company, prospect, tag, form.slug)
+    from reckon_sales_agent.campaigns.webhook_service import emit_person
+
+    emit_person(form.company, "signup", prospect, form=form.slug)
     return ok
 
 
@@ -149,4 +155,7 @@ def confirm(token: str) -> dict | None:
         frappe.db.set_value("Sales Capture Form", form.name, "confirmed_count", (form.confirmed_count or 0) + 1, update_modified=False)
     if row.optin_status == "Unconfirmed":
         _signed_up(row.company, row.name, row.signup_form or "")
+        from reckon_sales_agent.campaigns.webhook_service import emit_person
+
+        emit_person(row.company, "confirmed", row.name, form=row.signup_form or "")
     return {"form": row.signup_form, "company": row.company}

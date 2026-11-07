@@ -421,6 +421,13 @@ function social(d, platforms, onText) {
 			}).join("")}${this.data.can_manage ? `<div class="sch-actions"><button class="btn btn-primary btn-sm sch-save" data-scope="${scope}">${__("Save")}</button></div>` : ""}</div>`;
 		}
 
+		verify_section() {
+			return this.section(__("Address checking"), this.fields([
+				{ f: "verify_provider", type: "select", label: __("Check addresses with"), options: ["Built-in only", "ZeroBounce"], help: __("Built-in: the address's form, a rule list and a DNS lookup. ZeroBounce also checks the mailbox itself (billed by ZeroBounce).") },
+				{ f: "zerobounce_api_key", type: "secret", label: __("ZeroBounce API key") }]))
+				+ `<div class="sch-note small">${__("Results are in Capture Studio → Clean list. An invalid address is never emailed by a campaign.")}</div>`;
+		}
+
 		pace_section() {
 			return this.section(__("Sending pace"), this.fields([
 				{ f: "send_gap_seconds", type: "number", label: __("Seconds between messages"), help: __("Email, SMS and WhatsApp go out one at a time, not in a burst. 0 turns the gap off.") },
@@ -722,7 +729,7 @@ function social(d, platforms, onText) {
 					+ (d.values.email_provider === "Brevo" ? this.section(__("Brevo"), this.fields([
 							{ f: "brevo_api_key", type: "secret", label: __("API key") },
 							{ f: "brevo_sender_email", label: __("Sender email (verified in Brevo)") }])) : "")
-						+ this.pace_section()
+						+ this.pace_section() + this.verify_section()
 						+ `<div class="sch-health"><button class="btn btn-default btn-sm sch-health-btn">${__("Check email health (SPF, DKIM, DMARC)")}</button>
 						<div class="sch-health-out"></div></div>`;
 			case "brevo":

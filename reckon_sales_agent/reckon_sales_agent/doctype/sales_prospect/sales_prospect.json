@@ -100,7 +100,10 @@
   "optin_token",
   "signup_form",
   "signup_at",
-  "confirmed_at"
+  "confirmed_at",
+  "email_status",
+  "email_check_note",
+  "email_checked_at"
  ],
  "fields": [
   {
@@ -623,6 +626,26 @@
    "fieldname": "confirmed_at",
    "fieldtype": "Datetime",
    "label": "Confirmed at",
+   "read_only": 1
+  },
+  {
+   "fieldname": "email_status",
+   "fieldtype": "Select",
+   "label": "Email check",
+   "options": "\nValid\nRisky\nInvalid",
+   "read_only": 1,
+   "description": "Valid or Risky addresses can be emailed. An Invalid address is never emailed by a campaign."
+  },
+  {
+   "fieldname": "email_check_note",
+   "fieldtype": "Data",
+   "label": "Email check note",
+   "read_only": 1
+  },
+  {
+   "fieldname": "email_checked_at",
+   "fieldtype": "Datetime",
+   "label": "Email checked at",
    "read_only": 1
   }
  ],

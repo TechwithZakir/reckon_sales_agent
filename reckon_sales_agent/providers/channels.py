@@ -44,6 +44,8 @@ def reachability(channel: str, prospect, settings) -> tuple[bool, str, str | Non
     if channel == "Email":
         if not prospect.email:
             return False, "No email.", None
+        if prospect.get("email_status") == "Invalid":
+            return False, f"The email address failed the check ({prospect.get('email_check_note') or 'invalid'}).", None
         if prospect.get("optin_status") == "Unconfirmed":
             return False, "The email address is not confirmed yet.", None  # double opt-in: nothing until they confirm
         return True, "Public business email.", prospect.email

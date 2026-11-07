@@ -415,7 +415,7 @@ EDITABLE = {
     "whatsapp_provider": "text", "whatchimp_api_token": "secret", "whatchimp_phone_number_id": "text",
     # Sending pace and the Company's own Brevo plan: whole numbers, 0 turns the control off.
     "send_gap_seconds": "number", "send_gap_jitter": "number", "hourly_message_limit": "number",
-    "brevo_daily_cap": "number",
+    "brevo_daily_cap": "number", "verify_provider": "text", "zerobounce_api_key": "secret",
 }
 
 

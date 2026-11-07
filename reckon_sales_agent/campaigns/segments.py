@@ -34,6 +34,7 @@ CONDITIONS: dict[str, tuple[str, str, dict, tuple]] = {
     "whatsapp_consent": ("Agreed to WhatsApp", "flag", {"yes": "yes", "no": "no"}, ()),
     "confirmed": ("Email confirmed", "flag", {"yes": "yes", "no": "no"}, ()),
     "temperature": ("Engagement", "choice", {"is": "is"}, ("Hot", "Warm", "Cold")),
+    "email_check": ("Email address check", "choice", {"is": "is"}, ("Valid", "Risky", "Invalid", "Unchecked")),
 }
 EVENT_KEYS = {"opened": "last_opened_days", "clicked": "last_clicked_days", "replied": "last_replied_days",
               "sent": "last_sent_days"}
@@ -134,6 +135,8 @@ def condition_matches(person: dict, condition: dict) -> bool:
         return score >= float(value) if op == "at_least" else score <= float(value)
     if field == "temperature":
         return str(person.get("temperature") or "Cold") == value
+    if field == "email_check":
+        return (str(person.get("email_status") or "") or "Unchecked") == value
     flag = {"has_email": _flag(person, "email"), "has_phone": _flag(person, "phone"),
             "sms_consent": _flag(person, "sms_consent"), "whatsapp_consent": _flag(person, "whatsapp_consent"),
             "confirmed": person.get("confirmed", True) is not False}.get(field)

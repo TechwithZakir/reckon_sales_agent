@@ -208,6 +208,79 @@ def run() -> None:
         assert api_automation.runs(flow_doc.name)
 
     check("Capture, segments, import and automations", capture_segments_automation)
+
+    def verify_api_webhooks_mcp():
+        # Address checking, the public API, outgoing webhooks and the MCP endpoint, on real tables.
+        from reckon_sales_agent import api_developer, api_mcp, api_public, api_verify
+        from reckon_sales_agent.campaigns import verify_service, webhook_service
+        from reckon_sales_agent.providers.channels import reachability
+
+        frappe.set_user("Administrator")
+        frappe.form_dict["company"] = company
+        frappe.db.set_single_value("Sales Agent Platform Settings", "internal_companies", company)
+        frappe.clear_document_cache("Sales Agent Platform Settings", "Sales Agent Platform Settings")
+
+        assert api_public.ping()["ok"]
+        suffix = frappe.generate_hash(length=6).lower()
+        email = f"ci-api-{suffix}@example.com"
+        try:
+            api_public.person_upsert(email=email)
+        except frappe.ValidationError:
+            pass
+        else:
+            raise AssertionError("a person was added without a statement of consent")
+        saved = api_public.person_upsert(email=email, name="CI Api", tags="ci-api", consent_statement="CI test person who agreed to be added")
+        assert saved["saved"] and saved["person"]["tags"] == ["ci-api"], saved
+        assert api_public.person(email=email)["id"] == saved["person"]["id"]
+        assert api_public.person_tags(email=email, add="second", remove="ci-api")["tags"] == ["second"]
+        assert any(r["id"] for r in api_public.segments()) or api_public.segments() == []
+        assert isinstance(api_public.forms(), list) and isinstance(api_public.automations(), list) and isinstance(api_public.events(), list)
+
+        # an address on a reserved test domain fails the built-in check and is not emailed
+        assert verify_service.check_prospect(saved["person"]["id"]) == "Invalid"
+        person = frappe.get_doc("Sales Prospect", saved["person"]["id"])
+        assert person.email_status == "Invalid" and person.email_check_note, (person.email_status, person.email_check_note)
+        assert not reachability("Email", person, get_settings(company))[0], "an invalid address must not be emailed"
+        assert api_verify.summary()["counts"]["Invalid"] >= 1
+        assert api_verify.check_one("x@example.com")["status"] == "Invalid"
+        assert api_public.check_email("info@mailinator.com")["status"] in ("Risky", "")
+
+        # unsubscribing stops everything for good
+        assert api_public.person_unsubscribe(email=email)["unsubscribed"]
+        assert frappe.db.get_value("Sales Prospect", person.name, "do_not_contact") == 1
+        assert not api_public.person_upsert(email=email, consent_statement="CI test person who agreed again")["saved"]
+
+        # a webhook subscription: created with a secret shown once, queued for an event, never read back
+        made = api_developer.save_webhook({"description": "CI hook", "url": "https://hooks.example.com/in", "events": ["signup", "opened"]})
+        assert made["secret"] and len(made["secret"]) == 48, made
+        assert not frappe.db.get_value("Sales Webhook Subscription", made["name"], "failures")
+        try:
+            api_developer.save_webhook({"description": "bad", "url": "http://insecure.example.com/in", "events": ["signup"]})
+        except frappe.ValidationError:
+            pass
+        else:
+            raise AssertionError("an http webhook address was accepted")
+        webhook_service.forget(company)
+        assert webhook_service.emit(company, "signup", {"person": {"id": "x"}}) == 1
+        assert webhook_service.emit(company, "tag_added", {}) == 0, "a webhook that did not ask for the event was called"
+        assert api_developer.webhooks()[0]["events"] == ["signup", "opened"]
+        assert api_developer.overview()["calls"]
+        api_developer.delete_webhook(made["name"])
+
+        # the MCP endpoint speaks JSON-RPC, lists safe tools and runs one
+        init = api_mcp.handle({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}})
+        assert init["result"]["serverInfo"]["name"] == "reckon-sales-agent", init
+        names = {t["name"] for t in api_mcp.handle({"jsonrpc": "2.0", "id": 2, "method": "tools/list"})["result"]["tools"]}
+        assert {"list_segments", "preview_segment", "find_person", "check_email"} <= names, names
+        assert not any(("send" in n or "approve" in n or "delete" in n) for n in names), names
+        assert api_mcp.handle({"jsonrpc": "2.0", "method": "notifications/initialized"}) is None
+        called = api_mcp.handle({"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "list_hygiene", "arguments": {}}})
+        assert called["result"]["isError"] is False, called
+        unknown = api_mcp.handle({"jsonrpc": "2.0", "id": 4, "method": "tools/call", "params": {"name": "send_everything"}})
+        assert unknown["result"]["isError"] is True
+        assert api_mcp.handle({"jsonrpc": "2.0", "id": 5, "method": "nope"})["error"]["code"] == -32601
+
+    check("Address checks, API, webhooks and MCP", verify_api_webhooks_mcp)
     frappe.db.rollback()  # leave the CI site as it was (the Company stays for the next run)
     if failures:
         raise AssertionError("Smoke test failed:\n" + "\n".join(failures))

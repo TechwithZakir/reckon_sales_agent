@@ -11,12 +11,14 @@
 
 	const F = "reckon_sales_agent.api_capture.";
 	const S = "reckon_sales_agent.api_segments.";
+	const V = "reckon_sales_agent.api_verify.";
+	const D = "reckon_sales_agent.api_developer.";
 	const e = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
 	const num = (v) => Number(v || 0).toLocaleString();
 	const MANAGER_ROLES = ["Reckon Sales Agent Admin", "Reckon Sales Agent Manager", "Reckon Vendor Superuser", "System Manager"];
 	// The server decides who may change anything; this only hides buttons that would be refused.
 	const can_manage = () => frappe.session.user === "Administrator" || MANAGER_ROLES.some((role) => frappe.user.has_role(role));
-	const TABS = [["forms", __("Forms")], ["segments", __("Segments")], ["import", __("Import")]];
+	const TABS = [["forms", __("Forms")], ["segments", __("Segments")], ["import", __("Import")], ["clean", __("Clean list")], ["developers", __("Developers")]];
 	const store = {
 		get(key, fallback) { try { return localStorage.getItem(key) || fallback; } catch (err) { return fallback; } },
 		set(key, value) { try { localStorage.setItem(key, value); } catch (err) { /* private window */ } },
@@ -222,6 +224,78 @@
 			$b.find(".cap-del").on("click", () => frappe.confirm(__("Delete this segment?"), () => frappe.xcall(S + "delete_segment", { name }).then(() => this.open("segments"))));
 			$b.find(".cap-tag").on("click", () => frappe.prompt([{ fieldname: "tags", fieldtype: "Data", label: __("Tags to add (comma separated)"), reqd: 1 }], (v) =>
 				frappe.xcall(S + "tag_segment", { name, tags: v.tags }).then((r) => frappe.show_alert({ message: __("{0} of {1} people tagged", [r.changed, r.people]), indicator: "green" })), __("Tag everyone in this segment")));
+		}
+
+		// Clean list ----------------------------------------------------------
+
+		tab_clean() {
+			return frappe.xcall(V + "summary").then((d) => {
+				const c = d.counts, pc = d.percent || {};
+				const colors = { Valid: "#0ca30c", Risky: "#d97706", Invalid: "#d03b3b", Unchecked: "#94a3b8" };
+				const bar = ["Valid", "Risky", "Invalid", "Unchecked"].map((k) => `<i style="display:block;height:100%;width:${pc[k] || 0}%;background:${colors[k]}" title="${k}: ${pc[k] || 0}%"></i>`).join("");
+				const tiles = ["Valid", "Risky", "Invalid", "Unchecked"].map((k) => `<div class="cap-card" style="margin:0"><b style="font-size:22px;color:${colors[k]}">${num(c[k])}</b><div class="cap-muted">${k === "Unchecked" ? __("not checked yet") : __(k.toLowerCase())}</div></div>`).join("");
+				const list = (rows, title) => rows.length ? `<div class="cap-card"><h3>${title}</h3><table class="cap-table">${rows.map((r) => `<tr><td>${e(r.email)}<div class="cap-muted">${e(r.person || "")}</div></td><td class="cap-muted">${e(r.note)}</td></tr>`).join("")}</table></div>` : "";
+				this.$body.html(`<div class="cap-bar"><span class="cap-muted">${__("Every address is checked before it is emailed: its form, a rule list (disposable, shared mailbox, typo) and whether its domain has a mail server. An invalid address is never emailed by a campaign.")}</span>
+					${can_manage() ? `<span><button class="btn btn-primary btn-sm cap-check" data-scope="unchecked">${__("Check new addresses")}</button> <button class="btn btn-default btn-sm cap-check" data-scope="all">${__("Check everyone again")}</button></span>` : ""}</div>
+					<div class="cap-card"><div class="cap-bar"><b>${d.total ? __("{0}% of checked addresses can be delivered", [d.deliverable]) : __("Nothing to check yet")}</b><span class="cap-muted">${num(d.total)} ${__("addresses")} · ${e(d.provider)}${d.provider_ready ? "" : " (" + __("add the key in Integrations → Email") + ")"}</span></div>
+					<div style="display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--cap-soft)">${bar}</div></div>
+					<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:12px">${tiles}</div>
+					<div class="cap-card cap-form"><h3>${__("Try an address")}</h3><div style="display:flex;gap:8px"><input class="form-control cap-try" placeholder="name@company.com"><button class="btn btn-default btn-sm cap-try-go">${__("Check")}</button></div><div class="cap-try-out cap-muted" style="margin-top:8px"></div></div>
+					${list(d.invalid, __("Invalid: never emailed"))}${list(d.risky, __("Risky: emailed, but may not reach a person"))}`);
+				this.$body.find(".cap-check").on("click", (ev) => frappe.xcall(V + "check_all", { scope: ev.currentTarget.dataset.scope }).then((n) => frappe.show_alert({ message: n ? __("Checking {0} addresses in the background", [n]) : __("Everything is checked"), indicator: "green" })));
+				this.$body.find(".cap-try-go").on("click", () => frappe.xcall(V + "check_one", { email: this.$body.find(".cap-try").val() }).then((r) => this.$body.find(".cap-try-out").html(`<b style="color:${colors[r.status] || "inherit"}">${e(r.status || __("Could not be decided"))}</b> ${e(r.reason)}${r.suggestion ? " · " + __("did you mean {0}?", [e(r.suggestion)]) : ""}`)));
+			});
+		}
+
+		// Developers ----------------------------------------------------------
+
+		tab_developers() {
+			return Promise.all([frappe.xcall(D + "overview"), frappe.xcall(D + "webhooks")]).then(([o, hooks]) => {
+				const origin = window.location.origin;
+				const code = (text) => `<div class="cap-code"><code>${e(text)}</code><button class="btn btn-default btn-xs cap-copy" data-text="${e(text)}">${__("Copy")}</button></div>`;
+				const calls = o.calls.map(([m, path, text]) => `<tr><td><b>${m}</b></td><td><code>${e(path)}</code></td><td class="cap-muted">${e(text)}</td></tr>`).join("");
+				const subs = hooks.map((h) => `<tr><td>${e(h.description)}<div class="cap-muted">${e(h.url)}</div></td><td class="cap-muted">${h.events.map(e).join(", ")}</td>
+					<td><span class="cap-badge ${h.active ? "Published" : "Failed"}">${h.active ? __("On") : __("Off")}</span><div class="cap-muted">${e(h.last_status || "")}${h.failures ? " · " + h.failures + " " + __("failed") : ""}</div></td>
+					<td>${can_manage() ? `<button class="btn btn-default btn-xs cap-wh-test" data-name="${e(h.name)}">${__("Test")}</button> <button class="btn btn-default btn-xs cap-wh-edit" data-name="${e(h.name)}">${__("Edit")}</button> <button class="btn btn-default btn-xs cap-wh-secret" data-name="${e(h.name)}">${__("New secret")}</button> <button class="btn btn-default btn-xs cap-wh-del" data-name="${e(h.name)}">&times;</button>` : ""}</td></tr>`).join("");
+				this.hooks = hooks; this.events = o.events;
+				this.$body.html(`<div class="cap-card"><h3>${__("API")}</h3><div class="cap-muted">${__("For your own systems. Create an API key and secret for a manager (User → API Access → Generate Keys) and send it as a header. Every call is limited to your Company. Nothing here sends a message: sending stays with the campaigns and automations a person approved.")}</div>
+					<h4>${__("Header")}</h4>${code("Authorization: token API_KEY:API_SECRET")}<h4>${__("Example")}</h4>${code(`curl -X POST "${origin}${o.base}api_public.person_upsert" -H "Authorization: token API_KEY:API_SECRET" -d "email=name@company.com" -d "name=Rahim" -d "tags=website" -d "consent_statement=Asked for our price list on the website"`)}
+					<h4>${__("Calls")}</h4><table class="cap-table">${calls}</table><div class="cap-muted">${__("Each path starts with")} <code>${e(origin)}${e(o.base)}</code></div></div>
+					<div class="cap-card"><div class="cap-bar"><h3 style="margin:0">${__("Webhooks")}</h3>${can_manage() ? `<button class="btn btn-primary btn-sm cap-wh-new">${__("New webhook")}</button>` : ""}</div>
+					<div class="cap-muted">${__("We call your address when something happens (a signup, an open, an unsubscribe ...). Each call is signed so you can check it came from us (header X-Reckon-Signature: hex HMAC-SHA256 of the body with your secret). Addresses must be public https addresses; after 10 failures in a row a webhook switches itself off.")}</div>
+					${hooks.length ? `<table class="cap-table"><tr><th>${__("Webhook")}</th><th>${__("Events")}</th><th>${__("Status")}</th><th></th></tr>${subs}</table>` : `<div class="cap-empty">${__("No webhooks yet.")}</div>`}</div>
+					<div class="cap-card"><h3>${__("AI assistants (MCP)")}</h3><div class="cap-muted">${__("Claude, ChatGPT, Cursor and other assistants can look at your segments, forms, automations and results, count who a segment matches, draft a segment and tag people. They cannot send, approve, switch an automation on or delete: those stay with a person.")}</div>
+					<h4>${__("Server address")}</h4>${code(origin + o.mcp)}<div class="cap-muted">${__("In Claude: Settings → Connectors → Add custom connector, paste the address, and send an API key as the header Authorization: token API_KEY:API_SECRET.")}</div></div>`);
+				const $b = this.$body;
+				$b.find(".cap-copy").on("click", (ev) => copy(ev.currentTarget.dataset.text));
+				$b.find(".cap-wh-new").on("click", () => this.webhook_dialog(null));
+				$b.find(".cap-wh-edit").on("click", (ev) => this.webhook_dialog(this.hooks.find((h) => h.name === ev.currentTarget.dataset.name)));
+				$b.find(".cap-wh-test").on("click", (ev) => frappe.xcall(D + "test_webhook", { name: ev.currentTarget.dataset.name }).then((r) => { frappe.show_alert({ message: __("Test call: {0}", [r]), indicator: /^2/.test(r) ? "green" : "red" }); this.open("developers"); }));
+				$b.find(".cap-wh-secret").on("click", (ev) => frappe.confirm(__("Make a new signing secret? The old one stops working."), () => frappe.xcall(D + "new_secret", { name: ev.currentTarget.dataset.name }).then((sec) => this.show_secret(sec))));
+				$b.find(".cap-wh-del").on("click", (ev) => frappe.confirm(__("Delete this webhook?"), () => frappe.xcall(D + "delete_webhook", { name: ev.currentTarget.dataset.name }).then(() => this.open("developers"))));
+			});
+		}
+
+		show_secret(secret) {
+			frappe.msgprint({ title: __("Signing secret"), message: `<p>${__("Copy it now. It is not shown again.")}</p><div class="cap-code"><code>${e(secret)}</code></div>` });
+		}
+
+		webhook_dialog(existing) {
+			const d = new frappe.ui.Dialog({
+				title: existing ? __("Edit webhook") : __("New webhook"),
+				fields: [{ fieldname: "description", fieldtype: "Data", label: __("Name"), reqd: 1, default: existing && existing.description },
+					{ fieldname: "url", fieldtype: "Data", label: __("Address (https)"), reqd: 1, default: existing && existing.url },
+					{ fieldname: "active", fieldtype: "Check", label: __("Active"), default: existing ? existing.active : 1 },
+					{ fieldname: "evs", fieldtype: "MultiCheck", label: __("Events"), options: Object.entries(this.events).map(([value, label]) => ({ value, label, checked: existing ? existing.events.includes(value) : value === "signup" })), columns: 2 }],
+				primary_action_label: __("Save"),
+				primary_action: (v) => {
+					const picked = (d.get_value("evs") || []);
+					frappe.xcall(D + "save_webhook", { data: { name: existing && existing.name, description: v.description, url: v.url, active: v.active, events: picked } }).then((r) => {
+						d.hide(); if (r.secret) this.show_secret(r.secret); this.open("developers");
+					});
+				},
+			});
+			d.show();
 		}
 
 		// Import --------------------------------------------------------------

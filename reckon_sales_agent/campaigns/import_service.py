@@ -92,6 +92,9 @@ def run_job(import_job: str) -> None:
                 frappe.db.commit()
         job.db_set({**counts, "repeats": repeats, "status": "Done", "finished_on": now_datetime(),
                     "problems": json.dumps(problems), "payload": None})
+        from reckon_sales_agent.campaigns.verify_service import start as start_checks
+
+        start_checks(job.company, "unchecked")  # the new addresses are checked in the background
     except Exception:
         frappe.db.rollback()
         frappe.log_error(title="Sales Agent import failed", reference_doctype="Sales Import Job", reference_name=import_job)

@@ -17,8 +17,11 @@ def add_tags(company: str, prospect: str, new_tags, source: str = "") -> list[st
     if not added:
         return []
     frappe.db.set_value("Sales Prospect", prospect, "tags", tag_rules.to_text(tag_rules.add(current, added)))
+    from reckon_sales_agent.campaigns.webhook_service import emit_person
+
     for tag in added:
         _fire(company, prospect, tag, source)
+        emit_person(company, "tag_added", prospect, tag=tag)
     return added
 
 

@@ -77,6 +77,7 @@ COMPANY_DOCTYPES = (
     "Sales Import Job",
     "Sales Automation",
     "Sales Automation Run",
+    "Sales Webhook Subscription",
 )
 CHILD_DOCTYPES = ("Sales Planned Query", "Sales Research Fact", "Sales Campaign Step", "Sales Target Location",
                   "Sales Market Segment", "Sales Provider Budget", "Sales Social Post Target",

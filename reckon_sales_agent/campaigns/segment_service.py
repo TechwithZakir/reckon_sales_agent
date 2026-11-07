@@ -17,7 +17,7 @@ LIMIT = 20000
 HISTORY_DAYS = 730
 REPLIES = ("replied", "positive_reply", "meeting_requested", "negative_reply", "question", "interested")
 FIELDS = ["name", "business_name", "contact_name", "email", "phone", "city", "industry", "source_type", "fit_score", "tags",
-          "sms_consent", "whatsapp_consent", "optin_status", "creation"]
+          "sms_consent", "whatsapp_consent", "optin_status", "email_status", "creation"]
 
 
 def _days(stamp, now):
@@ -36,7 +36,7 @@ def _view(row, mine: list[dict], now) -> dict:
         "name": row.name, "business_name": row.business_name, "contact_name": row.contact_name, "email": row.email or "",
         "phone": row.phone or "", "city": row.city or "", "industry": row.industry or "", "source": row.source_type or "",
         "fit_score": row.fit_score or 0, "tags": tag_rules.normalize(row.tags), "sms_consent": bool(row.sms_consent),
-        "whatsapp_consent": bool(row.whatsapp_consent), "confirmed": row.optin_status != "Unconfirmed",
+        "whatsapp_consent": bool(row.whatsapp_consent), "confirmed": row.optin_status != "Unconfirmed", "email_status": row.email_status or "",
         "joined_days": _days(row.creation, now), "last_opened_days": _days(last.get("opened"), now),
         "last_clicked_days": _days(last.get("clicked"), now), "last_replied_days": _days(last.get("replied"), now),
         "last_sent_days": _days(last.get("sent"), now), "temperature": summary.get("temperature") or "Cold",

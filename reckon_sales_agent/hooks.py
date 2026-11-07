@@ -161,6 +161,7 @@ scheduler_events = {
     ],
     "daily": [
         "reckon_sales_agent.jobs.purge_expired_source_data",
+        "reckon_sales_agent.campaigns.verify_service.daily",  # address checks for new and old addresses
         "reckon_sales_agent.agents.social_connect.refresh_accounts",  # LinkedIn tokens, account health
     ],
     "cron": {

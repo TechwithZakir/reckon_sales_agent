@@ -585,6 +585,9 @@ def record_event(message, event_type: str, key: str, provider_message_id=None, d
         "idempotency_key": key,
         "detail": (detail or "")[:500] or None,
     }).insert(ignore_permissions=True)
+    from reckon_sales_agent.campaigns.webhook_service import emit_communication
+
+    emit_communication(message, event_type)  # only costs something when a webhook wants this event
 
 
 def handle_communication(doc, method=None) -> None:

@@ -69,6 +69,8 @@
   "brevo_sender_email",
   "brevo_webhook_secret",
   "brevo_daily_cap",
+  "verify_provider",
+  "zerobounce_api_key",
   "campaign_autopilot",
   "campaign_send_window",
   "send_gap_seconds",
@@ -493,6 +495,20 @@
    "default": "300",
    "depends_on": "eval:doc.email_provider == 'Brevo'",
    "description": "Brevo's free plan allows 300 emails a day. Raise it after upgrading in Brevo, or enter 0 for no cap."
+  },
+  {
+   "fieldname": "verify_provider",
+   "fieldtype": "Select",
+   "label": "Address checking",
+   "options": "Built-in only\nZeroBounce",
+   "default": "Built-in only",
+   "description": "Built-in: the address's form, a rule list and a DNS lookup of its domain. ZeroBounce also checks the mailbox."
+  },
+  {
+   "fieldname": "zerobounce_api_key",
+   "fieldtype": "Password",
+   "label": "ZeroBounce API key",
+   "depends_on": "eval:doc.verify_provider == 'ZeroBounce'"
   },
   {
    "fieldname": "campaign_autopilot",
