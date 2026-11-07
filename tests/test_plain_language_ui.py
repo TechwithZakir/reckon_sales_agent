@@ -92,7 +92,7 @@ class HelpTests(unittest.TestCase):
 
     def test_every_guide_has_a_purpose_and_steps(self):
         for page in self.PAGES:
-            block = self.SCRIPT.split(f'"{page}": {{ title:')[1].split('"\n') [0] if False else self.SCRIPT.split(f'"{page}": {{ title:')[1][:900]
+            block = self.SCRIPT.split(f'"{page}": {{ title:')[1][:900]
             self.assertIn("purpose:", block, page)
             self.assertIn("steps:", block, page)
 
