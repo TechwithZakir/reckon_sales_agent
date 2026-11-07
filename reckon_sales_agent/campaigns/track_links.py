@@ -28,6 +28,12 @@ def _link(message, kind: str, url: str = "") -> str:
     return code
 
 
+def _public_url(settings, path: str) -> str:
+    """A tracked link on the Company's own domain when it has set one (so clicks inherit its reputation), else on this site."""
+    domain = tracking.valid_domain(settings.get("tracking_domain"))
+    return f"https://{domain}{path}" if domain else get_url(path)
+
+
 def instrument(message, settings) -> None:
     """Swap the links in the outgoing copy of ``message`` (in memory only) and add the open pixel."""
     channel = message.get("channel")
@@ -43,7 +49,7 @@ def instrument(message, settings) -> None:
 
     def make(url: str) -> str:
         if url not in codes:
-            codes[url] = get_url(f"{CLICK_PATH}{_link(message, 'click', url)}")
+            codes[url] = _public_url(settings, f"{CLICK_PATH}{_link(message, 'click', url)}")
         return codes[url]
 
     body = message.body or ""
@@ -51,7 +57,7 @@ def instrument(message, settings) -> None:
         body = (tracking.rewrite_html_links(body, make) if channel == "Email"
                 else tracking.rewrite_text_links(body, make))
     if opens:
-        body = tracking.add_pixel(body, get_url(f"{OPEN_PATH}?c={_link(message, 'open')}"))
+        body = tracking.add_pixel(body, _public_url(settings, f"{OPEN_PATH}?c={_link(message, 'open')}"))
     message.body = body
 
 

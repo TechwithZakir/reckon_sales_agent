@@ -169,3 +169,22 @@ the plan; raise it after upgrading in Brevo, or set 0 for no cap. Accounts and l
    the "Unsubscribe" link shows beside the sender.
 4. Open the email and click a link: the open and click appear on the recipient's timeline and the campaign funnel.
 5. Reply and unsubscribe from one address: the member stops, the address is suppressed, nothing more is sent to it.
+
+
+## Spam score, plain-language results, export and a tracking domain
+
+* **Spam score (template builder, Email):** one more pre-send check, "Spam score 2/10: low risk". It counts what a writer controls
+  (a shouting subject, sales phrases, exclamation marks, many links, a link shortener, image-only email, a fake "Re:") and says what
+  to change. It is advice; it never blocks an email.
+* **Campaign verdict:** each campaign page starts with a headline ("Strong engagement", "A normal result", "Needs attention", or
+  "Too early to judge" under 30 sent), a few plain sentences against the ranges usual for B2B email, what to try, and **where people
+  drop out** (sent, opened, clicked, replied, interested, each as a share of those sent and of the step before).
+* **Export CSV:** one row per message with the person, channel, step, status, when it was sent and whether they opened, clicked,
+  replied, bounced or unsubscribed. Names that start with `=`, `+`, `-` or `@` are neutralised so a spreadsheet cannot run them.
+* **Goal cards:** the first step of the campaign wizard asks "What do you want to do?" (announce, follow up a new lead, re-engage
+  quiet people, invite to an event, offer customers more). A card sets the goal and the shape of the sequence; templates you already
+  chose are kept.
+* **Tracking domain (Integrations → Email → Tracking links):** links and the open pixel in new emails can use a domain you own, so
+  clicks build your reputation instead of this site's. Point the domain at the server with DNS, add it to the site
+  (`bench setup add-domain track.yourcompany.com --site <site>`), get a certificate, save it, then press "Check the tracking
+  domain". The unsubscribe link always stays on this site.

@@ -415,7 +415,7 @@ EDITABLE = {
     "whatsapp_provider": "text", "whatchimp_api_token": "secret", "whatchimp_phone_number_id": "text",
     # Sending pace and the Company's own Brevo plan: whole numbers, 0 turns the control off.
     "send_gap_seconds": "number", "send_gap_jitter": "number", "hourly_message_limit": "number",
-    "brevo_daily_cap": "number", "verify_provider": "text", "zerobounce_api_key": "secret",
+    "brevo_daily_cap": "number", "verify_provider": "text", "zerobounce_api_key": "secret", "tracking_domain": "text",
 }
 
 
@@ -447,6 +447,12 @@ def save_settings(data: str | dict) -> dict:
             frappe.throw(_("No WhatsApp account has that name. Pick one from the list, or create it first."))
         if kind == "check":
             value = 1 if value in (1, "1", True, "true") else 0
+        elif field == "tracking_domain":
+            from reckon_sales_agent.campaigns.tracking import valid_domain
+
+            value = valid_domain(value) if str(value or "").strip() else ""
+            if str(data.get(field) or "").strip() and not value:
+                frappe.throw(_("Enter the domain only, such as track.yourcompany.com (no https:// and no path)."))
         elif kind == "number":
             if not str(value).strip().isdigit() or int(str(value).strip()) > 100000:
                 frappe.throw(_("{0} must be a whole number, 0 or more.").format(doc.meta.get_label(field)))
@@ -457,6 +463,31 @@ def save_settings(data: str | dict) -> dict:
         doc.set(field, str(value).strip()[:2000] if kind != "check" else value)
     doc.save()
     return overview()
+
+
+@frappe.whitelist(methods=["POST"])
+def check_tracking_domain() -> dict:
+    """Does the Company's tracking domain reach this site over https? (It must point here and have a certificate.)"""
+    _require_manager()
+    import requests
+
+    from reckon_sales_agent.campaigns.tracking import valid_domain
+    from reckon_sales_agent.research.url_safety import validate_url
+
+    domain = valid_domain(get_settings(current_company()).get("tracking_domain"))
+    if not domain:
+        return {"ok": False, "detail": "Enter a tracking domain and save it first."}
+    url = f"https://{domain}/api/method/ping"
+    try:
+        validate_url(url)
+        response = requests.get(url, timeout=8, allow_redirects=False)
+    except Exception as exc:
+        return {"ok": False, "detail": f"{domain} could not be reached over https ({type(exc).__name__}). Check its DNS record "
+                                       "and certificate."}
+    if response.status_code == 200 and "pong" in response.text:
+        return {"ok": True, "detail": f"{domain} reaches this site over https. Links in new emails will use it."}
+    return {"ok": False, "detail": f"{domain} answered, but not as this site (status {response.status_code}). Point the domain at "
+                                   "this server and add it to the site."}
 
 
 # The system provider's settings (Sales Agent Platform Settings): shown and saved only to vendor roles.

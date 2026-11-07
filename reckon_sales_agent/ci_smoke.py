@@ -281,6 +281,33 @@ def run() -> None:
         assert api_mcp.handle({"jsonrpc": "2.0", "id": 5, "method": "nope"})["error"]["code"] == -32601
 
     check("Address checks, API, webhooks and MCP", verify_api_webhooks_mcp)
+
+    def insights():
+        # The spam score beside the template checks, and the tracking domain setting, on real tables.
+        from reckon_sales_agent import api_channels
+        from reckon_sales_agent.campaigns import template_content
+
+        frappe.set_user("Administrator")
+        frappe.form_dict["company"] = company
+        loud = template_content.compile_content("Email", {"subject": "FREE WINNER!!! ACT NOW", "blocks": [{"type": "text", "text": "CLICK HERE to claim your FREE prize!!!"}]})
+        assert loud["spam"]["level"] in ("Medium", "High"), loud["spam"]
+        assert any(c["label"].startswith("Spam score") and not c["ok"] for c in loud["checks"]), loud["checks"]
+        calm = template_content.compile_content("Email", {"subject": "A summary of our call", "blocks": [
+            {"type": "text", "text": "Hello, thank you for talking with us last week about your distribution routes. As promised, here is a short summary "
+                                     "of how our team can help with stock visibility across your warehouses."}]})
+        assert calm["spam"]["level"] == "Low", calm["spam"]
+
+        saved = api_channels.save_settings({"tracking_domain": "Track.Example.com"})
+        assert saved["values"]["tracking_domain"] == "track.example.com", saved["values"]["tracking_domain"]
+        try:
+            api_channels.save_settings({"tracking_domain": "https://not-a-domain/path"})
+        except frappe.ValidationError:
+            pass
+        else:
+            raise AssertionError("a tracking domain with a scheme and path was accepted")
+        assert api_channels.save_settings({"tracking_domain": ""})["values"]["tracking_domain"] in ("", None)
+
+    check("Spam score and tracking domain", insights)
     frappe.db.rollback()  # leave the CI site as it was (the Company stays for the next run)
     if failures:
         raise AssertionError("Smoke test failed:\n" + "\n".join(failures))

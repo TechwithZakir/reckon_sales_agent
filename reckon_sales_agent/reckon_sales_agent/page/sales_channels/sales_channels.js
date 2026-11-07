@@ -421,6 +421,13 @@ function social(d, platforms, onText) {
 			}).join("")}${this.data.can_manage ? `<div class="sch-actions"><button class="btn btn-primary btn-sm sch-save" data-scope="${scope}">${__("Save")}</button></div>` : ""}</div>`;
 		}
 
+		tracking_section() {
+			return this.section(__("Tracking links"), this.fields([
+				{ f: "tracking_domain", label: __("Tracking domain"), placeholder: "track.yourcompany.com", help: __("Optional. Links and the open pixel in your emails use this domain instead of this site's address, so clicks build your own reputation.") }]))
+				+ `<div class="sch-health"><button class="btn btn-default btn-sm sch-track-btn">${__("Check the tracking domain")}</button><div class="sch-track-out sch-note small"></div></div>
+				<div class="sch-note small">${__("To use one: point the domain at this server with a DNS record, add it to the site (bench setup add-domain), and get a certificate for it. Then save it here and check.")}</div>`;
+		}
+
 		verify_section() {
 			return this.section(__("Address checking"), this.fields([
 				{ f: "verify_provider", type: "select", label: __("Check addresses with"), options: ["Built-in only", "ZeroBounce"], help: __("Built-in: the address's form, a rule list and a DNS lookup. ZeroBounce also checks the mailbox itself (billed by ZeroBounce).") },
@@ -729,7 +736,7 @@ function social(d, platforms, onText) {
 					+ (d.values.email_provider === "Brevo" ? this.section(__("Brevo"), this.fields([
 							{ f: "brevo_api_key", type: "secret", label: __("API key") },
 							{ f: "brevo_sender_email", label: __("Sender email (verified in Brevo)") }])) : "")
-						+ this.pace_section() + this.verify_section()
+						+ this.pace_section() + this.verify_section() + this.tracking_section()
 						+ `<div class="sch-health"><button class="btn btn-default btn-sm sch-health-btn">${__("Check email health (SPF, DKIM, DMARC)")}</button>
 						<div class="sch-health-out"></div></div>`;
 			case "brevo":
@@ -762,6 +769,8 @@ function social(d, platforms, onText) {
 		bind(p, key, d) {
 			p.find(".sch-wa-signup").on("click", () => this.wa_signup());
 			p.find(".sch-copy-url").on("click", (ev) => frappe.utils.copy_to_clipboard(ev.currentTarget.dataset.url));
+				p.find(".sch-track-btn").on("click", () => frappe.xcall("reckon_sales_agent.api_channels.check_tracking_domain")
+					.then((r) => p.find(".sch-track-out").css("color", r.ok ? "var(--green-600, #0ca30c)" : "var(--red-500, #d03b3b)").text(r.detail)));
 				p.find(".sch-health-btn").on("click", (ev) => frappe.xcall("reckon_sales_agent.api_deliverability.email_health")
 					.then((h) => p.find(".sch-health-out").html(this.email_health_html(h))));
 			p.find(".sch-connect").on("click", (ev) => {

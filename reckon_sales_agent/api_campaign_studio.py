@@ -16,7 +16,7 @@ from frappe.utils import add_days, nowdate
 
 from reckon_sales_agent.api_studio import _can_manage
 from reckon_sales_agent.campaigns import audience as audience_rules
-from reckon_sales_agent.campaigns import autopilot, builder, copilot, timeline, variants
+from reckon_sales_agent.campaigns import autopilot, builder, copilot, timeline, variants, verdict
 from reckon_sales_agent.campaigns.audience_resolve import preview as resolve_preview
 from reckon_sales_agent.campaigns.audience_resolve import refresh as refresh_size
 from reckon_sales_agent.campaigns.metrics import funnel, rate
@@ -162,12 +162,30 @@ def campaign(name: str) -> dict:
         "offer": doc.offer, "language": doc.language, "content_status": doc.content_status,
         "content_issues": doc.content_issues, "metrics": metrics, "suggestions": copilot.suggest(metrics, context),
         "top_links": links, "unreached": unreached,
+        "verdict": verdict.verdict(metrics["engagement"]["counts"], metrics["engagement"]["rates"]),
+        "step_conversion": verdict.steps(metrics["engagement"]["counts"]),
         "top_recipients": [{**details.get(p, {"name": p}), **summary, "prospect": p} for summary, p in top
                            if summary["score"] > 0],
         "steps": [{"step_no": s.step_no, "channel": s.channel, "delay_days": s.delay_days, "subject": s.subject_template,
                    "template": s.get("message_template"), "variants": variants.parse(s.get("subject_variants"))}
                   for s in doc.steps],
     }
+
+
+@frappe.whitelist()
+def export_campaign(name: str) -> dict:
+    """The campaign as a spreadsheet: one row per message with what the person did. Opens in Excel and Google Sheets."""
+    doc = get_tenant_doc("Sales Campaign", name, "read")
+    messages = frappe.get_all("Sales Outreach Message", filters={"campaign": doc.name, "company": doc.company},
+                              fields=["name", "prospect", "channel", "step_no", "variant", "status", "sent_on"],
+                              order_by="creation asc", limit=20000)
+    prospects = {r.name: {"name": r.contact_name or r.business_name, "email": r.email, "phone": r.phone}
+                 for r in frappe.get_all("Sales Prospect", filters={"name": ["in", list({m.prospect for m in messages})]},
+                                         fields=["name", "contact_name", "business_name", "email", "phone"], limit=20000)} if messages else {}
+    events = [{"message": e["message"], "event_type": e["event_type"]} for e in _events(doc.company, campaign=doc.name, limit=100000)]
+    csv_text = verdict.to_csv(verdict.export_rows([dict(m) for m in messages], events, prospects))
+    safe = re.sub(r"[^A-Za-z0-9_-]+", "-", doc.campaign_name or doc.name).strip("-")[:60] or doc.name
+    return {"filename": f"{safe}.csv", "csv": csv_text, "rows": len(messages)}
 
 
 @frappe.whitelist()

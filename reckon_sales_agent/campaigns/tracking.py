@@ -30,6 +30,16 @@ BOT_RE = re.compile(
     re.I)
 
 
+def valid_domain(value) -> str:
+    """A host name for tracked links ('track.example.com'), or '' when it is not one: no scheme, path or port, lowercase."""
+    text = str(value or "").strip().lower()
+    if not text or len(text) > 253 or "." not in text:
+        return ""
+    labels = text.split(".")
+    ok = all(re.fullmatch(r"[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?", label) for label in labels) and re.fullmatch(r"[a-z]{2,24}", labels[-1])
+    return text if ok else ""
+
+
 def new_code() -> str:
     """A short unguessable code: 8 characters of URL-safe text."""
     return secrets.token_urlsafe(6)

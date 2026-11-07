@@ -20,7 +20,7 @@ import html
 import json
 import re
 
-from reckon_sales_agent.campaigns import builder, presend
+from reckon_sales_agent.campaigns import builder, presend, spamscore
 from reckon_sales_agent.campaigns import templates as t
 
 MAX_BLOCKS = 60
@@ -210,11 +210,14 @@ def compile_content(channel: str, content: dict, *, has_address: bool = True) ->
         variants = [v for v in c["variants"] if v.strip()] if any(v.strip() for v in c["variants"]) else []
         issues = builder.check_email(c["subject"], c["blocks"], c["variants"])
         checks = presend.email(c["subject"], c["blocks"], variants, has_address=has_address)
+        urls = [u for b in c["blocks"] for u in builder.block_urls(b) if u]
+        spam = spamscore.score(c["subject"], builder.email_text(c["blocks"]), urls)
+        checks.append(spamscore.check_line(spam))  # advice, never a block
         body = builder.email_html(c["blocks"], c["preheader"])
         sample = t.render(t.resolve_dynamic(body, t.sample_values()), t.sample_values())
         return {"issues": issues, "checks": checks, "summary": presend.summary(checks), "body": body,
                 "previews": [chip_text(h) for h in builder.email_blocks(c["blocks"])], "text": builder.email_text(c["blocks"]),
-                "sample_html": sample, "sample_subject": _sample_text(c["subject"])}
+                "sample_html": sample, "sample_subject": _sample_text(c["subject"]), "spam": spam}
     if channel == "SMS":
         text = builder.sms_text(c["text"])
         checks = presend.sms(text, c["keyword"], c["window"])

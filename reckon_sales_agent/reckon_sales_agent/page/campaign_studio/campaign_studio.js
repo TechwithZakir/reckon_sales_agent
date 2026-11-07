@@ -53,6 +53,19 @@
 			<div class="cst-muted">${__("Blue: sent. Green: opened.")}</div>`;
 	};
 
+	// "What do you want to do?": each card sets the goal and the shape of the sequence (a delay in days per step); templates are chosen next.
+	const QUICK = [
+		{ id: "announce", title: __("Make an announcement"), text: __("One message to everyone."), goal: "Event invite", delays: [0], pilot: false },
+		{ id: "follow", title: __("Follow up a new lead"), text: __("A first message, then two follow-ups."), goal: "Book a meeting", delays: [0, 3, 7], pilot: false },
+		{ id: "reengage", title: __("Re-engage quiet people"), text: __("Two messages, tried on a small group first."), goal: "Re-engage", delays: [0, 5], pilot: true },
+		{ id: "event", title: __("Invite to an event"), text: __("An invitation and a reminder."), goal: "Event invite", delays: [0, 3], pilot: false },
+		{ id: "upsell", title: __("Offer customers more"), text: __("An offer and one follow-up."), goal: "Upsell", delays: [0, 7], pilot: false },
+	];
+	const TONE = { good: "ok", ok: "", low: "warn", early: "" };
+	const verdict_html = (v, steps) => `<section class="cst-card cst-verdict"><div class="cst-bar"><h3>${e(__(v.headline))}</h3><span class="cst-badge ${TONE[v.tone] || ""}">${e(__(v.tone === "early" ? "Early" : v.tone === "good" ? "Strong" : v.tone === "low" ? "Needs attention" : "Normal"))}</span></div>
+		${v.lines.map((l) => `<div>${e(l)}</div>`).join("")}${v.advice.length ? `<div class="cst-muted" style="margin-top:8px">${__("What to try")}: ${v.advice.map(e).join(" ")}</div>` : ""}
+		${steps && steps.length > 1 ? `<h4>${__("Where people drop out")}</h4><div class="cst-funnel">${steps.map((s) => `<div style="grid-template-columns:90px 1fr 190px"><span>${e(__(s.label))}</span><i style="width:${Math.max(2, s.of_sent)}%"></i><b>${num(s.count)} · ${pct(s.of_sent)}${s.key === "sent" ? "" : ` (${pct(s.of_previous)} ${__("of the step before")}${s.lost ? `, −${num(s.lost)}` : ""})`}</b></div>`).join("")}</div>` : ""}</section>`;
+
 	const suggestions_html = (list) => (list && list.length ? list.map((s) => `<div class="cst-sug ${e(s.severity)}">
 		<b>${e(s.title)}</b>${s.campaign_name ? ` <span class="cst-badge">${e(s.campaign_name)}</span>` : ""}
 		<span class="cst-muted">${e(s.detail)}</span>
@@ -159,7 +172,7 @@
 				if (["Draft", "Paused"].includes(d.status)) actions.push(["submit", __("Submit for approval")]);
 				if (d.status === "Pending Approval" && can_manage()) actions.push(["approve", __("Approve and start")]);
 				if (d.status === "Active") actions.push(["draft", __("Write drafts now")], ["members", __("Add new people")], ["pause", __("Pause")]);
-				actions.push(["check", __("Check content")], ["form", __("Open the form")]);
+				actions.push(["check", __("Check content")], ["export", __("Export CSV")], ["form", __("Open the form")]);
 				const channel_rows = Object.entries(en.by_channel || {});
 				const steps = d.steps.map((s) => {
 					const row = (d.metrics.by_step || {})[String(s.step_no)] || { outreach: 0, replies: 0 };
@@ -182,6 +195,7 @@
 						${tile(__("Opted out"), pct(r.unsubscribe_rate))}
 						${tile(__("Deals"), num(d.metrics.deals), d.metrics.pipeline_value ? num(d.metrics.pipeline_value) : "")}
 					</div>
+					${verdict_html(d.verdict, d.step_conversion)}
 					<div class="cst-grid"><section class="cst-card"><h3>${__("Funnel")}</h3>${funnel_html(en)}</section>
 						<section class="cst-card"><h3>${__("Activity by day")}</h3>${days_html(en.by_day)}</section></div>
 					<section class="cst-card"><h3>${__("Copilot suggests")}</h3>${suggestions_html(d.suggestions)}</section>
@@ -223,6 +237,15 @@
 			const call = (method, args, message) => frappe.xcall(CORE + method, { campaign: d.name, ...(args || {}) })
 				.then((r) => { frappe.show_alert({ message: message(r), indicator: "green" }); return reload(); });
 			if (action === "form") return frappe.set_route("Form", "Sales Campaign", d.name);
+			if (action === "export") {
+				return frappe.xcall(API + "export_campaign", { name: d.name }).then((r) => {
+					const blob = new Blob(["\ufeff" + r.csv], { type: "text/csv;charset=utf-8" });
+					const link = document.createElement("a");
+					link.href = URL.createObjectURL(blob); link.download = r.filename; document.body.appendChild(link); link.click(); link.remove();
+					setTimeout(() => URL.revokeObjectURL(link.href), 4000);
+					frappe.show_alert({ message: __("{0} rows exported", [r.rows]), indicator: "green" });
+				});
+			}
 			if (action === "submit") return call("submit_campaign", null, () => __("Submitted for approval"));
 			if (action === "pause") return call("pause_campaign", null, () => __("Paused"));
 			if (action === "members") return call("refresh_members", null, (n) => __("{0} people added", [n]));
@@ -296,6 +319,15 @@
 				this.wz_persist();
 				if (el.type === "checkbox" || el.tagName === "SELECT") this.paint_wizard();
 			});
+			$b.find(".cst-quick").on("click", (ev) => {
+				const q = QUICK.find((x) => x.id === ev.currentTarget.dataset.q);
+				w.goal = q.goal;
+				w.pilot = q.pilot;
+				w.steps = q.delays.map((days, i) => ({ template: (w.steps[i] && w.steps[i].template) || "", delay_days: days }));  // keep templates already chosen
+				if (!w.name) w.name = q.title;
+				this.wz_persist();
+				this.paint_wizard();
+			});
 			if (w.step === 2) {
 				$b.find(".cst-w-aud").on("change", (ev) => { w.audience = ev.currentTarget.value; this.wz_persist(); this.paint_wizard(); });
 				$b.find(".cst-w-newaud").on("click", () => this.audience_dialog(null, (saved) => frappe.xcall(API + "audiences").then((list) => {
@@ -311,7 +343,9 @@
 
 		wz_setup() {
 			const w = this.wz;
-			return `<h3>${__("What is this campaign for?")}</h3>
+			const picked = QUICK.find((q) => q.goal === w.goal && q.delays.join() === w.steps.map((x) => x.delay_days || 0).join());
+			const cards = `<h4 class="cst-wl">${__("What do you want to do?")}</h4><div class="cst-picker">${QUICK.map((q) => `<button type="button" class="cst-quick ${picked && picked.id === q.id ? "on" : ""}" data-q="${q.id}"><b>${q.title}</b><span>${q.text}</span></button>`).join("")}</div>`;
+			return `${cards}<h3 style="margin-top:14px">${__("Details")}</h3>
 				<div class="cst-wgrid2"><div><label class="cst-wl">${__("Name")}</label><input class="form-control" data-w="name" value="${e(w.name)}" placeholder="${__("For example: Q4 re-engagement")}"></div>
 					<div><label class="cst-wl">${__("Goal")}</label><select class="form-control" data-w="goal"><option value=""></option>${["Book a meeting", "Re-engage", "Upsell", "Event invite"].map((g) => `<option ${w.goal === g ? "selected" : ""}>${__(g)}</option>`).join("")}</select></div>
 					<div><label class="cst-wl">${__("Language")}</label><select class="form-control" data-w="language">${["English", "Bangla"].map((l) => `<option ${w.language === l ? "selected" : ""}>${l}</option>`).join("")}</select></div>

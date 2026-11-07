@@ -78,6 +78,7 @@
   "hourly_message_limit",
   "track_opens",
   "track_clicks",
+  "tracking_domain",
   "chat_reply_sla_minutes",
   "comment_to_chat",
   "agents_section",
@@ -556,6 +557,12 @@
    "fieldtype": "Check",
    "label": "Track link clicks",
    "default": "1"
+  },
+  {
+   "fieldname": "tracking_domain",
+   "fieldtype": "Data",
+   "label": "Tracking domain",
+   "description": "A domain you own that points at this site, for the links in your emails (for example track.yourcompany.com). Empty uses this site's address."
   },
   {
    "fieldname": "chat_reply_sla_minutes",
