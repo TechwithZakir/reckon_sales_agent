@@ -148,7 +148,7 @@ def triage_prospect(name: str, apply: bool = False) -> str | None:
             TRIAGE_SCHEMA, max_tokens=1500))
     except LLMError as exc:
         prospect.db_set({"ai_triaged_on": now_datetime(), "ai_triage_verdict": "unsure",
-                         "ai_triage_reason": f"AI triage failed: {exc}"[:400]})
+                         "ai_triage_reason": f"The AI could not review this lead. {exc}"[:400]})
         return "person"
     prospect.db_set({"ai_triage_verdict": data["verdict"], "ai_triage_confidence": data["confidence"],
                      "ai_triage_reason": data["reason"], "ai_business_type": data["business_type"],

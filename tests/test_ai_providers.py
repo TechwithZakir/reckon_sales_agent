@@ -109,8 +109,10 @@ class OpenAICompatibleTests(unittest.TestCase):
 
     def test_errors_carry_the_providers_reason(self):
         session = Session(Response(429, {"error": {"message": "You exceeded your current quota"}}))
-        with self.assertRaisesRegex(LLMError, "quota"):
+        with self.assertRaises(LLMError) as caught:
             OpenAICompatibleProvider("k", "gpt-x", session=session).complete_json("s", "u", SCHEMA)
+        self.assertIn("no credit left", str(caught.exception))  # plain words for the person using the app
+        self.assertIn("quota", caught.exception.detail)  # the provider's own reason stays for logs and administrators
         self.assertTrue(blocks_account(429, "You exceeded your current quota, check your billing"))
         self.assertFalse(blocks_account(429, "Rate limit reached for requests"))
 

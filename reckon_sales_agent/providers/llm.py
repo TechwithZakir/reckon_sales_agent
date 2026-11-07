@@ -12,7 +12,27 @@ from typing import Any, Protocol
 
 
 class LLMError(Exception):
-    pass
+    """An AI call failed. The message is for the person using the app; ``detail`` is what the provider said (for logs and admins)."""
+
+    def __init__(self, message: str, detail: str = ""):
+        super().__init__(message)
+        self.detail = detail
+
+
+def plain_message(status, reason: str) -> str:
+    """What a business user should read when the AI provider refuses a request: what happened and what to do, no codes."""
+    text = str(reason or "").lower()
+    if any(k in text for k in ("credit balance", "billing", "insufficient", "quota", "payment")):
+        return "The AI service has no credit left. Ask your administrator to add credit. Everything else keeps working."
+    if status in (401, 403) or any(k in text for k in ("api key", "api-key", "authentication", "invalid x-api-key", "permission")):
+        return "The AI service did not accept the key. Ask your administrator to check it in Integrations."
+    if status in (429, 503, 529) or any(k in text for k in ("overloaded", "rate limit", "too many")):
+        return "The AI service is busy right now. Try again in a few minutes."
+    if status and int(status) >= 500:
+        return "The AI service had a problem. Try again shortly."
+    if status == 400:
+        return "The AI could not handle that request. Try again, or ask your administrator."
+    return "The AI service did not answer. Try again shortly."
 
 
 class LLMProvider(Protocol):
@@ -59,7 +79,7 @@ class ClaudeProvider:
             reason = provider_reason(exc)
             if blocks_account(exc.status_code, reason):
                 _pause_ai(reason, self.scope)
-            raise LLMError(f"AI request failed ({exc.status_code}): {reason}") from exc
+            raise LLMError(plain_message(exc.status_code, reason), detail=f"AI request failed ({exc.status_code}): {reason}") from exc
         except anthropic.APIConnectionError as exc:
             raise LLMError("AI service unreachable.") from exc
         if response.stop_reason == "refusal":
@@ -121,8 +141,8 @@ class OpenAICompatibleProvider:
             if blocks_account(response.status_code, reason):
                 _pause_ai(reason, self.scope)
             if response.status_code == 429:
-                raise LLMError(f"AI rate limit reached: {reason}")
-            raise LLMError(f"AI request failed ({response.status_code}): {reason}")
+                raise LLMError(plain_message(429, reason), detail=f"AI rate limit reached: {reason}")
+            raise LLMError(plain_message(response.status_code, reason), detail=f"AI request failed ({response.status_code}): {reason}")
         try:
             choice = response.json()["choices"][0]
         except (ValueError, KeyError, IndexError) as exc:

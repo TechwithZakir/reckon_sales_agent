@@ -254,10 +254,15 @@
 		// ---------------------------------------------------------------- 2. source
 		render_source(body) {
 			const panel = $(`<div class="lfs-panel"><h3>${__("Where should the agent look?")}</h3>
-				<p class="lead">${__("Choose a lead source. Sources marked Ready are set up for your company.")}</p></div>`).appendTo(body);
+				<p class="lead">${__("The easiest choice is Smart Sources: it searches every source set up for your company at once.")}</p></div>`).appendTo(body);
 			const groups = {};
 			this.data.catalog.forEach((c) => (groups[c.group] = groups[c.group] || []).push(c));
+			// Most people only need the recommended source and their own list; the rest (named after their providers) are one click away.
+			const SIMPLE = (group) => ["recommended", "your data"].includes(String(group || "").toLowerCase());
+			const picked = this.data.catalog.find((x) => x.type === this.state.connectorType);
+			const show_all = this.state.all_sources || (picked && !SIMPLE(picked.group));
 			Object.entries(groups).forEach(([group, items]) => {
+				if (!show_all && !SIMPLE(group)) return;
 				panel.append(`<div class="lfs-group-title">${e(group)}</div>`);
 				const grid = $('<div class="lfs-cards"></div>').appendTo(panel);
 				items.forEach((c) => {
@@ -271,6 +276,10 @@
 					card.on("click", () => c.available && this.pick_source(c));
 				});
 			});
+			if (!show_all) {
+				$(`<button type="button" class="btn btn-link btn-sm lfs-show-all">${__("Show all lead sources (advanced)")}</button>`).appendTo(panel)
+					.on("click", () => { this.state.all_sources = true; this.render(); });
+			}
 			const setup = $('<div class="lfs-setup"></div>').appendTo(panel);
 			if (this.state.connectorType) this.render_source_setup(setup);
 			this.actions(body, { back: () => this.go(1), next: () => this.go(3), nextLabel: __("Continue") }).find(".lfs-next").prop("disabled", !this.state.connector);

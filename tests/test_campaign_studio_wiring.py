@@ -51,17 +51,20 @@ class RegistrationTests(unittest.TestCase):
         self.assertEqual((page["name"], page["title"]), ("campaign-studio", "Campaign Studio"))
         self.assertIn("(() => {", (PAGE / "campaign_studio.js").read_text(encoding="utf-8"))
 
-    def test_the_sidebar_has_a_campaign_studio_group_before_discovery(self):
+    def test_the_sidebar_leads_with_everyday_tasks_and_keeps_the_rest_under_advanced(self):
         items = json.loads(read("workspace_sidebar", "sales_agent.json"))["items"]
         labels = [i["label"] for i in items]
-        group = labels.index("Campaign Studio")
-        self.assertEqual(items[group]["type"], "Section Break")
-        self.assertLess(group, labels.index("Discovery"))
-        inside = labels[group + 1:labels.index("Discovery")]
-        for label in ("Campaign Studio", "Audiences", "Campaigns", "Message Templates", "Campaign Analytics", "Suppression List"):
+        reach = labels.index("Reach out")
+        advanced = labels.index("Advanced")
+        self.assertEqual((items[reach]["type"], items[advanced]["type"]), ("Section Break", "Section Break"))
+        self.assertLess(reach, advanced)
+        inside = labels[reach + 1:advanced]
+        for label in ("Campaigns", "Signup forms and lists", "Automations", "Message templates", "Results", "Do-not-contact list"):
             self.assertIn(label, inside)
+        self.assertEqual(items[advanced]["keep_closed"], 1)  # the technical lists are out of the way
+        self.assertEqual(len([i for i in items if i["type"] == "Link" and i["label"] == "Campaigns"]), 1)
         self.assertEqual(len(labels), len(set((i["label"], i.get("link_to")) for i in items)))
-        self.assertTrue(all(i["child"] == 1 for i in items[group + 1:labels.index("Discovery")]))
+        self.assertTrue(all(i["child"] == 1 for i in items[reach + 1:] if i["type"] == "Link" and labels.index(i["label"]) > reach))
 
     def test_hooks_route_the_short_link_and_whatsapp_receipts(self):
         hooks = read("hooks.py")

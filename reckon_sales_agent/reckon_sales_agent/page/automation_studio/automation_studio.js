@@ -284,14 +284,14 @@
 					if (!t || !L.pos[t]) return;
 					const a = anchor(id, true), b = anchor(t, false); const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
 					edges.push(`<path class="${on.has(id) && on.has(t) ? "on" : ""}" d="${curve(a, b)}"/>`);
-					plus.push(`<button class="aut-plus" style="left:${mid.x}px;top:${mid.y}px" data-p="${id}" data-s="${slot}" title="${__("Insert a step here")}">+</button>`);
+					plus.push(`<button class="aut-plus" style="left:${mid.x}px;top:${mid.y}px" data-p="${id}" data-s="${slot}" title="${__("Insert a step here")}" aria-label="${__("Insert a step here")}">+</button>`);
 					if (n.type === "condition") labels.push(`<span class="aut-lbl ${slot}" style="left:${a.x + (b.x - a.x) * 0.22}px;top:${a.y + (b.y - a.y) * 0.22}px">${slot === "yes" ? __("Yes") : __("No")}</span>`);
 				});
 			});
 			L.virt.forEach((v) => {
 				const a = anchor(v.parent, true); const b = vert ? { x: v.x, y: v.y } : { x: v.x - 12, y: v.y };
 				edges.push(`<path d="${curve(a, { x: vert ? v.x : v.x, y: vert ? v.y : v.y })}" stroke-dasharray="4 4"/>`);
-				plus.push(`<button class="aut-plus leaf" style="left:${v.x}px;top:${v.y}px" data-p="${v.parent}" data-s="${v.slot}" title="${__("Add a step")}">+</button>`);
+				plus.push(`<button class="aut-plus leaf" style="left:${v.x}px;top:${v.y}px" data-p="${v.parent}" data-s="${v.slot}" title="${__("Add a step")}" aria-label="${__("Add a step")}">+</button>`);
 				if (nodes[v.parent].type === "condition") labels.push(`<span class="aut-lbl ${v.slot}" style="left:${a.x + (b.x - a.x) * 0.35}px;top:${a.y + (b.y - a.y) * 0.35}px">${v.slot === "yes" ? __("Yes") : __("No")}</span>`);
 			});
 			const cards = Object.entries(nodes).filter(([id]) => L.pos[id]).map(([id, n]) => {

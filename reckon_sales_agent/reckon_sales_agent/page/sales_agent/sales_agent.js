@@ -2,7 +2,7 @@
 // Wrapped in a closure: Desk evaluates page scripts in the global scope.
 (() => {
 	frappe.pages["sales-agent"].on_page_load = function (wrapper) {
-		const page = frappe.ui.make_app_page({ parent: wrapper, title: __("Agent Studio"), single_column: true });
+		const page = frappe.ui.make_app_page({ parent: wrapper, title: __("Home"), single_column: true });
 		page.add_inner_button(__("Lead Finder (advanced)"), () => frappe.set_route("lead-finder"));
 		page.add_inner_button(__("Prospect Review"), () => frappe.set_route("sales-review"));
 		page.add_inner_button(__("Analytics"), () => frappe.set_route("sales-analytics"));
@@ -108,10 +108,12 @@
 		render() {
 			const s = this.data;
 			if (!this.$root.children().length) {
-				this.$root.html(`<div class="ags-hero"></div><div class="ags-setup"></div><div class="ags-lanes"></div>
+				// What needs a person comes first; the thirteen agents are one click away, not the first thing seen.
+				this.$root.html(`<div class="ags-hero"></div><div class="ags-setup"></div>
+					<section class="ags-needs"><h4>${__("Needs you today")}</h4><div class="ags-inbox"></div></section>
 					<div class="ags-funnel"></div>
-					<div class="ags-cols"><section><h4>${__("Needs you")}</h4><div class="ags-inbox"></div></section>
-						<section><h4>${__("Live activity")}</h4><div class="ags-feed"></div></section></div>`);
+					<details class="ags-agents"><summary>${__("See what each AI agent is doing")}</summary><div class="ags-lanes"></div></details>
+					<section class="ags-activity"><h4>${__("Live activity")}</h4><div class="ags-feed"></div></section>`);
 			}
 			this.render_hero(s);
 			this.render_setup(s);
@@ -359,7 +361,7 @@
 					${p.ai_triage_verdict ? `<div class="ags-ai ${e(p.ai_triage_verdict)}">${icon("spark", 11)} <b>${e(p.ai_business_type || "")}</b>
 						${e({ approve: __("looks like a fit"), reject: __("looks like a misfit"), unsure: __("unsure") }[p.ai_triage_verdict])}
 						(${Math.round((p.ai_triage_confidence || 0) * 100)}%): ${e(p.ai_triage_reason || "")}</div>` : ""}</div>
-				<span class="ags-score" title="${__("Fit / deal probability / identity")}">${Math.round(p.fit_score || 0)} · ${Math.round(p.deal_probability || 0)}% · ${Math.round(p.identity_confidence || 0)}</span>
+				<span class="ags-score" title="${__("Fit: how well they match your ideal customer. Chance: how likely they are to buy. Match: how sure we are this is the right business.")}"><b>${__("Fit")}</b> ${Math.round(p.fit_score || 0)} · <b>${__("Chance")}</b> ${Math.round(p.deal_probability || 0)}% · <b>${__("Match")}</b> ${Math.round(p.identity_confidence || 0)}%</span>
 				<button class="btn btn-default btn-xs" data-d="approve">${__("Approve")}</button>
 				<button class="btn btn-default btn-xs" data-d="reject">${__("Reject")}</button></div>`).join("")}
 				<a class="btn btn-default btn-xs" href="/desk/sales-review">${__("Open the full review")}</a>`);

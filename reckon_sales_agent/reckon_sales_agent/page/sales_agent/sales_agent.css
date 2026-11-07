@@ -131,3 +131,11 @@
 .ags-dialer { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 6px 0 10px; }
 .ags-call.ags-active { outline: 2px solid var(--ags-ok); border-radius: 8px; }
 .ags-actions { display: flex; gap: 6px; flex: none; align-items: flex-start; }
+
+/* Home for people who are not technical: what needs you first, agents tucked away */
+.ags-needs { margin-bottom: 14px; }
+.ags-needs h4, .ags-activity h4 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ags-muted); margin: 0 0 8px; }
+.ags-agents { margin-bottom: 14px; }
+.ags-agents > summary { cursor: pointer; font-weight: 600; font-size: 13px; padding: 8px 2px; color: var(--ags-muted); }
+.ags-agents[open] > summary { margin-bottom: 8px; }
+.ags-score b { font-weight: 600; color: var(--ags-muted); font-size: 11px; }

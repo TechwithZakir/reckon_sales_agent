@@ -20,7 +20,8 @@ class SolidSurfaceTests(unittest.TestCase):
 class DockTests(unittest.TestCase):
     def test_loaded_on_every_desk_page(self):
         hooks = (APP / "hooks.py").read_text(encoding="utf-8")
-        self.assertIn('app_include_js = ["/assets/reckon_sales_agent/js/sales_dock.js"]', hooks)
+        self.assertIn('"/assets/reckon_sales_agent/js/sales_dock.js"', hooks)
+        self.assertIn('"/assets/reckon_sales_agent/js/rsa_help.js"', hooks)
         self.assertTrue(DOCK.is_file())
 
     def test_uses_the_conversation_api_and_live_updates(self):
