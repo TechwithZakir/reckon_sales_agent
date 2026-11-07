@@ -64,6 +64,9 @@ MASTER_DOCTYPES = {
 }
 SCOPED_DOCTYPES = {**DATA_DOCTYPES, **MASTER_DOCTYPES}
 
+# Scoped by the platform's company rule (Company field + tenant hooks), not by rsa_company.
+PLATFORM_SCOPED = frozenset({"CRM Lead", "CRM Deal", "CRM Organization"})
+
 VENDOR_CONFIG_DOCTYPES = frozenset(
     {
         "FCRM Settings",
@@ -157,6 +160,9 @@ def get_query_conditions(user: str | None = None, doctype: str | None = None) ->
     """
     if doctype not in SCOPED_DOCTYPES or not is_scoping_active():
         return ""
+    if doctype in PLATFORM_SCOPED:
+        # Leads, deals and organizations are company-scoped by the platform (as in Distribution).
+        return ""
     user = user or frappe.session.user
     if _can_bypass(user):
         return ""
@@ -188,6 +194,8 @@ def has_permission(
     """``has_permission`` for scoped DocTypes."""
     if doc.doctype not in SCOPED_DOCTYPES or not is_scoping_active():
         return True
+    if doc.doctype in PLATFORM_SCOPED:
+        return True  # the platform's company rule decides for these
     user = user or frappe.session.user
     if _can_bypass(user):
         return True

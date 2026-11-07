@@ -197,14 +197,15 @@ class CRMTenancyTests(unittest.TestCase):
 
     # List and link-search filtering
 
-    def test_tenant_query_is_limited_to_own_company(self):
-        self.assertEqual(
-            self.t.get_query_conditions("a@acme.example", "CRM Lead"),
-            "`tabCRM Lead`.`rsa_company` = 'Acme'",
-        )
+    def test_leads_and_deals_defer_to_the_platform_company_rule(self):
+        # Single source of truth: the platform scopes CRM Lead, Deal and Organization by Company.
+        self.assertEqual(self.t.get_query_conditions("a@acme.example", "CRM Lead"), "")
+        self.assertEqual(self.t.get_query_conditions("a@acme.example", "CRM Deal"), "")
+        self.assertEqual(self.t.get_query_conditions("a@acme.example", "CRM Organization"), "")
 
-    def test_unassigned_user_sees_nothing(self):
-        self.assertEqual(self.t.get_query_conditions("stray@x.example", "CRM Deal"), "1=0")
+    def test_other_crm_doctypes_still_use_the_company_column(self):
+        self.assertIn("`tabCRM Task`.`rsa_company` = 'Acme'",
+                      self.t.get_query_conditions("a@acme.example", "CRM Task"))
 
     def test_administrator_is_not_filtered(self):
         self.assertEqual(self.t.get_query_conditions("Administrator", "CRM Lead"), "")
@@ -216,20 +217,11 @@ class CRMTenancyTests(unittest.TestCase):
 
     # Document permission
 
-    def test_cannot_read_other_company_record(self):
-        doc = Doc("CRM Lead", "LEAD-B", rsa_company="Beta")
-        self.assertFalse(self.t.has_permission(doc, "a@acme.example", "read"))
-        self.assertTrue(self.t.has_permission(Doc("CRM Lead", "LEAD-A", rsa_company="Acme"),
+    def test_lead_document_permission_is_decided_by_the_platform(self):
+        self.assertTrue(self.t.has_permission(Doc("CRM Lead", "LEAD-B", rsa_company="Beta"),
                                               "a@acme.example", "read"))
-
-    def test_cannot_move_own_record_to_other_company(self):
-        doc = Doc("CRM Lead", "LEAD-A", rsa_company="Beta")
-        self.assertFalse(self.t.has_permission(doc, "a@acme.example", "write"))
-
-    def test_new_record_for_other_company_is_refused(self):
-        self.assertFalse(self.t.has_permission(Doc("CRM Lead", new=True, rsa_company="Beta"),
-                                               "a@acme.example", "create"))
-        self.assertTrue(self.t.has_permission(Doc("CRM Lead", new=True), "a@acme.example", "create"))
+        self.assertTrue(self.t.has_permission(Doc("CRM Deal", new=True, rsa_company="Beta"),
+                                              "a@acme.example", "create"))
 
     # Binding on insert
 
