@@ -21,6 +21,16 @@ def company_uses_sales_agent(company: str | None) -> bool:
     return MODULE_KEY in get_company_module_keys(company)
 
 
+def _profile_for(user: str, row) -> str | None:
+    """The person's role profile in this module, or ``None`` when the company's team page did not give them it."""
+    try:
+        from reckon_saas_platform.team import module_profile
+    except ImportError:  # an older platform: one role profile for every module
+        return row.role_profile
+    access = module_profile(user, row.company, MODULE_KEY, row.role_profile)
+    return access["role_profile"] if access else None
+
+
 def sync_tenant_user_access(doc, method=None) -> None:
     """Tenant User Assignment ``on_update``."""
     if company_uses_sales_agent(doc.get("company")):
@@ -33,12 +43,14 @@ def sync_user(user: str | None) -> None:
     assignments = frappe.get_all("Tenant User Assignment", filters={"user": user, "active": 1},
                                  fields=["company", "role_profile"])
     ours = [row for row in assignments if company_uses_sales_agent(row.company)]
-    wanted = {
-        role
-        for row in ours
-        for role in PROFILE_ROLES.get(row.role_profile or "", PROFILE_ROLES["Sales User"])
-        if frappe.db.exists("Role", role)
-    }
+    wanted = set()
+    for row in ours:
+        profile = _profile_for(user, row)
+        if profile is None:
+            continue  # the company's team page did not give this person Sales Agent
+        wanted.update(
+            role for role in PROFILE_ROLES.get(profile, PROFILE_ROLES["Sales User"]) if frappe.db.exists("Role", role)
+        )
     current = set(frappe.get_roles(user))
     user_doc = frappe.get_doc("User", user)
     # CRM roles may come from another module too; only remove our own when others are present.
