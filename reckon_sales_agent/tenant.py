@@ -71,3 +71,26 @@ def get_tenant_doc(doctype: str, name: str, ptype: str = "read"):
     doc = frappe.get_doc(doctype, name)
     doc.check_permission(ptype)
     return doc
+
+
+def has_sales_agent_access() -> bool:
+    """Whether the session user's company subscribes to Sales Agent and the team gave them it.
+
+    Platform and vendor staff always pass. Used by the conversation dock, which loads on every Desk page.
+    """
+    if is_system_actor():
+        return True
+    from reckon_saas_platform.saas import get_company_module_keys
+    from reckon_saas_platform.tenant_security import require_tenant
+
+    from reckon_sales_agent.constants import MODULE_KEY
+
+    tenant = require_tenant()
+    if MODULE_KEY not in get_company_module_keys(tenant.company):
+        return False
+    try:
+        from reckon_saas_platform.team import module_profile
+    except ImportError:  # an older platform: company-level only
+        return True
+    profile = frappe.db.get_value("Tenant User Assignment", {"user": tenant.user, "company": tenant.company, "active": 1}, "role_profile")
+    return module_profile(tenant.user, tenant.company, MODULE_KEY, profile) is not None

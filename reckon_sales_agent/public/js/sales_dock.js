@@ -239,6 +239,7 @@
 			state.rows = rows || [];
 			announce(state.rows);
 			render_launch();
+			sync_visibility();
 			if (root().classList.contains("open") && state.list && !state.prospect) render_list();
 		});
 	}
@@ -260,7 +261,7 @@
 	}
 
 	function sync_visibility() {
-		root().hidden = route_is_inbox() || !state.ready;
+		root().hidden = route_is_inbox() || !state.ready || !state.rows.length;  // nothing to show: no button
 		place();
 	}
 
