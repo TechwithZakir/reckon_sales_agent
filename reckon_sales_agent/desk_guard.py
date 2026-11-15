@@ -48,6 +48,7 @@ def get_scope(user: str | None = None) -> set[str] | None:
         if module.get("key") in modules and module.get("key") != MODULE_KEY:
             pages.update(module.get("desk_pages") or [])
             doctypes.update(module.get("desk_doctypes") or [])
+            pages.update(frappe.scrub(w).replace("_", "-") for w in module.get("desk_workspaces") or [])
     return pages | {frappe.scrub(dt).replace("_", "-") for dt in doctypes} | {"query-report"}
 
 
@@ -63,7 +64,9 @@ def restrict_sales_agent_desk_request() -> None:
     scope = get_scope()
     if scope is None:
         return
-    route = unquote(path.split("/", 3)[2]) if path.count("/") >= 2 else ""
+    parts = [unquote(p) for p in path.split("/")[2:] if p]
+    # /desk/<workspace>/<page or doctype>: the workspace only picks the sidebar, so the page is what is checked.
+    route = parts[1] if len(parts) > 1 and parts[0] not in scope else (parts[0] if parts else "")
     if not route or route not in scope:
         frappe.flags.sales_agent_redirect = HOME_ROUTE
 
