@@ -140,3 +140,20 @@ DEFAULT_LIMITS = {
 }
 
 DEFAULT_AI_MODEL = "claude-opus-5-5"
+
+# Site-wide CRM configuration: tenants read it, only vendor staff change it.
+CRM_CONFIG_DOCTYPES = (
+    "FCRM Settings",
+    "CRM Twilio Settings",
+    "CRM Exotel Settings",
+    "ERPNext CRM Settings",
+    "CRM Global Settings",
+    "CRM Fields Layout",
+    "CRM Form Script",
+    "CRM Lead Status",
+    "CRM Deal Status",
+    "CRM Communication Status",
+)
+# Lists every tenant reads and only vendor staff change.
+SHARED_REFERENCE_DOCTYPES = ("Gender", "Salutation")
+

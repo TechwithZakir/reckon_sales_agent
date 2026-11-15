@@ -43,18 +43,7 @@ _CRM_SCOPED = (
     "CRM View Settings",
     "Email Template",
 )
-_CRM_CONFIG = (
-    "FCRM Settings",
-    "CRM Twilio Settings",
-    "CRM Exotel Settings",
-    "ERPNext CRM Settings",
-    "CRM Global Settings",
-    "CRM Fields Layout",
-    "CRM Form Script",
-    "CRM Lead Status",
-    "CRM Deal Status",
-    "CRM Communication Status",
-)
+_CRM_CONFIG = _c.CRM_CONFIG_DOCTYPES
 _NAMED_BY_FIELD = (
     "CRM Organization",
     "CRM Product",
@@ -118,6 +107,7 @@ has_permission = {
     **{doctype: f"{_CRM}.has_config_permission" for doctype in _CRM_CONFIG},
     **{doctype: f"{_TENANT}.has_tenant_owned_permission" for doctype in _c.COMPANY_DOCTYPES},
     _c.PLATFORM_SETTINGS: f"{_CRM}.has_config_permission",
+    **{doctype: f"{_CRM}.has_config_permission" for doctype in _c.SHARED_REFERENCE_DOCTYPES},
 }
 
 doc_events = {

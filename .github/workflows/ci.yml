@@ -94,6 +94,11 @@ jobs:
           cd ~/frappe-bench
           set -o pipefail
           bench --site ci.local execute reckon_sales_agent.ci_smoke.run 2>&1 | tee -a ~/ci.log
+      - name: Tenant scoping audit
+        # Fails when this module opens a doctype to tenants without a company scope (or a declared read-only reference).
+        run: |
+          cd ~/frappe-bench
+          bench --site ci.local execute reckon_saas_platform.tenant_audit.assert_scoped --kwargs "{'module_key': 'sales_agent'}" 2>&1 | tee -a ~/ci.log
       - name: Show why it failed
         # Job logs need a GitHub sign-in; annotations are public, so the cause is readable from the API too.
         if: failure()

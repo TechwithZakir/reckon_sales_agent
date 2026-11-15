@@ -4,10 +4,12 @@ from reckon_sales_agent.constants import (
     ADMIN_ROLE,
     ALLOWED_DOCTYPES,
     ALLOWED_PAGES,
+    CRM_CONFIG_DOCTYPES,
     HOME_PAGE,
     HOME_ROUTE,
     MODULE_KEY,
     SAAS_ROLES,
+    SHARED_REFERENCE_DOCTYPES,
 )
 
 
@@ -33,5 +35,7 @@ def get_module_definition() -> dict:
         ],
         "desk_pages": sorted(ALLOWED_PAGES),
         "desk_doctypes": sorted(ALLOWED_DOCTYPES),
+        # Vendor-wide, read-only for tenants (see crm_tenancy.has_config_permission): no company rows to filter.
+        "desk_reference_doctypes": sorted({*CRM_CONFIG_DOCTYPES, *SHARED_REFERENCE_DOCTYPES}),
         "desk_reports": [],
     }
