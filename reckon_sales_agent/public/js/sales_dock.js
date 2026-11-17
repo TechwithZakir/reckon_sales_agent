@@ -20,6 +20,8 @@
 		set(value) { try { localStorage.setItem(KEY, JSON.stringify(value)); } catch (err) { /* private browsing */ } },
 	};
 	const call = (method, args) => frappe.xcall(API + method, args || {});
+	// The dock loads on every Desk page, also for people without Sales Agent: that refusal must stay silent, not pop up "Not permitted".
+	const quiet = (method, args) => new Promise((resolve, reject) => frappe.call({ method: API + method, args: args || {}, silent: true, callback: (r) => resolve(r.message), error: () => reject(new Error("no access")) }));
 	const esc = (value) => frappe.utils.escape_html(value == null ? "" : String(value));
 	const ago = (value) => (value ? frappe.datetime.prettyDate(value) : "");
 	const initials = (name) => (String(name || "?").trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join("") || "?").toUpperCase();
@@ -235,7 +237,7 @@
 	}
 
 	function load_rows() {
-		return call("threads").then((rows) => {
+		return quiet("threads").then((rows) => {
 			state.rows = rows || [];
 			announce(state.rows);
 			render_launch();
