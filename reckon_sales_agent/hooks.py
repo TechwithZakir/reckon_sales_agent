@@ -5,8 +5,20 @@ crm_tenancy separates Frappe CRM by Company, and the Sales Agent's own
 DocTypes use the platform's tenant hooks.
 """
 
+import hashlib
+from pathlib import Path
+
 # Private aliases: Frappe reads every public name in hooks.py as a hook.
 from reckon_sales_agent import constants as _c
+
+
+def _asset_version(name):
+    """A short fingerprint of a script. nginx caches /assets for a year, so the URL must change when the file does."""
+    try:
+        return hashlib.md5((Path(__file__).parent / "public" / "js" / name).read_bytes()).hexdigest()[:10]
+    except OSError:
+        return "0"
+
 
 # Keep in step with crm_tenancy (a unit test checks that the lists match).
 _CRM_SCOPED = (
@@ -169,4 +181,4 @@ scheduler_events = {
 fixtures = [{"dt": "Role", "filters": [["name", "in", list(_c.SAAS_ROLES)]]}]
 
 # The Conversation dock: a chat that stays open while the Desk changes pages.
-app_include_js = ["/assets/reckon_sales_agent/js/sales_dock.js", "/assets/reckon_sales_agent/js/rsa_help.js", "/assets/reckon_sales_agent/js/rsa_lists.js"]  # the dock, and a Help guide on every page
+app_include_js = [f"/assets/reckon_sales_agent/js/{name}?v={_asset_version(name)}" for name in ("sales_dock.js", "rsa_help.js", "rsa_lists.js")]  # the dock, and a Help guide on every page
