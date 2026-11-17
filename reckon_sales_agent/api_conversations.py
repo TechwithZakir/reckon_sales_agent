@@ -11,6 +11,17 @@ from reckon_sales_agent.tenant import current_company, get_tenant_doc
 
 
 @frappe.whitelist()
+def dock_access() -> bool:
+    """Whether the conversation dock shows for this user. Answers quietly (never an error), as it is asked on every Desk page."""
+    from reckon_sales_agent.tenant import has_sales_agent_access
+
+    try:
+        return bool(has_sales_agent_access())
+    except Exception:
+        return False
+
+
+@frappe.whitelist()
 def threads() -> list[dict]:
     from reckon_sales_agent.agents.omni import threads as list_threads
     from reckon_sales_agent.tenant import has_sales_agent_access

@@ -247,6 +247,7 @@
 	}
 
 	function on_realtime(data) {
+		if (!state.ready) return;
 		load_rows();
 		if (state.prospect && data && data.prospect === state.prospect) open_chat(state.prospect);
 	}
@@ -269,7 +270,7 @@
 
 	function start() {
 		if (state.ready || !frappe.session || frappe.session.user === "Guest") return;
-		load_rows().then(() => {
+		quiet("dock_access").then((ok) => (ok ? load_rows() : Promise.reject(new Error("no access")))).then(() => {
 			state.ready = true;
 			const saved = store.get().prospect;
 			if (saved) {
