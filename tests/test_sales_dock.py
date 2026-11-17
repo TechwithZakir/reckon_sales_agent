@@ -20,8 +20,9 @@ class SolidSurfaceTests(unittest.TestCase):
 class DockTests(unittest.TestCase):
     def test_loaded_on_every_desk_page(self):
         hooks = (APP / "hooks.py").read_text(encoding="utf-8")
-        self.assertIn('"/assets/reckon_sales_agent/js/sales_dock.js"', hooks)
-        self.assertIn('"/assets/reckon_sales_agent/js/rsa_help.js"', hooks)
+        self.assertIn('"/assets/reckon_sales_agent/js/{name}?v={_asset_version(name)}"', hooks)  # the URL carries the file's fingerprint
+        self.assertIn('"sales_dock.js"', hooks)
+        self.assertIn('"rsa_help.js"', hooks)
         self.assertTrue(DOCK.is_file())
 
     def test_uses_the_conversation_api_and_live_updates(self):
