@@ -27,8 +27,11 @@ class DockTests(unittest.TestCase):
     def test_uses_the_conversation_api_and_live_updates(self):
         js = DOCK.read_text(encoding="utf-8")
         self.assertIn('const API = "reckon_sales_agent.api_conversations."', js)
-        for method in ("threads", "thread", "send"):
+        for method in ("thread", "send"):
             self.assertIn(f'call("{method}"', js, method)
+        # The list and the access check are asked quietly: a user without Sales Agent must see no error.
+        self.assertIn('quiet("threads")', js)
+        self.assertIn('quiet("dock_access")', js)
         self.assertIn('frappe.realtime.on(EVENT,', js)
         self.assertIn('const EVENT = "rsa_inbox"', js)
 

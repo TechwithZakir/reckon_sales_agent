@@ -24,11 +24,9 @@ def dock_access() -> bool:
 @frappe.whitelist()
 def threads() -> list[dict]:
     from reckon_sales_agent.agents.omni import threads as list_threads
-    from reckon_sales_agent.tenant import has_sales_agent_access
-
-    if not has_sales_agent_access():
-        # The dock loads on every Desk page: users without Sales Agent get an error here, so it stays hidden.
-        frappe.throw(frappe._("Not permitted"), frappe.PermissionError)
+    if not dock_access():
+        # The dock loads on every Desk page, and an older cached copy of it asks here directly: no threads, no error.
+        return []
     return list_threads(current_company())
 
 
