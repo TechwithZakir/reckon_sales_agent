@@ -122,7 +122,7 @@
 				$host.data("ags-built", true).html(`
 					<div class="ags-tools"><input type="search" class="form-control input-xs ags-q" placeholder="${__("Search")}" value="${e(v.q)}" aria-label="${__("Search")}">
 						${sorts.length ? `<select class="form-control input-xs ags-sortby" aria-label="${__("Sort")}">${sorts.map((x, i) => `<option value="${i}" ${i === v.sort ? "selected" : ""}>${e(x[0])}</option>`).join("")}</select>` : ""}
-						<select class="form-control input-xs ags-size" aria-label="${__("Rows per page")}">${[5, 10, 25, 50].map((n) => `<option value="${n}" ${n === v.size ? "selected" : ""}>${__("{0} per page", [n])}</option>`).join("")}</select></div>
+						<select class="form-control input-xs ags-size" aria-label="${__("Rows per page")}">${[...new Set([5, 10, 25, 50, v.size])].sort((x, y) => x - y).map((n) => `<option value="${n}" ${n === v.size ? "selected" : ""}>${__("{0} per page", [n])}</option>`).join("")}</select></div>
 					<div class="ags-items ${opts.cls || ""}"></div>
 					<div class="ags-pager"><span class="ags-muted ags-info"></span><span class="ags-pages"></span></div>`);
 				$host.on("input", ".ags-q", (ev) => { v.q = ev.currentTarget.value; v.page = 1; this.paint_listing($host, id); });
@@ -314,7 +314,7 @@
 						: `<div class="ags-muted">${l.last ? e(label(l.last.action)) + " · " + e(frappe.datetime.prettyDate(l.last.creation)) : __("Nothing yet")}</div>`}</div>
 					<div class="ags-metrics">${l.metrics.map(([k, v]) => `<span><b>${e(v)}</b> ${e(k)}</span>`).join("")}</div>
 				</div>` })), {
-				cls: "ags-lanes", size: 6, sorts: [
+				cls: "ags-lanes", size: 10, sorts: [
 					[__("Needs you first"), (a, b) => rank[a.l.status] - rank[b.l.status] || a.l.agent.localeCompare(b.l.agent)],
 					[__("Agent A–Z"), (a, b) => a.l.agent.localeCompare(b.l.agent)],
 					[__("Most work done"), (a, b) => done(b.l) - done(a.l)],
