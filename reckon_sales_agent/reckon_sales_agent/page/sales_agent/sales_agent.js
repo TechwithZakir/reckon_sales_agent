@@ -196,8 +196,11 @@
 					<div class="ags-setup"></div>
 					${this.section("agents", __("See what each AI agent is doing"), '<div class="ags-lanes-host"></div>', "ags-agents")}
 					<div class="ags-cols">
-						${this.section("needs", __("Needs you today"), '<div class="ags-inbox"></div>', "ags-needs")}
-						${this.section("activity", __("Live activity"), '<div class="ags-feed"></div>', "ags-activity")}
+						<div class="ags-col">${this.section("needs", __("Needs you today"), '<div class="ags-inbox"></div>', "ags-needs")}</div>
+						<div class="ags-col">
+							${this.section("calls", __("Calls and follow-ups"), '<div class="ags-calls"></div>', "ags-callsec")}
+							${this.section("activity", __("Live activity"), '<div class="ags-feed"></div>', "ags-activity")}
+						</div>
 					</div>`);
 				this.$root.on("toggle", "details.ags-sec", (ev) => {
 					try { localStorage.setItem(`ags_open_${ev.currentTarget.dataset.sec}`, ev.currentTarget.open ? "1" : "0"); } catch (err) { /* private window */ }
@@ -376,7 +379,17 @@
 		// ---------------------------------------------------------------- the Needs-you inbox
 		render_inbox(s) {
 			const el = this.$root.find(".ags-inbox");
-			const asks = s.asks.filter((a) => a.key !== "onboard");
+			const asks = s.asks.filter((a) => a.key !== "onboard" && a.key !== "followups");
+			// Calls and follow-ups have their own section on the right, next to the live activity.
+			const fu = s.asks.find((a) => a.key === "followups");
+			const $calls = this.$root.find(".ags-calls").empty();
+			this.$root.find(".ags-callsec").toggle(!!fu);
+			if (fu) {
+				const $c = $(`<div class="ags-ask"><div class="ags-ask-head"><span class="ags-dot" ${tint(fu.agent)}>${icon(fu.agent, 13)}</span>
+					<div class="grow"><b>${e(__(fu.title))}</b><div class="ags-muted">${e(__(fu.detail || ""))}</div></div></div>
+					<div class="ags-ask-body"></div></div>`).appendTo($calls);
+				this.ask_followups($c.find(".ags-ask-body"), fu);
+			}
 			const LISTS = ["review", "followups", "deals", "signals", "approve_drafts", "approve_segments", "approve_campaign"];
 			const WAITING = ["conversations", "meetings", "hot_recipients"];
 			const rank = (a) => (WAITING.includes(a.key) ? 0 : LISTS.includes(a.key) ? 2 : 1);

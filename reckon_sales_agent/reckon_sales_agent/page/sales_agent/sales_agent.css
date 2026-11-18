@@ -138,7 +138,8 @@
 	text-transform: uppercase; letter-spacing: 0.04em; list-style-position: inside; }
 .ags-sec[open] > summary { margin-bottom: 8px; }
 .ags-sec-count { margin-left: 6px; font-weight: 500; text-transform: none; letter-spacing: 0; }
-.ags-cols > .ags-sec { margin-bottom: 0; }
+.ags-col { min-width: 0; }
+.ags-col > .ags-sec:last-child { margin-bottom: 0; }
 .ags-cols { margin-bottom: 14px; align-items: start; }
 .ags-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
 .ags-tools .ags-q { flex: 1 1 160px; min-width: 120px; }

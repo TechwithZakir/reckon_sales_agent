@@ -117,10 +117,10 @@ class ScreenTests(unittest.TestCase):
     def test_home_puts_the_pipeline_first_then_the_agents_then_two_lists(self):
         script = read("reckon_sales_agent", "page", "sales_agent", "sales_agent.js")
         layout = script.split("this.$root.html(`")[1].split("`);")[0]
-        order = [layout.index(k) for k in ("ags-funnel", "ags-lanes-host", "ags-cols", "ags-inbox", "ags-feed")]
+        order = [layout.index(k) for k in ("ags-funnel", "ags-lanes-host", "ags-cols", "ags-inbox", "ags-calls", "ags-feed")]
         self.assertEqual(order, sorted(order))
         # every section folds away and the lists page, search and sort
-        for sec in ("pipeline", "agents", "needs", "activity"):
+        for sec in ("pipeline", "agents", "needs", "calls", "activity"):
             self.assertIn(f'this.section("{sec}"', layout)
         for lst in ("lanes", "needs", "feed"):
             self.assertIn(f'this.listing("{lst}"', script)
