@@ -377,11 +377,16 @@
 		render_inbox(s) {
 			const el = this.$root.find(".ags-inbox");
 			const asks = s.asks.filter((a) => a.key !== "onboard");
+			const LISTS = ["review", "followups", "deals", "signals", "approve_drafts", "approve_segments", "approve_campaign"];
+			const WAITING = ["conversations", "meetings", "hot_recipients"];
+			const rank = (a) => (WAITING.includes(a.key) ? 0 : LISTS.includes(a.key) ? 2 : 1);
 			const items = asks.map((a, i) => ({ i, a, text: [a.title, a.detail, a.agent].join(" "), html: `<div class="ags-ask-slot" data-i="${i}"></div>` }));
 			this.listing("needs", el, items, {
 				size: 5, hide_tools_under: 4,
 				empty: __("Nothing needs you right now. The agents will ask here when a decision is yours."),
 				sorts: [
+					// People waiting for an answer and one-click asks come first; the long lists to work through come last.
+					[__("Quick actions first"), (x, y) => rank(x.a) - rank(y.a) || x.i - y.i],
 					[__("Agent order"), (x, y) => x.i - y.i],
 					[__("Title A–Z"), (x, y) => String(x.a.title).localeCompare(String(y.a.title))],
 					[__("Agent A–Z"), (x, y) => String(x.a.agent || "").localeCompare(String(y.a.agent || "")) || x.i - y.i],
