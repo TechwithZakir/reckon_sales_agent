@@ -134,6 +134,35 @@
 			this.paint_listing($host, id);
 		}
 
+		page_buttons(page, pages) {
+			if (pages <= 1) return "";
+			const near = [...new Set([1, pages, page - 1, page, page + 1])].filter((n) => n >= 1 && n <= pages).sort((a, b) => a - b);
+			let last = 0;
+			const btn = (label, to, extra = "") => `<button type="button" class="btn btn-xs btn-default ags-pg ${extra}" data-page="${to}" ${extra.includes("off") ? "disabled" : ""}>${label}</button>`;
+			return btn("‹", page - 1, page === 1 ? "off" : "")
+				+ near.map((n) => { const gap = n - last > 1 ? '<span class="ags-gap">…</span>' : ""; last = n; return gap + btn(n, n, n === page ? "btn-primary" : ""); }).join("")
+				+ btn("›", page + 1, page === pages ? "off" : "");
+		}
+
+		// The records inside one ask card: the latest five, then pages. rows are html strings; after($rows) binds
+		// the row buttons again after every page change.
+		paged($slot, key, rows, after, size = 5) {
+			this.views = this.views || {};
+			const st = (this.views[`ask_${key}`] = this.views[`ask_${key}`] || { page: 1 });
+			const $m = $(`<div class="ags-mini"><div class="ags-rows"></div><div class="ags-pager"><span class="ags-muted ags-info"></span><span class="ags-pages"></span></div></div>`).appendTo($slot);
+			const paint = () => {
+				const pages = Math.max(1, Math.ceil(rows.length / size));
+				st.page = Math.min(Math.max(1, st.page), pages);
+				const from = (st.page - 1) * size;
+				const $r = $m.find(".ags-rows").html(rows.slice(from, from + size).join(""));
+				$m.find(".ags-info").text(rows.length > size ? __("{0}–{1} of {2}", [from + 1, Math.min(from + size, rows.length), rows.length]) : "");
+				$m.find(".ags-pages").html(this.page_buttons(st.page, pages));
+				if (after) after($r);
+			};
+			$m.on("click", ".ags-pg:not([disabled])", (ev) => { st.page = Number(ev.currentTarget.dataset.page); paint(); });
+			paint();
+		}
+
 		paint_listing($host, id) {
 			const v = this.views[id];
 			const items = $host.data("ags-items") || [];
@@ -149,12 +178,7 @@
 			$host.find(".ags-items").html(slice.length ? slice.map((it) => it.html).join("")
 				: `<div class="ags-empty">${q ? __("Nothing matches your search.") : (opts.empty || __("Nothing here yet."))}</div>`);
 			$host.find(".ags-info").text(rows.length ? __("{0}–{1} of {2}", [from + 1, from + slice.length, rows.length]) : __("0 rows"));
-			const near = [...new Set([1, pages, v.page - 1, v.page, v.page + 1])].filter((n) => n >= 1 && n <= pages).sort((a, b) => a - b);
-			let last = 0;
-			const btn = (label, page, extra = "") => `<button type="button" class="btn btn-xs btn-default ags-pg ${extra}" data-page="${page}" ${extra.includes("off") ? "disabled" : ""}>${label}</button>`;
-			$host.find(".ags-pages").html(pages <= 1 ? "" : btn("‹", v.page - 1, v.page === 1 ? "off" : "")
-				+ near.map((n) => { const gap = n - last > 1 ? '<span class="ags-gap">…</span>' : ""; last = n; return gap + btn(n, n, n === v.page ? "btn-primary" : ""); }).join("")
-				+ btn("›", v.page + 1, v.page === pages ? "off" : ""));
+			$host.find(".ags-pages").html(this.page_buttons(v.page, pages));
 			if (opts.after) opts.after($host.find(".ags-items"), slice);
 			$host.find(".ags-tools").toggle(!opts.hide_tools_under || items.length > opts.hide_tools_under);
 			$host.closest("details").find("[data-count]").first().text(items.length ? ` ${items.length}` : "");
@@ -446,7 +470,9 @@
 			body.html(`${ai.approve + ai.reject ? `<div class="ags-bulk">${icon("spark", 14)}
 				<div class="grow">${__("The AI suggests approving {0} and setting aside {1}. Leads it is unsure about stay here.", [ai.approve, ai.reject])}</div>
 				<button class="btn btn-primary btn-xs ags-accept">${__("Accept the AI's suggestions")}</button></div>` : ""}
-				${a.prospects.map((p) => `<div class="ags-lead" data-name="${e(p.name)}">
+				<div class="ags-slot"></div>
+				<a class="btn btn-default btn-xs" href="/desk/sales-review">${__("Open the full review")}</a>`);
+			const rows = a.prospects.map((p) => `<div class="ags-lead" data-name="${e(p.name)}">
 				<div class="grow"><a href="/desk/sales-prospect/${encodeURIComponent(p.name)}"><b>${e(p.business_name)}</b></a>
 					<div class="ags-muted">${e([p.city, p.website && p.website.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")].filter(Boolean).join(" · "))}</div>
 					${p.ai_triage_verdict ? `<div class="ags-ai ${e(p.ai_triage_verdict)}">${icon("spark", 11)} <b>${e(p.ai_business_type || "")}</b>
@@ -454,8 +480,7 @@
 						(${Math.round((p.ai_triage_confidence || 0) * 100)}%): ${e(p.ai_triage_reason || "")}</div>` : ""}</div>
 				<span class="ags-score" title="${__("Fit: how well they match your ideal customer. Chance: how likely they are to buy. Match: how sure we are this is the right business.")}"><b>${__("Fit")}</b> ${Math.round(p.fit_score || 0)} · <b>${__("Chance")}</b> ${Math.round(p.deal_probability || 0)}% · <b>${__("Match")}</b> ${Math.round(p.identity_confidence || 0)}%</span>
 				<button class="btn btn-default btn-xs" data-d="approve">${__("Approve")}</button>
-				<button class="btn btn-default btn-xs" data-d="reject">${__("Reject")}</button></div>`).join("")}
-				<a class="btn btn-default btn-xs" href="/desk/sales-review">${__("Open the full review")}</a>`);
+				<button class="btn btn-default btn-xs" data-d="reject">${__("Reject")}</button></div>`);
 			body.find(".ags-accept").on("click", (ev) => frappe.confirm(
 				__("Approve {0} lead(s) and add them to the CRM, and set aside {1}? You can reverse any of them in Prospect Review.", [ai.approve, ai.reject]),
 				() => {
@@ -463,12 +488,12 @@
 					this.act("accept_ai", {}).then((r) => frappe.show_alert({
 						message: __("{0} approved, {1} set aside", [r.approved, r.rejected]), indicator: "green" }));
 				}));
-			body.find(".ags-lead button").on("click", (ev) => {
+			this.paged(body.find(".ags-slot"), "review", rows, ($r) => $r.find(".ags-lead button").on("click", (ev) => {
 				const row = $(ev.currentTarget).closest(".ags-lead");
 				row.find("button").prop("disabled", true);
 				this.act("review", { prospects: [row.data("name")], decision: ev.currentTarget.dataset.d },
 					ev.currentTarget.dataset.d === "approve" ? __("Approved and added to the CRM") : __("Rejected"));
-			});
+			}));
 		}
 
 		ask_followups(body, a) {
@@ -491,11 +516,11 @@
 				<pre>${e(t.script)}</pre></details>
 				${t.is_call && this.data.office_phone && t.phone ? `<button class="btn btn-xs btn-default ags-dial" data-p="${e(t.prospect)}">${__("Call via office phone")}</button>` : ""}
 				${t.is_call ? outcomeButtons("ToDo", t.name) : ""}</div>
-				${t.is_call ? "" : `<button class="btn btn-default btn-xs ags-done">${__("Mark done")}</button>`}</div>`).join("");
+				${t.is_call ? "" : `<button class="btn btn-default btn-xs ags-done">${__("Mark done")}</button>`}</div>`);
 			const tasks = crmTasks.map((t) => `<div class="ags-lead ags-call"><div class="grow"><b>${e(t.title)}</b>
 				<div class="ags-muted">${e(t.business || "")}${e(due(t.due_date))}${t.assigned_to ? " · " + e(t.assigned_to) : ""}</div>
 				${t.is_call ? outcomeButtons("CRM Task", t.name) : ""}</div>
-				<a class="btn btn-default btn-xs" href="/crm/leads/${encodeURIComponent(t.reference_docname)}">${__("Open in CRM")}</a></div>`).join("");
+				<a class="btn btn-default btn-xs" href="/crm/leads/${encodeURIComponent(t.reference_docname)}">${__("Open in CRM")}</a></div>`);
 			// Power dialer: ring the next due call, and after each outcome the one after (within calling hours).
 			const dialer = this.data.office_phone && (a.todos || []).some((t) => t.is_call)
 				? `<div class="ags-dialer">${this.dialing
@@ -504,23 +529,26 @@
 					: `<button class="btn btn-primary btn-xs ags-start">${__("Start calling")}</button>
 						<span class="ags-muted">${__("Rings your phone for each due call in turn; log the outcome to move on.")}</span>`}</div>` : "";
 			const toggle = `<label class="ags-check ags-mine"><input type="checkbox" ${this.onlyMine ? "checked" : ""}> ${__("Only my calls and follow-ups")}</label>`;
-			body.html(toggle + dialer + (calls + tasks || `<div class="ags-muted">${this.onlyMine ? __("Nothing assigned to you right now.") : __("Open your ToDo list to see them.")}</div>`));
+			body.html(toggle + dialer + '<div class="ags-slot"></div>');
+			const callRows = [...calls, ...tasks];
+			if (!callRows.length) body.find(".ags-slot").html(`<div class="ags-muted">${this.onlyMine ? __("Nothing assigned to you right now.") : __("Open your ToDo list to see them.")}</div>`);
 			body.find(".ags-mine input").on("change", (ev) => { this.onlyMine = ev.currentTarget.checked; this.inboxKey = null; this.render_inbox(this.data); });
-			if (this.dialing) body.find(`.ags-call[data-todo="${CSS.escape(this.dialing.todo)}"]`).addClass("ags-active").find("details").attr("open", true);
 			body.find(".ags-start").on("click", () => this.dial_next());
 			body.find(".ags-stop").on("click", () => { this.dialing = null; this.inboxKey = null; this.refresh(); });
-			body.find(".ags-done").on("click", (ev) => {
+			if (callRows.length) this.paged(body.find(".ags-slot"), "followups", callRows, ($r) => {
+			if (this.dialing) $r.find(`.ags-call[data-todo="${CSS.escape(this.dialing.todo)}"]`).addClass("ags-active").find("details").attr("open", true);
+			$r.find(".ags-done").on("click", (ev) => {
 				const row = $(ev.currentTarget).closest(".ags-lead");
 				$(ev.currentTarget).prop("disabled", true);
 				this.act("task_done", { todo: row.data("todo") }, __("Marked done"));
 			});
-			body.find(".ags-dial").on("click", (ev) => {
+			$r.find(".ags-dial").on("click", (ev) => {
 				$(ev.currentTarget).prop("disabled", true);
 				frappe.xcall("reckon_sales_agent.api_telephony.call", { prospect: ev.currentTarget.dataset.p })
 					.then(() => frappe.show_alert({ message: __("Your phone is ringing; answer to connect the lead."), indicator: "green" }))
 					.finally(() => $(ev.currentTarget).prop("disabled", false));
 			});
-			body.find(".ags-outcomes button").on("click", (ev) => {
+			$r.find(".ags-outcomes button").on("click", (ev) => {
 				const box = $(ev.currentTarget).closest(".ags-outcomes");
 				const outcome = ev.currentTarget.dataset.outcome;
 				const send = (extra) => {
@@ -543,6 +571,7 @@
 				} else {
 					send({});
 				}
+			});
 			});
 		}
 
@@ -575,23 +604,23 @@
 		}
 
 		ask_deals(body, a) {
-			body.html((a.deals || []).map((d) => `<div class="ags-lead"><div class="grow"><b>${e(d.organization)}</b>
+			const rows = (a.deals || []).map((d) => `<div class="ags-lead"><div class="grow"><b>${e(d.organization)}</b>
 				<span class="ags-muted">${e(d.status)} · ${e(d.problem === "overdue" ? __("{0} days past closing date", [d.days]) : __("quiet {0} days", [d.days]))}${d.owner ? " · " + e(d.owner) : ""}</span>
 				<div class="ags-muted">${e(d.action)}</div></div>
 				<div class="ags-actions">${this.data.can_manage ? `<button class="btn btn-default btn-xs ags-proposal" data-deal="${e(d.name)}">${__("Draft proposal")}</button>` : ""}
-				<a class="btn btn-default btn-xs" href="/crm/deals/${encodeURIComponent(d.name)}">${__("Open in CRM")}</a></div></div>`).join(""));
-			body.find(".ags-proposal").on("click", (ev) => {
+				<a class="btn btn-default btn-xs" href="/crm/deals/${encodeURIComponent(d.name)}">${__("Open in CRM")}</a></div></div>`);
+			this.paged(body, "deals", rows, ($r) => $r.find(".ags-proposal").on("click", (ev) => {
 				$(ev.currentTarget).prop("disabled", true);
 				this.act("draft_proposal", { deal: ev.currentTarget.dataset.deal }, __("Proposal drafted as a note on the deal"))
 					.catch(() => $(ev.currentTarget).prop("disabled", false));
-			});
+			}));
 		}
 
 		ask_signals(body, a) {
 			const rows = a.prospects || [];
-			body.html(rows.map((p) => `<div class="ags-lead"><div class="grow"><a href="/desk/sales-prospect/${encodeURIComponent(p.name)}"><b>${e(p.business_name)}</b></a>
-				<span class="ags-muted">${e(p.city || "")} · ${__("buying signals {0} → {1}", [e(p.previous_buying_score), e(p.buying_signal_score)])}</span></div></div>`).join("")
-				+ `<button class="btn btn-default btn-xs ags-seen">${__("Seen")}</button>`);
+			this.paged(body, "signals", rows.map((p) => `<div class="ags-lead"><div class="grow"><a href="/desk/sales-prospect/${encodeURIComponent(p.name)}"><b>${e(p.business_name)}</b></a>
+				<span class="ags-muted">${e(p.city || "")} · ${__("buying signals {0} → {1}", [e(p.previous_buying_score), e(p.buying_signal_score)])}</span></div></div>`));
+			$(`<button class="btn btn-default btn-xs ags-seen">${__("Seen")}</button>`).appendTo(body);
 			body.find(".ags-seen").on("click", () => this.act("signals_seen", { prospects: rows.map((p) => p.name) }, __("Marked as seen")));
 		}
 
