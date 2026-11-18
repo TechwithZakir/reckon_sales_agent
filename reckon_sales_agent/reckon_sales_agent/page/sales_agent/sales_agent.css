@@ -132,10 +132,21 @@
 .ags-call.ags-active { outline: 2px solid var(--ags-ok); border-radius: 8px; }
 .ags-actions { display: flex; gap: 6px; flex: none; align-items: flex-start; }
 
-/* Home for people who are not technical: what needs you first, agents tucked away */
-.ags-needs { margin-bottom: 14px; }
-.ags-needs h4, .ags-activity h4 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ags-muted); margin: 0 0 8px; }
-.ags-agents { margin-bottom: 14px; }
-.ags-agents > summary { cursor: pointer; font-weight: 600; font-size: 13px; padding: 8px 2px; color: var(--ags-muted); }
-.ags-agents[open] > summary { margin-bottom: 8px; }
+/* Every section folds away; lists have a toolbar and pages */
+.ags-sec { margin-bottom: 14px; min-width: 0; }
+.ags-sec > summary { cursor: pointer; font-weight: 600; font-size: 13px; padding: 8px 2px; color: var(--ags-muted);
+	text-transform: uppercase; letter-spacing: 0.04em; list-style-position: inside; }
+.ags-sec[open] > summary { margin-bottom: 8px; }
+.ags-sec-count { margin-left: 6px; font-weight: 500; text-transform: none; letter-spacing: 0; }
+.ags-cols > .ags-sec { margin-bottom: 0; }
+.ags-cols { margin-bottom: 14px; align-items: start; }
+.ags-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.ags-tools .ags-q { flex: 1 1 160px; min-width: 120px; }
+.ags-tools select { width: auto; }
+.ags-pager { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px; font-size: 12px; }
+.ags-pages { display: inline-flex; gap: 4px; align-items: center; }
+.ags-gap { color: var(--ags-muted); padding: 0 2px; }
+.ags-feed .ags-items { background: var(--ags-card); border: 1px solid var(--ags-line); border-radius: 14px; padding: 4px 14px; }
+.ags-feed .ags-items:has(> .ags-empty) { padding: 0; border: 0; }
+.ags-feed { padding: 0; max-height: none; overflow: visible; background: none; border: 0; }
 .ags-score b { font-weight: 600; color: var(--ags-muted); font-size: 11px; }

@@ -114,11 +114,16 @@ class HelpTests(unittest.TestCase):
 
 
 class ScreenTests(unittest.TestCase):
-    def test_home_shows_what_needs_you_before_the_agents(self):
+    def test_home_puts_the_pipeline_first_then_the_agents_then_two_lists(self):
         script = read("reckon_sales_agent", "page", "sales_agent", "sales_agent.js")
         layout = script.split("this.$root.html(`")[1].split("`);")[0]
-        self.assertLess(layout.index("ags-needs"), layout.index("ags-lanes"))
-        self.assertIn("<details class=\"ags-agents\">", layout)
+        order = [layout.index(k) for k in ("ags-funnel", "ags-lanes-host", "ags-cols", "ags-inbox", "ags-feed")]
+        self.assertEqual(order, sorted(order))
+        # every section folds away and the lists page, search and sort
+        for sec in ("pipeline", "agents", "needs", "activity"):
+            self.assertIn(f'this.section("{sec}"', layout)
+        for lst in ("lanes", "needs", "feed"):
+            self.assertIn(f'this.listing("{lst}"', script)
         self.assertIn('title: __("Home")', script)
         meta = json.loads(read("reckon_sales_agent", "page", "sales_agent", "sales_agent.json"))
         self.assertEqual(meta["title"], "Home")

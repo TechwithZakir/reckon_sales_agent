@@ -104,16 +104,80 @@
 			});
 		}
 
+		// A section that folds away, remembering whether it was left open.
+		section(id, title, inner, cls = "") {
+			let open = true;
+			try { open = localStorage.getItem(`ags_open_${id}`) !== "0"; } catch (err) { /* private window */ }
+			return `<details class="ags-sec ${cls}" data-sec="${id}" ${open ? "open" : ""}><summary>${e(title)}<span class="ags-sec-count" data-count></span></summary>
+				<div class="ags-sec-body">${inner}</div></details>`;
+		}
+
+		// A list with search, sort and pages. The toolbar is built once per host, so a refresh only swaps the rows and
+		// never takes the typing away. items: [{ html, text, ... }]; sorts: [[label, compare]].
+		listing(id, $host, items, opts = {}) {
+			const views = (this.views = this.views || {});
+			const v = (views[id] = views[id] || { q: "", sort: 0, page: 1, size: opts.size || 10 });
+			const sorts = opts.sorts || [];
+			if (!$host.data("ags-built")) {
+				$host.data("ags-built", true).html(`
+					<div class="ags-tools"><input type="search" class="form-control input-xs ags-q" placeholder="${__("Search")}" value="${e(v.q)}" aria-label="${__("Search")}">
+						${sorts.length ? `<select class="form-control input-xs ags-sortby" aria-label="${__("Sort")}">${sorts.map((x, i) => `<option value="${i}" ${i === v.sort ? "selected" : ""}>${e(x[0])}</option>`).join("")}</select>` : ""}
+						<select class="form-control input-xs ags-size" aria-label="${__("Rows per page")}">${[5, 10, 25, 50].map((n) => `<option value="${n}" ${n === v.size ? "selected" : ""}>${__("{0} per page", [n])}</option>`).join("")}</select></div>
+					<div class="ags-items ${opts.cls || ""}"></div>
+					<div class="ags-pager"><span class="ags-muted ags-info"></span><span class="ags-pages"></span></div>`);
+				$host.on("input", ".ags-q", (ev) => { v.q = ev.currentTarget.value; v.page = 1; this.paint_listing($host, id); });
+				$host.on("change", ".ags-sortby", (ev) => { v.sort = Number(ev.currentTarget.value); v.page = 1; this.paint_listing($host, id); });
+				$host.on("change", ".ags-size", (ev) => { v.size = Number(ev.currentTarget.value) || 10; v.page = 1; this.paint_listing($host, id); });
+				$host.on("click", ".ags-pg:not([disabled])", (ev) => { v.page = Number(ev.currentTarget.dataset.page); this.paint_listing($host, id); });
+			}
+			$host.data("ags-items", items).data("ags-opts", opts);
+			this.paint_listing($host, id);
+		}
+
+		paint_listing($host, id) {
+			const v = this.views[id];
+			const items = $host.data("ags-items") || [];
+			const opts = $host.data("ags-opts") || {};
+			const q = v.q.trim().toLowerCase();
+			const rows = q ? items.filter((it) => String(it.text || "").toLowerCase().includes(q)) : items.slice();
+			const sort = (opts.sorts || [])[v.sort];
+			if (sort && sort[1]) rows.sort(sort[1]);
+			const pages = Math.max(1, Math.ceil(rows.length / v.size));
+			v.page = Math.min(Math.max(1, v.page), pages);
+			const from = (v.page - 1) * v.size;
+			const slice = rows.slice(from, from + v.size);
+			$host.find(".ags-items").html(slice.length ? slice.map((it) => it.html).join("")
+				: `<div class="ags-empty">${q ? __("Nothing matches your search.") : (opts.empty || __("Nothing here yet."))}</div>`);
+			$host.find(".ags-info").text(rows.length ? __("{0}–{1} of {2}", [from + 1, from + slice.length, rows.length]) : __("0 rows"));
+			const near = [...new Set([1, pages, v.page - 1, v.page, v.page + 1])].filter((n) => n >= 1 && n <= pages).sort((a, b) => a - b);
+			let last = 0;
+			const btn = (label, page, extra = "") => `<button type="button" class="btn btn-xs btn-default ags-pg ${extra}" data-page="${page}" ${extra.includes("off") ? "disabled" : ""}>${label}</button>`;
+			$host.find(".ags-pages").html(pages <= 1 ? "" : btn("‹", v.page - 1, v.page === 1 ? "off" : "")
+				+ near.map((n) => { const gap = n - last > 1 ? '<span class="ags-gap">…</span>' : ""; last = n; return gap + btn(n, n, n === v.page ? "btn-primary" : ""); }).join("")
+				+ btn("›", v.page + 1, v.page === pages ? "off" : ""));
+			if (opts.after) opts.after($host.find(".ags-items"), slice);
+			$host.find(".ags-tools").toggle(!opts.hide_tools_under || items.length > opts.hide_tools_under);
+			$host.closest("details").find("[data-count]").first().text(items.length ? ` ${items.length}` : "");
+		}
+
 		// ---------------------------------------------------------------- layout
 		render() {
 			const s = this.data;
 			if (!this.$root.children().length) {
 				// What needs a person comes first; the thirteen agents are one click away, not the first thing seen.
-				this.$root.html(`<div class="ags-hero"></div><div class="ags-setup"></div>
-					<section class="ags-needs"><h4>${__("Needs you today")}</h4><div class="ags-inbox"></div></section>
-					<div class="ags-funnel"></div>
-					<details class="ags-agents"><summary>${__("See what each AI agent is doing")}</summary><div class="ags-lanes"></div></details>
-					<section class="ags-activity"><h4>${__("Live activity")}</h4><div class="ags-feed"></div></section>`);
+				// The pipeline comes first, then the agents, then the two lists side by side. Every section folds away, and
+				// stays folded (or open) the next time.
+				this.$root.html(`<div class="ags-hero"></div>
+					${this.section("pipeline", __("Your pipeline at a glance"), '<div class="ags-funnel"></div>')}
+					<div class="ags-setup"></div>
+					${this.section("agents", __("See what each AI agent is doing"), '<div class="ags-lanes-host"></div>', "ags-agents")}
+					<div class="ags-cols">
+						${this.section("needs", __("Needs you today"), '<div class="ags-inbox"></div>', "ags-needs")}
+						${this.section("activity", __("Live activity"), '<div class="ags-feed"></div>', "ags-activity")}
+					</div>`);
+				this.$root.on("toggle", "details.ags-sec", (ev) => {
+					try { localStorage.setItem(`ags_open_${ev.currentTarget.dataset.sec}`, ev.currentTarget.open ? "1" : "0"); } catch (err) { /* private window */ }
+				});
 			}
 			this.render_hero(s);
 			this.render_setup(s);
@@ -233,13 +297,15 @@
 
 		render_conv_auto(s) {
 			this.$root.find(".ags-auto").remove();
-			this.$root.find(".ags-lanes").before(`<label class="ags-auto sch-switch"><input type="checkbox" ${s.conversations_autopilot ? "checked" : ""}><span></span>${__("Conversations on autopilot: the agent answers routine messages on its own, and waits for you on anything unusual")}</label>`);
+			this.$root.find(".ags-lanes-host").before(`<label class="ags-auto sch-switch"><input type="checkbox" ${s.conversations_autopilot ? "checked" : ""}><span></span>${__("Conversations on autopilot: the agent answers routine messages on its own, and waits for you on anything unusual")}</label>`);
 			this.$root.find(".ags-auto input").on("change", (ev) => this.call("set_conversations_autopilot", { on: ev.currentTarget.checked ? 1 : 0 })
 				.then((d) => { this.data = d; this.render(); }));
 		}
 
 		render_lanes(s) {
-			this.$root.find(".ags-lanes").html(s.lanes.map((l) => `
+			const rank = { needs_you: 0, working: 1, idle: 2 };
+			const done = (l) => l.metrics.reduce((n, [, x]) => n + (Number(x) || 0), 0);
+			this.listing("lanes", this.$root.find(".ags-lanes-host"), s.lanes.map((l) => ({ l, text: [l.agent, l.title, STATUS[l.status], (l.now || []).join(" ")].join(" "), html: `
 				<div class="ags-lane ${e(l.status)}">
 					<div class="ags-lane-head"><span class="ags-lane-icon" ${tint(l.agent)}>${icon(l.agent)}</span>
 						<div class="grow"><b>${e(__(l.agent))}</b><div class="ags-muted">${e(l.title)}</div></div>
@@ -247,7 +313,13 @@
 					<div class="ags-lane-now">${l.now.length ? l.now.map((n) => `<div>${l.status === "working" ? '<span class="ags-spin"></span>' : ""}${e(__(n))}</div>`).join("")
 						: `<div class="ags-muted">${l.last ? e(label(l.last.action)) + " · " + e(frappe.datetime.prettyDate(l.last.creation)) : __("Nothing yet")}</div>`}</div>
 					<div class="ags-metrics">${l.metrics.map(([k, v]) => `<span><b>${e(v)}</b> ${e(k)}</span>`).join("")}</div>
-				</div>`).join(""));
+				</div>` })), {
+				cls: "ags-lanes", size: 6, sorts: [
+					[__("Needs you first"), (a, b) => rank[a.l.status] - rank[b.l.status] || a.l.agent.localeCompare(b.l.agent)],
+					[__("Agent A–Z"), (a, b) => a.l.agent.localeCompare(b.l.agent)],
+					[__("Most work done"), (a, b) => done(b.l) - done(a.l)],
+				],
+			});
 		}
 
 		render_funnel(s) {
@@ -258,31 +330,50 @@
 		}
 
 		render_feed(s) {
-			this.$root.find(".ags-feed").html(s.feed.map((a) => `<div class="ags-event">
+			const items = s.feed.map((a, i) => ({
+				i, a, text: [label(a.action), a.agent, a.reference_name, a.summary].join(" "),
+				html: `<div class="ags-event">
 				<span class="ags-dot" ${tint(a.agent)} title="${e(__(a.agent || "Governance"))}">${icon(a.agent || "Governance", 13)}</span>
 				<div class="grow"><div><b>${e(label(a.action))}</b>${a.reference_name ? ` · <a href="/desk/${frappe.router.slug(a.reference_doctype || "")}/${encodeURIComponent(a.reference_name)}">${e(a.reference_name)}</a>` : ""}</div>
 					${a.summary ? `<div class="ags-muted ags-clip">${e(a.summary)}</div>` : ""}</div>
-				<span class="ags-muted ags-when">${e(frappe.datetime.prettyDate(a.creation))}</span></div>`).join("")
-				|| `<div class="ags-empty">${__("The agents' work will appear here as it happens.")}</div>`);
+				<span class="ags-muted ags-when">${e(frappe.datetime.prettyDate(a.creation))}</span></div>`,
+			}));
+			this.listing("feed", this.$root.find(".ags-feed"), items, {
+				size: 10, empty: __("The agents' work will appear here as it happens."),
+				sorts: [
+					[__("Newest first"), (x, y) => x.i - y.i],
+					[__("Oldest first"), (x, y) => y.i - x.i],
+					[__("Agent A–Z"), (x, y) => String(x.a.agent || "").localeCompare(String(y.a.agent || "")) || x.i - y.i],
+					[__("Action A–Z"), (x, y) => label(x.a.action).localeCompare(label(y.a.action)) || x.i - y.i],
+				],
+			});
 		}
 
 		// ---------------------------------------------------------------- the Needs-you inbox
 		render_inbox(s) {
-			const el = this.$root.find(".ags-inbox").empty();
+			const el = this.$root.find(".ags-inbox");
 			const asks = s.asks.filter((a) => a.key !== "onboard");
-			if (!asks.length) {
-				el.html(`<div class="ags-empty">${icon("Governance", 22)}<div>${__("Nothing needs you right now. The agents will ask here when a decision is yours.")}</div></div>`);
-				return;
-			}
-			asks.forEach((a) => {
-				const $c = $(`<div class="ags-ask"><div class="ags-ask-head"><span class="ags-dot" ${tint(a.agent)}>${icon(a.agent, 13)}</span>
-					<div class="grow"><b>${e(__(a.title))}</b><div class="ags-muted">${e(__(a.detail || ""))}</div></div></div>
-					<div class="ags-ask-body"></div></div>`).appendTo(el);
-				const body = $c.find(".ags-ask-body");
-				const fn = this[`ask_${a.key}`];
-				if (fn) fn.call(this, body, a);
-				else if (["research_market", "start_discovery", "draft_campaign", "auto_review", "ai_triage", "learn_targeting",
-					"find_contacts", "compliance"].includes(a.key)) this.ask_do(body, a);
+			const items = asks.map((a, i) => ({ i, a, text: [a.title, a.detail, a.agent].join(" "), html: `<div class="ags-ask-slot" data-i="${i}"></div>` }));
+			this.listing("needs", el, items, {
+				size: 5, hide_tools_under: 4,
+				empty: __("Nothing needs you right now. The agents will ask here when a decision is yours."),
+				sorts: [
+					[__("Agent order"), (x, y) => x.i - y.i],
+					[__("Title A–Z"), (x, y) => String(x.a.title).localeCompare(String(y.a.title))],
+					[__("Agent A–Z"), (x, y) => String(x.a.agent || "").localeCompare(String(y.a.agent || "")) || x.i - y.i],
+				],
+				after: ($items) => $items.find(".ags-ask-slot").each((_, slot) => {
+					const a = asks[Number(slot.dataset.i)];
+					const $c = $(`<div class="ags-ask"><div class="ags-ask-head"><span class="ags-dot" ${tint(a.agent)}>${icon(a.agent, 13)}</span>
+						<div class="grow"><b>${e(__(a.title))}</b><div class="ags-muted">${e(__(a.detail || ""))}</div></div></div>
+						<div class="ags-ask-body"></div></div>`);
+					$(slot).replaceWith($c);
+					const body = $c.find(".ags-ask-body");
+					const fn = this[`ask_${a.key}`];
+					if (fn) fn.call(this, body, a);
+					else if (["research_market", "start_discovery", "draft_campaign", "auto_review", "ai_triage", "learn_targeting",
+						"find_contacts", "compliance"].includes(a.key)) this.ask_do(body, a);
+				}),
 			});
 		}
 
