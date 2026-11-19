@@ -136,3 +136,12 @@
 .lfs-pg-btns { display: inline-flex; gap: 4px; align-items: center; }
 .lfs-gap { color: var(--lfs-muted); }
 .lfs-jump { font-weight: 600; }
+
+/* Recommended and Your data side by side; the sources Smart Sources searches, as icons */
+.lfs-grouprow { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 4px 28px; }
+.lfs-group { min-width: 0; }
+.lfs-group .lfs-cards { grid-template-columns: repeat(auto-fill, 230px); }
+.lfs-includes { margin-top: 6px; }
+.lfs-inc-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.lfs-inc { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--lfs-line); border-radius: 999px; padding: 5px 12px 5px 6px; background: var(--lfs-card); font-size: 13px; font-weight: 600; }
+.lfs-inc .icon { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--lfs-soft, color-mix(in srgb, var(--lfs-accent, #6d4cff) 12%, transparent)); color: var(--lfs-accent, #6d4cff); }

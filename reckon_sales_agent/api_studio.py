@@ -122,6 +122,20 @@ def _availability(item: dict, platform) -> tuple[bool, str]:
     return True, _("Ready")
 
 
+def _smart_includes() -> list[dict]:
+    """The sources Smart Sources searches right now: every switched-on provider that finds businesses."""
+    from reckon_sales_agent.providers.router import active
+
+    out, seen = [], set()
+    for kind in [*active("places"), *active("page_context")]:
+        if kind in seen or kind not in CATALOG_TYPES:
+            continue
+        seen.add(kind)
+        item = CATALOG_TYPES[kind]
+        out.append({"type": kind, "title": _(item["title"]), "icon": item["icon"], "subtitle": _(item["subtitle"])})
+    return out
+
+
 def _can_manage() -> bool:
     return frappe.session.user == "Administrator" or bool(set(frappe.get_roles()) & APPROVER_ROLES)
 
@@ -147,6 +161,7 @@ def bootstrap() -> dict:
             "type": item["type"], "title": _(item["title"]), "subtitle": _(item["subtitle"]), "group": _(item["group"]),
             "icon": item["icon"], "experimental": item.get("experimental", False),
             "needs_urls": item.get("needs_urls", False), "available": available, "reason": reason,
+            "includes": _smart_includes() if item["type"] == "multi_source" else [],
             "connector": row.name if row else None,
             "ready": bool(row and row.enabled and (row.policy_reviewed or item["type"] in ("fixture", "manual_import"))),
         })

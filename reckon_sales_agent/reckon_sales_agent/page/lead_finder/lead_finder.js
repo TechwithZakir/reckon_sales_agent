@@ -317,10 +317,13 @@
 			const SIMPLE = (group) => ["recommended", "your data"].includes(String(group || "").toLowerCase());
 			const picked = this.data.catalog.find((x) => x.type === this.state.connectorType);
 			const show_all = this.state.all_sources || (picked && !SIMPLE(picked.group));
+			// The recommended source and your own data sit side by side in one row; the advanced groups stack below.
+			const $row = $('<div class="lfs-grouprow"></div>').appendTo(panel);
 			Object.entries(groups).forEach(([group, items]) => {
 				if (!show_all && !SIMPLE(group)) return;
-				panel.append(`<div class="lfs-group-title">${e(group)}</div>`);
-				const grid = $('<div class="lfs-cards"></div>').appendTo(panel);
+				const $group = $('<div class="lfs-group"></div>').appendTo(SIMPLE(group) ? $row : panel);
+				$group.append(`<div class="lfs-group-title">${e(group)}</div>`);
+				const grid = $('<div class="lfs-cards"></div>').appendTo($group);
 				items.forEach((c) => {
 					const badge = !c.available ? `<span class="lfs-badge off">${__("Not enabled")}</span>`
 						: c.ready ? `<span class="lfs-badge ready">${__("Ready")}</span>`
@@ -332,6 +335,15 @@
 					card.on("click", () => c.available && this.pick_source(c));
 				});
 			});
+			// Smart Sources: show which sources it searches, as icons.
+			const smart = this.state.connectorType === "multi_source" ? this.data.catalog.find((x) => x.type === "multi_source") : null;
+			if (smart) {
+				const inc = smart.includes || [];
+				$(`<div class="lfs-includes"><div class="lfs-group-title">${__("Smart Sources searches these for you")}</div>
+					${inc.length ? `<div class="lfs-inc-list">${inc.map((s) => `<div class="lfs-inc" title="${e(s.subtitle)}"><span class="icon">${lfs_icon(s.icon, 18)}</span>
+						<span class="t">${e(s.title)}</span></div>`).join("")}</div>`
+						: `<div class="lfs-note warn">${__("No lead source is switched on yet. Ask your system provider to enable one.")}</div>`}</div>`).appendTo(panel);
+			}
 			if (!show_all) {
 				$(`<button type="button" class="btn btn-link btn-sm lfs-show-all">${__("Show all lead sources (advanced)")}</button>`).appendTo(panel)
 					.on("click", () => { this.state.all_sources = true; this.render(); });
