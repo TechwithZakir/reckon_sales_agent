@@ -34,6 +34,37 @@
 	};
 	const icon = (name, size = 18) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor"
 		stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ICONS.spark}</svg>`;
+	// Where each agent's work lives; the first link is the one on the card.
+	const AGENT_LINKS = {
+		Research: [["Lead Finder", "lead-finder"], ["Review new leads", "sales-review"]],
+		"Data Quality": [["Review new leads", "sales-review"], ["All leads", ["List", "Sales Prospect"]]],
+		Content: [["Message templates", "sales-templates"], ["Campaigns", "campaign-studio"]],
+		Governance: [["Messages sent", ["List", "Sales Outreach Message"]], ["Campaigns", "campaign-studio"]],
+		Engagement: [["Campaigns", "campaign-studio"], ["Automations", "automation-studio"]],
+		Conversations: [["Inbox", "sales-inbox"], ["Channels", "sales-channels"]],
+		Meetings: [["Meetings", "sales-meetings"]],
+		Social: [["Social posts", ["List", "Sales Social Post"]], ["Signup forms", "capture-studio"]],
+		Compliance: [["Do-not-contact list", ["List", "Sales Suppression Entry"]], ["Messages sent", ["List", "Sales Outreach Message"]]],
+		Deals: [["Deals in CRM", "/crm/deals"], ["Campaigns", "campaign-studio"]],
+		Customers: [["Customer audiences", "campaign-studio"], ["Open CRM", "/crm"]],
+		Analytics: [["Analytics", "sales-analytics"], ["Campaigns", "campaign-studio"]],
+		CRM: [["Open CRM", "/crm"], ["Deals in CRM", "/crm/deals"]],
+	};
+	const AGENT_ABOUT = {
+		Research: "Searches your chosen sources, researches each business and scores how well it fits.",
+		"Data Quality": "Cleans phone numbers, merges duplicates and flags bounced emails.",
+		Content: "Drafts campaign messages using only facts you approved.",
+		Governance: "Makes sure a person approves launches and that sending stays within limits.",
+		Engagement: "Runs your sequences, call tasks and follow-ups.",
+		Conversations: "Reads replies on every channel and drafts answers for you to approve.",
+		Meetings: "Proposes times, books meetings and sends reminders.",
+		Social: "Writes posts for your pages and publishes the ones you approve.",
+		Compliance: "Enforces opt-outs and calling hours on every message.",
+		Deals: "Spots stuck deals and drafts proposals to move them on.",
+		Customers: "Finds customers who are due to re-order or growing.",
+		Analytics: "Measures pilots and recommends what to change.",
+		CRM: "Keeps CRM deals moving with next steps and summaries.",
+	};
 	const STATUS = { working: __("Working"), needs_you: __("Needs you"), idle: __("Idle") };
 	const ACTIONS = {
 		autopilot_run: __("Autopilot run"), autopilot_on: __("Autopilot switched on"), autopilot_off: __("Autopilot switched off"),
@@ -120,6 +151,7 @@
 			const sorts = opts.sorts || [];
 			if (!$host.data("ags-built")) {
 				$host.data("ags-built", true).html(`
+					${opts.chips || opts.views ? '<div class="ags-chipbar"><div class="ags-chips"></div><div class="ags-views"></div></div>' : ""}
 					<div class="ags-tools"><input type="search" class="form-control input-xs ags-q" placeholder="${__("Search")}" value="${e(v.q)}" aria-label="${__("Search")}">
 						${sorts.length ? `<select class="form-control input-xs ags-sortby" aria-label="${__("Sort")}">${sorts.map((x, i) => `<option value="${i}" ${i === v.sort ? "selected" : ""}>${e(x[0])}</option>`).join("")}</select>` : ""}
 						<select class="form-control input-xs ags-size" aria-label="${__("Rows per page")}">${[...new Set([5, 10, 25, 50, v.size])].sort((x, y) => x - y).map((n) => `<option value="${n}" ${n === v.size ? "selected" : ""}>${__("{0} per page", [n])}</option>`).join("")}</select></div>
@@ -129,6 +161,15 @@
 				$host.on("change", ".ags-sortby", (ev) => { v.sort = Number(ev.currentTarget.value); v.page = 1; this.paint_listing($host, id); });
 				$host.on("change", ".ags-size", (ev) => { v.size = Number(ev.currentTarget.value) || 10; v.page = 1; this.paint_listing($host, id); });
 				$host.on("click", ".ags-pg:not([disabled])", (ev) => { v.page = Number(ev.currentTarget.dataset.page); this.paint_listing($host, id); });
+				$host.on("click", ".ags-chip", (ev) => { v.chip = ev.currentTarget.dataset.chip; v.page = 1; this.paint_listing($host, id); });
+				$host.on("click", ".ags-view", (ev) => {
+					v.view = ev.currentTarget.dataset.view;
+					try { localStorage.setItem(`ags_view_${id}`, v.view); } catch (err) { /* private window */ }
+					this.paint_listing($host, id);
+				});
+			}
+			if (v.view == null) {
+				try { v.view = localStorage.getItem(`ags_view_${id}`) || "cards"; } catch (err) { v.view = "cards"; }
 			}
 			$host.data("ags-items", items).data("ags-opts", opts);
 			this.paint_listing($host, id);
@@ -168,7 +209,20 @@
 			const items = $host.data("ags-items") || [];
 			const opts = $host.data("ags-opts") || {};
 			const q = v.q.trim().toLowerCase();
-			const rows = q ? items.filter((it) => String(it.text || "").toLowerCase().includes(q)) : items.slice();
+			let rows = q ? items.filter((it) => String(it.text || "").toLowerCase().includes(q)) : items.slice();
+			if (opts.chips) {
+				// Counts follow the search; the chosen chip narrows what is listed.
+				const chip = v.chip || opts.chips[0][0];
+				$host.find(".ags-chips").html(opts.chips.map(([key, name, test]) => `<button type="button" class="ags-chip ${key === chip ? "on" : ""}" data-chip="${key}">${e(name)}
+					<b>${rows.filter(test).length}</b></button>`).join(""));
+				const active = opts.chips.find((c) => c[0] === chip) || opts.chips[0];
+				rows = rows.filter(active[2]);
+			}
+			if (opts.views) {
+				$host.find(".ags-views").html([["cards", __("Cards")], ["compact", __("List")]].map(([key, name]) =>
+					`<button type="button" class="ags-view ${v.view === key ? "on" : ""}" data-view="${key}" aria-pressed="${v.view === key}">${e(name)}</button>`).join(""));
+				$host.find(".ags-items").toggleClass("compact", v.view === "compact");
+			}
 			const sort = (opts.sorts || [])[v.sort];
 			if (sort && sort[1]) rows.sort(sort[1]);
 			const pages = Math.max(1, Math.ceil(rows.length / v.size));
@@ -332,21 +386,86 @@
 		render_lanes(s) {
 			const rank = { needs_you: 0, working: 1, idle: 2 };
 			const done = (l) => l.metrics.reduce((n, [, x]) => n + (Number(x) || 0), 0);
-			this.listing("lanes", this.$root.find(".ags-lanes-host"), s.lanes.map((l) => ({ l, text: [l.agent, l.title, STATUS[l.status], (l.now || []).join(" ")].join(" "), html: `
-				<div class="ags-lane ${e(l.status)}">
+			const $host = this.$root.find(".ags-lanes-host");
+			if (!$host.data("ags-lane-events")) {
+				$host.data("ags-lane-events", true);
+				const agentOf = (ev) => $(ev.currentTarget).closest(".ags-lane").data("agent");
+				$host.on("click", ".ags-lane", (ev) => { if (!$(ev.target).closest("a, button, .ags-status").length) this.agent_dialog(agentOf(ev)); });
+				$host.on("keydown", ".ags-lane", (ev) => {
+					if ((ev.key === "Enter" || ev.key === " ") && ev.target === ev.currentTarget) { ev.preventDefault(); this.agent_dialog(agentOf(ev)); }
+				});
+				$host.on("click", ".ags-lane-details", (ev) => this.agent_dialog(agentOf(ev)));
+				$host.on("click", ".ags-lane-go", (ev) => { ev.preventDefault(); this.go_link(((AGENT_LINKS[agentOf(ev)] || [])[0] || [])[1]); });
+				$host.on("click", ".ags-status.needs_you", (ev) => this.show_asks(agentOf(ev)));
+			}
+			this.listing("lanes", $host, s.lanes.map((l) => ({ l, text: [l.agent, l.title, STATUS[l.status], (l.now || []).join(" ")].join(" "), html: `
+				<div class="ags-lane ${e(l.status)}" data-agent="${e(l.agent)}" role="button" tabindex="0" aria-label="${e(__("{0}: open details", [__(l.agent)]))}">
 					<div class="ags-lane-head"><span class="ags-lane-icon" ${tint(l.agent)}>${icon(l.agent)}</span>
 						<div class="grow"><b>${e(__(l.agent))}</b><div class="ags-muted">${e(l.title)}</div></div>
-						<span class="ags-status ${e(l.status)}">${e(STATUS[l.status])}</span></div>
+						<span class="ags-status ${e(l.status)}" ${l.status === "needs_you" ? `role="button" title="${e(__("Show what needs you"))}"` : ""}>${e(STATUS[l.status])}</span></div>
 					<div class="ags-lane-now">${l.now.length ? l.now.map((n) => `<div>${l.status === "working" ? '<span class="ags-spin"></span>' : ""}${e(__(n))}</div>`).join("")
 						: `<div class="ags-muted">${l.last ? e(label(l.last.action)) + " · " + e(frappe.datetime.prettyDate(l.last.creation)) : __("Nothing yet")}</div>`}</div>
 					<div class="ags-metrics">${l.metrics.map(([k, v]) => `<span><b>${e(v)}</b> ${e(k)}</span>`).join("")}</div>
+					<div class="ags-lane-foot"><button type="button" class="btn btn-default btn-xs ags-lane-details">${__("Details")}</button>
+						${(AGENT_LINKS[l.agent] || [])[0] ? `<button type="button" class="btn btn-default btn-xs ags-lane-go">${e(__((AGENT_LINKS[l.agent] || [])[0][0]))} →</button>` : ""}</div>
 				</div>` })), {
-				cls: "ags-lanes", size: 10, sorts: [
+				cls: "ags-lanes", size: 10, views: true,
+				chips: [["all", __("All"), () => true], ["needs_you", __("Needs you"), (it) => it.l.status === "needs_you"],
+					["working", __("Working"), (it) => it.l.status === "working"], ["idle", __("Idle"), (it) => it.l.status === "idle"]],
+				sorts: [
 					[__("Needs you first"), (a, b) => rank[a.l.status] - rank[b.l.status] || a.l.agent.localeCompare(b.l.agent)],
 					[__("Agent A–Z"), (a, b) => a.l.agent.localeCompare(b.l.agent)],
 					[__("Most work done"), (a, b) => done(b.l) - done(a.l)],
 				],
 			});
+		}
+
+		// Open a place in the desk: a Page or List by name, a path under the CRM app, or a full route.
+		go_link(target) {
+			if (!target) return;
+			if (typeof target === "string" && target.startsWith("/")) window.location.href = target;
+			else if (Array.isArray(target)) frappe.set_route(...target);
+			else frappe.set_route(target);
+		}
+
+		show_asks(agent) {
+			const $c = this.$root.find(`.ags-ask[data-agent="${CSS.escape(agent)}"]`).first();
+			if (!$c.length) return this.agent_dialog(agent);
+			$c.closest("details").prop("open", true);
+			$c[0].scrollIntoView({ behavior: "smooth", block: "center" });
+			$c.addClass("ags-flash");
+			setTimeout(() => $c.removeClass("ags-flash"), 2200);
+		}
+
+		// One agent in full: what it does, what it is doing, what waits for you, its latest work and where to go next.
+		agent_dialog(agent) {
+			const s = this.data || {};
+			const l = (s.lanes || []).find((x) => x.agent === agent);
+			if (!l) return;
+			const asks = (s.asks || []).filter((a) => a.agent === agent && a.key !== "onboard");
+			const feed = (s.feed || []).filter((a) => (a.agent || "Governance") === agent).slice(0, 8);
+			const dialog = new frappe.ui.Dialog({ title: __(agent), size: "large", fields: [{ fieldname: "body", fieldtype: "HTML" }] });
+			const $b = dialog.fields_dict.body.$wrapper;
+			$b.html(`<div class="ags">
+				<div class="ags-lane-head"><span class="ags-lane-icon" ${tint(agent)}>${icon(agent)}</span>
+					<div class="grow"><b>${e(l.title)}</b><div class="ags-muted">${e(__(AGENT_ABOUT[agent] || ""))}</div></div>
+					<span class="ags-status ${e(l.status)}">${e(STATUS[l.status])}</span></div>
+				<h4>${__("Right now")}</h4>
+				<div>${l.now.length ? l.now.map((n) => `<div>${l.status === "working" ? '<span class="ags-spin"></span>' : ""}${e(__(n))}</div>`).join("")
+					: `<div class="ags-muted">${l.last ? e(label(l.last.action)) + " · " + e(frappe.datetime.prettyDate(l.last.creation)) : __("Nothing yet")}</div>`}</div>
+				<div class="ags-metrics" style="margin-top:10px">${l.metrics.map(([k, v]) => `<span><b>${e(v)}</b> ${e(k)}</span>`).join("")}</div>
+				${asks.length ? `<h4>${__("Waiting for you")}</h4>${asks.map((a) => `<div class="ags-dlg-ask"><div><b>${e(__(a.title))}</b><div class="ags-muted">${e(__(a.detail || ""))}</div></div>
+					<button type="button" class="btn btn-primary btn-xs ags-dlg-show" data-agent="${e(agent)}">${__("Show me")}</button></div>`).join("")}` : ""}
+				<h4>${__("Latest work")}</h4>
+				${feed.length ? feed.map((a) => `<div class="ags-event"><div class="grow"><div><b>${e(label(a.action))}</b>${a.reference_name ? ` · <a href="/desk/${frappe.router.slug(a.reference_doctype || "")}/${encodeURIComponent(a.reference_name)}">${e(a.reference_name)}</a>` : ""}</div>
+					${a.summary ? `<div class="ags-muted ags-clip">${e(a.summary)}</div>` : ""}</div><span class="ags-muted ags-when">${e(frappe.datetime.prettyDate(a.creation))}</span></div>`).join("")
+					: `<div class="ags-muted">${__("No recent work from this agent.")}</div>`}
+				<h4>${__("Go to")}</h4>
+				<div class="ags-links">${(AGENT_LINKS[agent] || []).map(([name, target], i) => `<button type="button" class="btn btn-default btn-sm ags-dlg-go" data-i="${i}">${e(__(name))} →</button>`).join("")}</div>
+			</div>`);
+			$b.on("click", ".ags-dlg-go", (ev) => { dialog.hide(); this.go_link(AGENT_LINKS[agent][Number(ev.currentTarget.dataset.i)][1]); });
+			$b.on("click", ".ags-dlg-show", () => { dialog.hide(); setTimeout(() => this.show_asks(agent), 250); });
+			dialog.show();
 		}
 
 		render_funnel(s) {
@@ -385,7 +504,7 @@
 			const $calls = this.$root.find(".ags-calls").empty();
 			this.$root.find(".ags-callsec").toggle(!!fu);
 			if (fu) {
-				const $c = $(`<div class="ags-ask"><div class="ags-ask-head"><span class="ags-dot" ${tint(fu.agent)}>${icon(fu.agent, 13)}</span>
+				const $c = $(`<div class="ags-ask" data-agent="${e(fu.agent)}"><div class="ags-ask-head"><span class="ags-dot" ${tint(fu.agent)}>${icon(fu.agent, 13)}</span>
 					<div class="grow"><b>${e(__(fu.title))}</b><div class="ags-muted">${e(__(fu.detail || ""))}</div></div></div>
 					<div class="ags-ask-body"></div></div>`).appendTo($calls);
 				this.ask_followups($c.find(".ags-ask-body"), fu);
@@ -406,7 +525,7 @@
 				],
 				after: ($items) => $items.find(".ags-ask-slot").each((_, slot) => {
 					const a = asks[Number(slot.dataset.i)];
-					const $c = $(`<div class="ags-ask"><div class="ags-ask-head"><span class="ags-dot" ${tint(a.agent)}>${icon(a.agent, 13)}</span>
+					const $c = $(`<div class="ags-ask" data-agent="${e(a.agent)}"><div class="ags-ask-head"><span class="ags-dot" ${tint(a.agent)}>${icon(a.agent, 13)}</span>
 						<div class="grow"><b>${e(__(a.title))}</b><div class="ags-muted">${e(__(a.detail || ""))}</div></div></div>
 						<div class="ags-ask-body"></div></div>`);
 					$(slot).replaceWith($c);

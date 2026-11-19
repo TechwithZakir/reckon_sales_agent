@@ -151,3 +151,25 @@
 .ags-feed .ags-items:has(> .ags-empty) { padding: 0; border: 0; }
 .ags-feed { padding: 0; max-height: none; overflow: visible; background: none; border: 0; }
 .ags-score b { font-weight: 600; color: var(--ags-muted); font-size: 11px; }
+
+/* Agent cards: filter chips, cards or list, details, and a way to the work */
+.ags-chipbar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.ags-chips, .ags-views { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.ags-chip, .ags-view { border: 1px solid var(--ags-line); background: var(--ags-card); color: var(--ags-muted); border-radius: 999px; padding: 3px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.ags-chip b { margin-left: 4px; color: var(--ags-text); }
+.ags-chip.on, .ags-view.on { border-color: var(--ags-accent, var(--aura-accent, #6d4cff)); background: var(--ags-soft); color: var(--ags-accent, var(--aura-accent, #6d4cff)); }
+.ags-lane { cursor: pointer; transition: box-shadow .15s, border-color .15s, transform .15s; display: flex; flex-direction: column; gap: 8px; }
+.ags-lane:hover, .ags-lane:focus-visible { box-shadow: 0 6px 20px rgba(0, 0, 0, .08); transform: translateY(-1px); outline: none; border-color: var(--ags-accent, var(--aura-accent, #6d4cff)); }
+.ags-status.needs_you[role="button"] { cursor: pointer; }
+.ags-status.needs_you[role="button"]:hover { filter: brightness(.92); text-decoration: underline; }
+.ags-lane-foot { display: flex; gap: 6px; margin-top: auto; padding-top: 4px; }
+.ags-lanes.compact { grid-template-columns: 1fr; gap: 6px; }
+.ags-lanes.compact .ags-lane { display: grid; grid-template-columns: minmax(220px, 1.1fr) minmax(160px, 1.2fr) minmax(160px, 1fr) auto; align-items: center; gap: 12px; padding: 10px 14px; }
+.ags-lanes.compact .ags-lane-now { min-height: 0; }
+.ags-lanes.compact .ags-metrics { border-top: 0; padding-top: 0; }
+.ags-lanes.compact .ags-lane-foot { margin: 0; padding: 0; }
+@media (max-width: 900px) { .ags-lanes.compact .ags-lane { grid-template-columns: 1fr; } }
+.ags-flash { animation: ags-flash 2.2s ease-out; }
+@keyframes ags-flash { 0%, 40% { box-shadow: 0 0 0 3px var(--ags-warn); } 100% { box-shadow: 0 0 0 0 transparent; } }
+.ags-dlg-ask { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--ags-line); }
+.ags-links { display: flex; flex-wrap: wrap; gap: 8px; }
