@@ -475,17 +475,23 @@
 				this.$body.html(`<div class="cst-bar"><div><h3>${__("Audiences")}</h3>
 					<div class="cst-muted">${__("Who a campaign goes to: prospects, CRM leads and contacts, customers, or people you pick.")}</div></div>
 					${can_manage() ? `<button class="btn btn-primary btn-sm cst-new-audience">${__("New audience")}</button>` : ""}</div>
+					${can_manage() ? `<div class="cst-quickstart"><span class="cst-muted">${__("Start from:")}</span>
+						${[["Prospects", __("Lead Finder leads")], ["CRM Leads", __("CRM leads")], ["Customers", __("Customers")], ["CRM Contacts", __("CRM contacts")]]
+							.map(([k, l]) => `<button class="btn btn-default btn-xs cst-qa" data-kind="${k}">${e(l)}</button>`).join("")}</div>` : ""}
 					${rows.map((a) => `<section class="cst-card" data-name="${e(a.name)}"><div class="cst-bar">
 						<div><b>${e(a.audience_name)}</b> <span class="cst-badge">${e(__(a.audience_type))}</span>
 							${a.sms_opt_in || a.whatsapp_opt_in ? `<span class="cst-badge ok">${__("Permission recorded")}</span>` : ""}
 							<div class="cst-muted">${num(a.size)} ${__("people")} · ${num(a.size_email)} ${__("with email")} · ${num(a.size_phone)} ${__("with phone")}
 								· ${a.campaigns} ${__("campaigns")}${a.last_refreshed ? ` · ${__("counted")} ${frappe.datetime.prettyDate(a.last_refreshed)}` : ""}</div></div>
-						<div class="cst-actions">${can_manage() ? `<button class="btn btn-default btn-xs cst-a-edit">${__("Edit")}</button>
+						<div class="cst-actions">${can_manage() ? `<button class="btn btn-primary btn-xs cst-a-run">${__("Start a campaign")}</button>
+							<button class="btn btn-default btn-xs cst-a-edit">${__("Edit")}</button>
 							<button class="btn btn-default btn-xs cst-a-count">${__("Count again")}</button>
 							<button class="btn btn-default btn-xs cst-a-del">${__("Delete")}</button>` : ""}</div></div></section>`).join("")
 						|| `<div class="cst-card cst-empty">${__("No audiences yet.")}</div>`}`);
 				this.$body.find(".cst-new-audience").on("click", () => this.audience_dialog());
+				this.$body.find(".cst-qa").on("click", (ev) => this.audience_dialog(null, null, { kind: ev.currentTarget.dataset.kind }));
 				const name = (ev) => $(ev.currentTarget).closest("[data-name]").data("name");
+				this.$body.find(".cst-a-run").on("click", (ev) => this.wizard({ step: 1, audience: name(ev) }));
 				this.$body.find(".cst-a-edit").on("click", (ev) => this.audience_dialog(name(ev)));
 				this.$body.find(".cst-a-count").on("click", (ev) => frappe.xcall(API + "refresh_audience", { name: name(ev) }).then(() => this.open("audiences")));
 				this.$body.find(".cst-a-del").on("click", (ev) => frappe.confirm(__("Delete this audience?"), () =>
@@ -493,70 +499,182 @@
 			});
 		}
 
-		audience_dialog(existing, after) {
+		// Who a campaign goes to, built by choosing: where the people are, filters from your own data, a live count, and
+		// either "everyone who matches" or "I will pick".
+		audience_dialog(existing, after, preset) {
 			const load = existing ? frappe.xcall(API + "audience", { name: existing }) : Promise.resolve({});
-			load.then((a) => {
-				const only = (types) => `eval:${JSON.stringify(types)}.includes(doc.audience_type)`;
-				const config = (values) => ({ ...values, name: existing || undefined, members: values.members || [] });
+			Promise.all([load, frappe.xcall(API + "audience_options")]).then(([a, opts]) => {
+				const KINDS = [
+					["Prospects", __("Lead Finder leads"), __("Businesses the Lead Finder found and you approved.")],
+					["CRM Leads", __("CRM leads"), __("Leads in your CRM, by status, source or owner.")],
+					["CRM Contacts", __("CRM contacts"), __("Everyone in your CRM contacts.")],
+					["Customers", __("Customers"), __("People behind a deal you won.")],
+					["Segment", __("Saved segment"), __("A rule set made in Capture Studio.")],
+				];
+				const keyOf = (m) => (m.reference_doctype && m.reference_name ? `${m.reference_doctype}:${m.reference_name}` : `x:${m.email || m.phone || m.person_name}`);
+				const st = {
+					name: a.audience_name || "", description: a.description || "", kind: "Prospects", mode: "rule",
+					picked: new Map(), q: "", page: 1, size: 10, total: 0, rows: [], summary: null, seq: 0,
+					f: { status_filter: a.status_filter || "", source_filter: a.source_filter || "", owner_filter: a.owner_filter || "",
+						city_filter: a.city_filter || "", industry_filter: a.industry_filter || "", minimum_fit_score: a.minimum_fit_score || "",
+						require_email: !!a.require_email, require_phone: !!a.require_phone },
+					segment: a.segment || "", sms: !!a.sms_opt_in, wa: !!a.whatsapp_opt_in, src: a.opt_in_source || "",
+				};
+				if (a.audience_type === "Specific people") {
+					st.mode = "pick";
+					(a.members || []).forEach((m) => st.picked.set(keyOf(m), m));
+				} else if (a.audience_type) {
+					st.kind = a.audience_type;
+				}
+				if (preset && preset.kind) st.kind = preset.kind;
+				const memberOf = (r) => ({ reference_doctype: r.ref_doctype, reference_name: r.ref_name, person_name: r.name, email: r.email, phone: r.phone });
+				const rowKey = (r) => keyOf(memberOf(r));
+				const config = () => ({
+					name: existing || undefined, audience_name: st.name, description: st.description,
+					audience_type: st.mode === "pick" ? "Specific people" : st.kind,
+					status_filter: st.f.status_filter, source_filter: st.f.source_filter, owner_filter: st.f.owner_filter,
+					city_filter: st.f.city_filter, industry_filter: st.f.industry_filter, minimum_fit_score: st.f.minimum_fit_score || 0,
+					require_email: st.f.require_email ? 1 : 0, require_phone: st.f.require_phone ? 1 : 0,
+					segment: st.kind === "Segment" ? st.segment : "", sms_opt_in: st.sms ? 1 : 0, whatsapp_opt_in: st.wa ? 1 : 0, opt_in_source: st.src,
+					members: st.mode === "pick" ? [...st.picked.values()] : [],
+				});
+				// What the filters would find (the kind being looked at, whatever the audience is saved as).
+				const browse = () => ({ ...config(), audience_type: st.kind, members: [] });
+				const select = (label, key, values, any) => `<div class="cst-field"><label>${e(label)}</label>
+					<select class="form-control input-sm aud-f" data-key="${key}"><option value="">${e(any || __("Any"))}</option>
+					${values.map((v) => `<option value="${e(v)}" ${String(st.f[key]) === String(v) ? "selected" : ""}>${e(v)}</option>`).join("")}</select></div>`;
+
 				const dialog = new frappe.ui.Dialog({
-					title: existing ? __("Edit audience") : __("New audience"),
-					size: "large",
-					fields: [
-						{ fieldname: "audience_name", fieldtype: "Data", label: __("Name"), reqd: 1 },
-						{ fieldname: "audience_type", fieldtype: "Select", label: __("Who is in it"), reqd: 1, options: AUDIENCE_TYPES.join("\n"), default: "Prospects" },
-						{ fieldname: "segment", fieldtype: "Link", options: "Sales Segment", label: __("Segment"), depends_on: "eval:doc.audience_type=='Segment'",
-							mandatory_depends_on: "eval:doc.audience_type=='Segment'", description: __("Made in Capture Studio. Its rules are checked each time the audience is used.") },
-						{ fieldname: "description", fieldtype: "Small Text", label: __("Description") },
-						{ fieldname: "sb_filters", fieldtype: "Section Break", depends_on: "eval:!['Specific people','Segment'].includes(doc.audience_type)" },
-						{ fieldname: "status_filter", fieldtype: "Small Text", label: __("Statuses (comma separated)"), depends_on: only(["CRM Leads"]) },
-						{ fieldname: "source_filter", fieldtype: "Data", label: __("Source"), depends_on: only(["Prospects", "CRM Leads"]) },
-						{ fieldname: "owner_filter", fieldtype: "Link", options: "User", label: __("Owner"), depends_on: only(["CRM Leads"]) },
-						{ fieldname: "cb_filters", fieldtype: "Column Break" },
-						{ fieldname: "city_filter", fieldtype: "Data", label: __("City"), depends_on: only(["Prospects"]) },
-						{ fieldname: "industry_filter", fieldtype: "Data", label: __("Industry"), depends_on: only(["Prospects"]) },
-						{ fieldname: "minimum_fit_score", fieldtype: "Float", label: __("Minimum fit score"), depends_on: only(["Prospects"]) },
-						{ fieldname: "require_email", fieldtype: "Check", label: __("Only people with an email") },
-						{ fieldname: "require_phone", fieldtype: "Check", label: __("Only people with a phone") },
-						{ fieldname: "sb_people", fieldtype: "Section Break", depends_on: "eval:doc.audience_type=='Specific people'" },
-						{ fieldname: "members", fieldtype: "Table", label: __("People"), cannot_add_rows: false, in_place_edit: true, data: [],
-							fields: [
-								{ fieldname: "reference_doctype", fieldtype: "Select", label: __("Record type"), in_list_view: 1, columns: 2,
-									options: "\nSales Prospect\nCRM Lead\nContact\nCRM Deal" },
-								{ fieldname: "reference_name", fieldtype: "Data", label: __("Record ID"), in_list_view: 1, columns: 2 },
-								{ fieldname: "person_name", fieldtype: "Data", label: __("Name"), in_list_view: 1, columns: 2 },
-								{ fieldname: "email", fieldtype: "Data", label: __("Email"), in_list_view: 1, columns: 2 },
-								{ fieldname: "phone", fieldtype: "Data", label: __("Phone"), in_list_view: 1, columns: 2 },
-							] },
-						{ fieldname: "sb_consent", fieldtype: "Section Break", label: __("Permission for SMS and WhatsApp"), collapsible: 1 },
-						{ fieldname: "consent_help", fieldtype: "HTML", options: `<div class="cst-muted">${__("Tick only if these people agreed to be texted or messaged on WhatsApp. Without it, SMS and WhatsApp steps skip them.")}</div>` },
-						{ fieldname: "sms_opt_in", fieldtype: "Check", label: __("They agreed to receive SMS") },
-						{ fieldname: "whatsapp_opt_in", fieldtype: "Check", label: __("They agreed to receive WhatsApp messages") },
-						{ fieldname: "opt_in_source", fieldtype: "Data", label: __("How they agreed"), mandatory_depends_on: "eval:doc.sms_opt_in||doc.whatsapp_opt_in" },
-						{ fieldname: "sb_count", fieldtype: "Section Break" },
-						{ fieldname: "count", fieldtype: "Button", label: __("Count people"), click: () => {
-							frappe.xcall(API + "audience_preview", { config: JSON.stringify(config(dialog.get_values(true) || {})) }).then((r) => {
-								const s = r.summary;
-								dialog.fields_dict.result.$wrapper.html(`<b>${num(s.total)}</b> ${__("people")} · ${num(s.with_email)} ${__("with email")} · ${num(s.with_phone)} ${__("with phone")}
-									<div class="cst-muted">${r.sample.map((p) => e(p.name || p.email || p.phone)).join(", ")}</div>`);
-							});
-						} },
-						{ fieldname: "result", fieldtype: "HTML" },
-					],
-					primary_action_label: __("Save"),
-					primary_action: (values) => {
-						frappe.xcall(API + "save_audience", { config: JSON.stringify(config(values)) }).then((saved) => {
+					title: existing ? __("Edit audience") : __("New audience"), size: "extra-large",
+					fields: [{ fieldname: "body", fieldtype: "HTML" }],
+					primary_action_label: __("Save audience"),
+					primary_action: () => {
+						if (!st.name.trim()) return frappe.msgprint(__("Give the audience a name."));
+						if (st.kind === "Segment" && st.mode !== "pick" && !st.segment) return frappe.msgprint(__("Choose a saved segment."));
+						if (st.mode === "pick" && !st.picked.size) return frappe.msgprint(__("Tick at least one person, or switch to \"Everyone who matches\"."));
+						if ((st.sms || st.wa) && !st.src.trim()) return frappe.msgprint(__("Say how these people agreed to be messaged."));
+						frappe.xcall(API + "save_audience", { config: JSON.stringify(config()) }).then((saved) => {
 							dialog.hide();
 							if (after) after(saved);
 							else this.open("audiences");
 						});
 					},
 				});
-				dialog.set_values({ audience_type: "Prospects", ...Object.fromEntries(Object.entries(a).filter(([k]) => k !== "members")) });
-				if (a.members && a.members.length) {
-					dialog.fields_dict.members.df.data = a.members;
-					dialog.fields_dict.members.grid.refresh();
-				}
+				const $w = dialog.fields_dict.body.$wrapper;
+				$w.html(`<div class="cst-aud">
+					<div class="cst-field"><label>${__("Name")} <span class="text-danger">*</span></label>
+						<input class="form-control aud-name" value="${e(st.name)}" placeholder="${__("e.g. Dhaka pharmacies, new this month")}"></div>
+					<div class="cst-field"><label>${__("Who do you want to reach?")}</label><div class="aud-kinds"></div></div>
+					<div class="aud-filters"></div>
+					<div class="aud-modes"></div>
+					<div class="aud-result">
+						<div class="aud-sum"></div>
+						<div class="aud-tools"><input type="search" class="form-control input-sm aud-q" placeholder="${__("Search by name, email or phone")}">
+							<span class="aud-pickbar"></span></div>
+						<div class="aud-rows"></div>
+						<div class="cst-pager"><span class="cst-muted aud-info"></span><span class="aud-pages"></span></div>
+					</div>
+					<div class="cst-field"><label>${__("Note (optional)")}</label><input class="form-control aud-desc" value="${e(st.description)}"></div>
+					<details class="aud-consent" ${st.sms || st.wa ? "open" : ""}><summary>${__("Permission for SMS and WhatsApp")}</summary>
+						<div class="cst-muted">${__("Tick only if these people agreed to be texted or messaged on WhatsApp. Without it, SMS and WhatsApp steps skip them.")}</div>
+						<label class="aud-check"><input type="checkbox" class="aud-sms" ${st.sms ? "checked" : ""}> ${__("They agreed to receive SMS")}</label>
+						<label class="aud-check"><input type="checkbox" class="aud-wa" ${st.wa ? "checked" : ""}> ${__("They agreed to receive WhatsApp messages")}</label>
+						<input class="form-control input-sm aud-src" value="${e(st.src)}" placeholder="${__("How they agreed (e.g. signup form, written consent)")}">
+					</details></div>`);
+
+				const paintKinds = () => {
+					$w.find(".aud-kinds").html(KINDS.map(([k, l, d]) => `<button type="button" class="cst-quick ${st.kind === k ? "on" : ""}" data-kind="${k}"><b>${e(l)}</b><span>${e(d)}</span></button>`).join(""));
+				};
+				const paintFilters = () => {
+					const f = st.f;
+					const html = {
+						"Prospects": () => `<div class="aud-grid">${select(__("Where it was found"), "source_filter", opts.prospect_sources)}
+							${select(__("City"), "city_filter", opts.cities)}${select(__("Industry"), "industry_filter", opts.industries)}
+							<div class="cst-field"><label>${__("Minimum fit score")}</label><input type="number" min="0" max="100" class="form-control input-sm aud-f" data-key="minimum_fit_score" value="${e(f.minimum_fit_score)}" placeholder="0"></div></div>`,
+						"CRM Leads": () => `<div class="cst-field"><label>${__("Lead status (choose any)")}</label><div class="aud-chips">
+							${(opts.lead_statuses.length ? opts.lead_statuses : []).map((v) => `<label class="aud-chip ${f.status_filter.split(",").map((x) => x.trim()).includes(v) ? "on" : ""}"><input type="checkbox" class="aud-status" value="${e(v)}" ${f.status_filter.split(",").map((x) => x.trim()).includes(v) ? "checked" : ""}> ${e(v)}</label>`).join("") || `<span class="cst-muted">${__("No statuses set up yet.")}</span>`}</div></div>
+							<div class="aud-grid">${select(__("Source"), "source_filter", opts.lead_sources)}${select(__("Owner"), "owner_filter", opts.lead_owners)}</div>`,
+						"Segment": () => `<div class="aud-grid">${`<div class="cst-field"><label>${__("Saved segment")}</label><select class="form-control input-sm aud-segment"><option value="">${__("Choose")}</option>
+							${opts.segments.map((g) => `<option value="${e(g.name)}" ${st.segment === g.name ? "selected" : ""}>${e(g.label)}</option>`).join("")}</select>
+							<div class="cst-muted">${__("Made in Capture Studio. Its rules are checked each time the audience is used.")}</div></div>`}</div>`,
+					}[st.kind];
+					$w.find(".aud-filters").html(`${html ? html() : ""}<div class="aud-checks">
+						<label class="aud-check"><input type="checkbox" class="aud-req" data-key="require_email" ${f.require_email ? "checked" : ""}> ${__("Only people with an email")}</label>
+						<label class="aud-check"><input type="checkbox" class="aud-req" data-key="require_phone" ${f.require_phone ? "checked" : ""}> ${__("Only people with a phone")}</label></div>`);
+				};
+				const paintModes = () => {
+					$w.find(".aud-modes").html(`<div class="cst-seg">${[["rule", __("Everyone who matches"), __("Stays up to date as your records change.")], ["pick", __("I will choose people"), __("Tick the people you want from the list below.")]]
+						.map(([m, l, d]) => `<button type="button" class="cst-quick ${st.mode === m ? "on" : ""}" data-mode="${m}"><b>${e(l)}</b><span>${e(d)}</span></button>`).join("")}</div>`);
+				};
+				const paintRows = () => {
+					const s = st.summary || { total: 0, with_email: 0, with_phone: 0 };
+					const pick = st.mode === "pick";
+					$w.find(".aud-sum").html(`<b>${num(st.total)}</b> ${__("people match")} · ${num(s.with_email)} ${__("with email")} · ${num(s.with_phone)} ${__("with phone")}${pick ? ` · <b>${num(st.picked.size)}</b> ${__("chosen")}` : ""}`);
+					$w.find(".aud-pickbar").html(pick ? `<button type="button" class="btn btn-default btn-xs aud-all">${__("Choose all {0} matching", [num(st.total)])}</button>
+						<button type="button" class="btn btn-default btn-xs aud-none">${__("Clear")}</button>` : "");
+					$w.find(".aud-rows").html(st.rows.length ? `<table class="aud-table"><thead><tr>${pick ? `<th><input type="checkbox" class="aud-page" aria-label="${__("Choose this page")}"></th>` : ""}<th>${__("Name")}</th><th>${__("Email")}</th><th>${__("Phone")}</th></tr></thead><tbody>
+						${st.rows.map((r) => `<tr>${pick ? `<td><input type="checkbox" class="aud-pick" data-key="${e(rowKey(r))}" ${st.picked.has(rowKey(r)) ? "checked" : ""}></td>` : ""}
+							<td>${e(r.name || "-")}</td><td>${e(r.email || "")}</td><td>${e(r.phone || "")}</td></tr>`).join("")}</tbody></table>`
+						: `<div class="cst-empty">${st.kind === "Segment" && !st.segment ? __("Choose a saved segment to see who is in it.") : __("No one matches yet. Loosen a filter.")}</div>`);
+					const pages = Math.max(1, Math.ceil(st.total / st.size));
+					$w.find(".aud-info").text(st.total ? __("{0}–{1} of {2}", [(st.page - 1) * st.size + 1, Math.min(st.page * st.size, st.total), num(st.total)]) : "");
+					const near = [...new Set([1, pages, st.page - 1, st.page, st.page + 1])].filter((n) => n >= 1 && n <= pages).sort((x, y) => x - y);
+					let last = 0;
+					const btn = (label, to, cls, off) => `<button type="button" class="btn btn-xs btn-default aud-pg ${cls || ""}" data-page="${to}" ${off ? "disabled" : ""}>${label}</button>`;
+					$w.find(".aud-pages").html(pages <= 1 ? "" : btn("‹", st.page - 1, "", st.page === 1)
+						+ near.map((n) => { const gap = n - last > 1 ? '<span class="cst-muted">…</span>' : ""; last = n; return gap + btn(n, n, n === st.page ? "btn-primary" : ""); }).join("")
+						+ btn("›", st.page + 1, "", st.page === pages));
+					$w.find(".aud-page").prop("checked", st.rows.length > 0 && st.rows.every((r) => st.picked.has(rowKey(r))));
+				};
+				const fetchRows = frappe.utils.debounce(() => {
+					const mine = ++st.seq;
+					if (st.kind === "Segment" && !st.segment) { st.rows = []; st.total = 0; st.summary = null; return paintRows(); }
+					frappe.xcall(API + "audience_people", { config: JSON.stringify(browse()), search: st.q, page: st.page, page_length: st.size }).then((r) => {
+						if (mine !== st.seq) return;
+						st.rows = r.rows; st.total = r.total; st.summary = r.summary;
+						paintRows();
+					});
+				}, 250);
+				const changed = () => { st.page = 1; fetchRows(); };
+
+				$w.on("input", ".aud-name", (ev) => { st.name = ev.currentTarget.value; });
+				$w.on("input", ".aud-desc", (ev) => { st.description = ev.currentTarget.value; });
+				$w.on("input", ".aud-src", (ev) => { st.src = ev.currentTarget.value; });
+				$w.on("change", ".aud-sms", (ev) => { st.sms = ev.currentTarget.checked; });
+				$w.on("change", ".aud-wa", (ev) => { st.wa = ev.currentTarget.checked; });
+				$w.on("input", ".aud-q", (ev) => { st.q = ev.currentTarget.value; changed(); });
+				$w.on("click", ".aud-kinds .cst-quick", (ev) => {
+					st.kind = ev.currentTarget.dataset.kind;
+					Object.assign(st.f, { status_filter: "", source_filter: "", owner_filter: "", city_filter: "", industry_filter: "", minimum_fit_score: "" });
+					paintKinds(); paintFilters(); changed();
+				});
+				$w.on("click", ".aud-modes .cst-quick", (ev) => { st.mode = ev.currentTarget.dataset.mode; paintModes(); paintRows(); });
+				$w.on("change", ".aud-f", (ev) => { st.f[ev.currentTarget.dataset.key] = ev.currentTarget.value; changed(); });
+				$w.on("input", "input.aud-f", (ev) => { st.f[ev.currentTarget.dataset.key] = ev.currentTarget.value; changed(); });
+				$w.on("change", ".aud-req", (ev) => { st.f[ev.currentTarget.dataset.key] = ev.currentTarget.checked; changed(); });
+				$w.on("change", ".aud-segment", (ev) => { st.segment = ev.currentTarget.value; changed(); });
+				$w.on("change", ".aud-status", () => {
+					st.f.status_filter = $w.find(".aud-status:checked").map((_, x) => x.value).get().join(", ");
+					$w.find(".aud-chip").each((_, c) => $(c).toggleClass("on", $(c).find("input").prop("checked")));
+					changed();
+				});
+				$w.on("click", ".aud-pg:not([disabled])", (ev) => { st.page = Number(ev.currentTarget.dataset.page); fetchRows(); });
+				$w.on("change", ".aud-pick", (ev) => {
+					const row = st.rows.find((r) => rowKey(r) === ev.currentTarget.dataset.key);
+					if (row) { if (ev.currentTarget.checked) st.picked.set(rowKey(row), memberOf(row)); else st.picked.delete(rowKey(row)); }
+					paintRows();
+				});
+				$w.on("change", ".aud-page", (ev) => {
+					st.rows.forEach((r) => { if (ev.currentTarget.checked) st.picked.set(rowKey(r), memberOf(r)); else st.picked.delete(rowKey(r)); });
+					paintRows();
+				});
+				$w.on("click", ".aud-all", () => frappe.xcall(API + "audience_people", { config: JSON.stringify(browse()), search: st.q, page: 1, page_length: 5000 })
+					.then((r) => { r.rows.forEach((x) => st.picked.set(rowKey(x), memberOf(x))); paintRows(); }));
+				$w.on("click", ".aud-none", () => { st.picked.clear(); paintRows(); });
+
+				paintKinds(); paintFilters(); paintModes();
 				dialog.show();
+				fetchRows();
 			});
 		}
 

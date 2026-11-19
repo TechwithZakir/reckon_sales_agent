@@ -112,8 +112,9 @@ class PageTests(unittest.TestCase):
 
     def test_campaign_studio_can_pick_a_segment_for_an_audience(self):
         script = read("reckon_sales_agent", "page", "campaign_studio", "campaign_studio.js")
-        self.assertIn('"Segment"]', script)
-        self.assertIn('options: "Sales Segment"', script)
+        self.assertIn('["Segment", __("Saved segment")', script)
+        self.assertIn("aud-segment", script)
+        self.assertIn('"Sales Segment"', read("api_campaign_studio.py"))
 
 
 class GuestEndpointTests(unittest.TestCase):

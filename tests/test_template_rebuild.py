@@ -459,7 +459,7 @@ class WizardTests(unittest.TestCase):
 
     def test_the_wizard_restores_unfinished_work_and_returns_from_the_audience_dialog(self):
         self.assertIn('store.get("cst_wizard"', self.script)
-        self.assertIn("audience_dialog(existing, after)", self.script)
+        self.assertIn("audience_dialog(existing, after, preset)", self.script)
         self.assertIn("if (after) after(saved);", self.script)
 
     def test_a_pilot_is_off_by_default_because_it_holds_people_back(self):

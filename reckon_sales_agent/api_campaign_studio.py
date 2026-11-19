@@ -19,6 +19,7 @@ from reckon_sales_agent.campaigns import audience as audience_rules
 from reckon_sales_agent.campaigns import autopilot, builder, copilot, timeline, variants, verdict
 from reckon_sales_agent.campaigns.audience_resolve import preview as resolve_preview
 from reckon_sales_agent.campaigns.audience_resolve import refresh as refresh_size
+from reckon_sales_agent.campaigns.audience_resolve import resolve as resolve_people
 from reckon_sales_agent.campaigns.metrics import funnel, rate
 from reckon_sales_agent.campaigns.people import by_person as _by_person
 from reckon_sales_agent.campaigns.people import events as _events
@@ -271,6 +272,61 @@ def audience(name: str) -> dict:
     data = {k: doc.get(k) for k in ("name", *AUDIENCE_FIELDS, "size", "size_email", "size_phone")}
     data["members"] = [{k: row.get(k) for k in MEMBER_FIELDS} for row in doc.members]
     return data
+
+
+def _distinct(doctype: str, field: str, filters: dict) -> list[str]:
+    """The values a field holds among the Company's records, for a filter's drop-down."""
+    try:
+        if not frappe.get_meta(doctype).has_field(field):
+            return []
+        rows = frappe.get_all(doctype, filters=filters, fields=[field], distinct=True, order_by=f"{field} asc", limit=300)
+    except Exception:
+        return []
+    return [str(r.get(field)) for r in rows if r.get(field)]
+
+
+@frappe.whitelist()
+def audience_options() -> dict:
+    """The choices for the audience filters, taken from this Company's own records."""
+    company = current_company()
+    assert_entitled(company)
+    prospects = {"company": company, "review_status": "Approved", "do_not_contact": 0}
+    leads = {"rsa_company": company}
+    segments = []
+    try:
+        segments = [{"name": r.name, "label": r.segment_name or r.name}
+                    for r in frappe.get_all("Sales Segment", filters={"company": company}, fields=["name", "segment_name"],
+                                            order_by="modified desc", limit=100)]
+    except Exception:
+        segments = []
+    try:
+        statuses = frappe.get_all("CRM Lead Status", pluck="name", order_by="name asc", limit=100)
+    except Exception:
+        statuses = []
+    return {
+        "prospect_sources": _distinct("Sales Prospect", "source_type", prospects),
+        "cities": _distinct("Sales Prospect", "city", prospects),
+        "industries": _distinct("Sales Prospect", "industry", prospects),
+        "lead_statuses": statuses,
+        "lead_sources": _distinct("CRM Lead", "source", leads),
+        "lead_owners": _distinct("CRM Lead", "lead_owner", leads),
+        "segments": segments,
+    }
+
+
+@frappe.whitelist(methods=["POST"])
+def audience_people(config, search: str = "", page: int = 1, page_length: int = 10) -> dict:
+    """One page of the people an audience's rules find right now, so a person can look and choose. Nothing is created."""
+    company = current_company()
+    assert_entitled(company)
+    data = _json(config)
+    rows = resolve_people(_audience_from(company, data))
+    needle = (search or "").strip().lower()
+    if needle:
+        rows = [r for r in rows if needle in f"{r.get('name', '')} {r.get('email', '')} {r.get('phone', '')}".lower()]
+    page_length = max(1, min(int(page_length or 10), 5000))
+    start = (max(int(page or 1), 1) - 1) * page_length
+    return {"total": len(rows), "rows": rows[start:start + page_length], "summary": audience_rules.summary(rows)}
 
 
 @frappe.whitelist(methods=["POST"])

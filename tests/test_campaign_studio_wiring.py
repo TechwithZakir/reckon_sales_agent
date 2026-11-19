@@ -237,6 +237,22 @@ class ApiTests(unittest.TestCase):
             decorator = self.api.split(f"def {name}(")[0].rsplit("@frappe.whitelist", 1)[1].split("\n")[0]
             self.assertIn('methods=["POST"]', decorator, name)
 
+    def test_the_audience_builder_options_and_people_are_limited_to_the_company(self):
+        options = self.api.split("def audience_options(")[1].split("\n@frappe.whitelist")[0]
+        self.assertIn("current_company()", options)
+        for needle in ('"company": company', '"rsa_company": company'):
+            self.assertIn(needle, options)
+        people = self.api.split("def audience_people(")[1].split("\n@frappe.whitelist")[0]
+        self.assertIn("_audience_from(company, data)", people)  # the Company filter lives in the resolver
+        self.assertIn("assert_entitled(company)", people)
+        self.assertIn("5000", people)  # one page is capped
+
+    def test_the_builder_lets_a_person_choose_from_a_filtered_list(self):
+        script = (PAGE / "campaign_studio.js").read_text(encoding="utf-8")
+        for needle in ('API + "audience_options"', 'API + "audience_people"', "Everyone who matches", "I will choose people",
+                       "Choose all {0} matching", "Start a campaign", "Lead Finder leads"):
+            self.assertIn(needle, script)
+
     def test_records_are_loaded_with_a_permission_check(self):
         self.assertNotIn("frappe.get_doc(", self.api.replace('frappe.get_doc({', ''))
         for needle in ('get_tenant_doc("Sales Campaign", name, "read")', 'get_tenant_doc("Sales Audience", name, "read")',

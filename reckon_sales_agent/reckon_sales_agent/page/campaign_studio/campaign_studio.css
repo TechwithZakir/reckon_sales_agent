@@ -1,13 +1,13 @@
 /* Campaign Studio. Uses Reckon Aura variables when present, Frappe's otherwise (light and dark). */
-.cst {
+.cst, .cst-aud {
 	--cst-accent: var(--aura-accent, var(--primary, #2a78d6));
 	--cst-soft: color-mix(in srgb, var(--cst-accent) 12%, transparent);
 	--cst-card: var(--aura-surface, var(--card-bg, #fff));
 	--cst-line: var(--aura-line, var(--border-color, #e3e5ea));
 	--cst-muted: var(--aura-muted, var(--text-muted, #6b7280));
 	--cst-ok: #0ca30c; --cst-bad: #d03b3b; --cst-warn: #d97706; --cst-hot: #dc2626; --cst-warm: #d97706; --cst-cold: #64748b;
-	max-width: 1180px; margin: 0 auto; padding: 8px 4px 40px;
 }
+.cst { max-width: 1180px; margin: 0 auto; padding: 8px 4px 40px; }
 .cst h3 { margin: 0 0 8px; font-size: 15px; font-weight: 650; }
 .cst h4 { margin: 14px 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--cst-muted); }
 .cst-muted { color: var(--cst-muted); font-size: 12px; }
@@ -88,3 +88,27 @@
 .cst-quick:hover { border-color: var(--cst-accent); }
 .cst-quick.on { border-color: var(--cst-accent); background: var(--cst-soft); }
 .cst-verdict h3 { margin: 0; }
+
+/* The audience builder */
+.cst-quickstart { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0 0 10px; }
+.cst-aud .cst-field { margin-bottom: 12px; }
+.cst-aud .cst-field > label { font-size: 12px; font-weight: 600; color: var(--cst-muted); margin-bottom: 4px; display: block; }
+.aud-kinds, .cst-seg { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; margin-bottom: 12px; }
+.aud-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+.aud-checks { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 4px 0 10px; }
+.aud-check { display: flex; gap: 6px; align-items: center; font-size: 13px; margin: 2px 0; }
+.aud-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.aud-chip { display: inline-flex; gap: 5px; align-items: center; border: 1px solid var(--cst-line); border-radius: 999px; padding: 3px 10px; font-size: 12px; cursor: pointer; }
+.aud-chip.on { border-color: var(--cst-accent); background: var(--cst-soft); color: var(--cst-accent); font-weight: 600; }
+.aud-result { border: 1px solid var(--cst-line); border-radius: 12px; padding: 12px; margin: 6px 0 14px; }
+.aud-sum { font-size: 13px; margin-bottom: 8px; }
+.aud-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+.aud-tools .aud-q { flex: 1 1 220px; }
+.aud-pickbar { display: inline-flex; gap: 6px; }
+.aud-table { width: 100%; font-size: 13px; border-collapse: collapse; }
+.aud-table th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--cst-muted); padding: 6px 8px; border-bottom: 1px solid var(--cst-line); }
+.aud-table td { padding: 6px 8px; border-bottom: 1px solid var(--cst-line); }
+.cst-pager { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px; }
+.aud-pages { display: inline-flex; gap: 4px; align-items: center; }
+.aud-consent { margin-top: 6px; }
+.aud-consent summary { cursor: pointer; font-weight: 600; font-size: 13px; margin-bottom: 6px; }
