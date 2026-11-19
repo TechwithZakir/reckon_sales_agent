@@ -66,6 +66,53 @@ def propose_slots(now: datetime, busy: list[tuple[datetime, datetime]], days: se
     return sorted(slots)
 
 
+def _utc_stamp(moment: datetime) -> str:
+    return moment.strftime("%Y%m%dT%H%M%SZ")
+
+
+def _ics_text(value) -> str:
+    """Text escaped the way an iCalendar file needs it (backslash, semicolon, comma, newline)."""
+    text = str(value or "").replace("\r\n", "\n").replace("\r", "\n")
+    return text.replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,").replace("\n", "\\n")
+
+
+def _fold(line: str) -> list[str]:
+    """iCalendar lines are folded at 75 characters; a continuation starts with one space."""
+    out, rest = [], line
+    while len(rest) > 73:
+        out.append(rest[:73])
+        rest = " " + rest[73:]
+    return [*out, rest]
+
+
+def build_ics(uid: str, title: str, start_utc: datetime, end_utc: datetime, location: str = "", description: str = "",
+              now_utc: datetime | None = None) -> str:
+    """One meeting as a calendar file that Outlook, Office 365, Google Calendar and Apple Calendar all open."""
+    lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Reckon Sales Agent//Meetings//EN", "CALSCALE:GREGORIAN",
+             "METHOD:PUBLISH", "BEGIN:VEVENT", f"UID:{uid}", f"DTSTAMP:{_utc_stamp(now_utc or start_utc)}",
+             f"DTSTART:{_utc_stamp(start_utc)}", f"DTEND:{_utc_stamp(end_utc)}", f"SUMMARY:{_ics_text(title)}"]
+    if location:
+        lines.append(f"LOCATION:{_ics_text(location)}")
+    if description:
+        lines.append(f"DESCRIPTION:{_ics_text(description)}")
+    lines += ["STATUS:CONFIRMED", "END:VEVENT", "END:VCALENDAR"]
+    return "\r\n".join(part for line in lines for part in _fold(line)) + "\r\n"
+
+
+def calendar_links(title: str, start_utc: datetime, end_utc: datetime, location: str = "", description: str = "") -> dict:
+    """Links that add a meeting to the person's own calendar in one click (nothing goes to those services until they click)."""
+    from urllib.parse import quote
+
+    q = lambda v: quote(str(v or ""), safe="")  # noqa: E731
+    iso = lambda m: m.strftime("%Y-%m-%dT%H:%M:%SZ")  # noqa: E731
+    google = (f"https://calendar.google.com/calendar/render?action=TEMPLATE&text={q(title)}"
+              f"&dates={_utc_stamp(start_utc)}/{_utc_stamp(end_utc)}&details={q(description)}&location={q(location)}")
+    outlook = (f"/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&subject={q(title)}"
+               f"&startdt={q(iso(start_utc))}&enddt={q(iso(end_utc))}&body={q(description)}&location={q(location)}")
+    return {"google": google, "office365": "https://outlook.office.com" + outlook,
+            "outlook": "https://outlook.live.com" + outlook}
+
+
 def slot_label(slot: datetime) -> str:
     return slot.strftime("%A %d %B, %I:%M %p").replace(" 0", " ")
 
@@ -148,6 +195,18 @@ def _draft_invitation(meeting, prospect, slots, settings) -> str | None:
     return message.name
 
 
+def _google_calendar_of(user: str | None) -> str | None:
+    """The user's connected Google Calendar that sends events out, or None."""
+    import frappe
+
+    if not user or not frappe.db.exists("DocType", "Google Calendar"):
+        return None
+    try:
+        return frappe.db.get_value("Google Calendar", {"user": user, "enable": 1, "push_to_google_calendar": 1}, "name")
+    except Exception:
+        return None
+
+
 def book(meeting_name: str, starts_on: str) -> str:
     """Book the meeting at the time the lead chose: a calendar Event and a CRM task."""
     import frappe
@@ -165,8 +224,12 @@ def book(meeting_name: str, starts_on: str) -> str:
         frappe.throw(_("Choose a time in the future."))
     end = add_to_date(start, minutes=int(meeting.duration_minutes or 30))
     prospect = frappe.get_doc("Sales Prospect", meeting.prospect)
+    google = _google_calendar_of(meeting.assigned_to)
     event = frappe.get_doc({
-        "doctype": "Event", "subject": meeting.title, "event_category": "Meeting", "event_type": "Private",
+        "doctype": "Event", "subject": meeting.title,
+        # The salesperson's own Google Calendar gets the meeting too when they have connected one (with a Meet link for a video call).
+        **({"sync_with_google_calendar": 1, "google_calendar": google,
+            "add_video_conferencing": 1 if meeting.mode == "Video call" and not meeting.location else 0} if google else {}), "event_category": "Meeting", "event_type": "Private",
         "starts_on": start, "ends_on": end, "status": "Open", "owner": meeting.assigned_to,
         "description": f"{meeting.mode}{': ' + meeting.location if meeting.location else ''}<br>"
                        f"{frappe.utils.escape_html(prospect.business_name)} · {prospect.phone or ''} {prospect.email or ''}",
@@ -185,6 +248,31 @@ def book(meeting_name: str, starts_on: str) -> str:
                 priority="High")
     log_activity(meeting.company, "meeting_booked", meeting, f"{start:%Y-%m-%d %H:%M}", agent="Meetings")
     return event.name
+
+
+def schedule_meeting(prospect_name: str, starts_on: str, mode: str = "", location: str = "", notes: str = "",
+                     assigned_to: str | None = None) -> str:
+    """A meeting a person sets up by hand: created and booked in one step (calendar Event and CRM task as usual)."""
+    import frappe
+    from frappe import _
+
+    from reckon_sales_agent.usage import get_settings
+
+    prospect = frappe.get_doc("Sales Prospect", prospect_name)
+    if frappe.db.exists("Sales Meeting", {"prospect": prospect.name, "status": ["in", ["Proposed", "Booked"]]}):
+        frappe.throw(_("{0} already has an open meeting. Reschedule that one instead.").format(prospect.business_name))
+    settings = get_settings(prospect.company)
+    mode = mode if mode in ("Video call", "Phone", "In person") else ("Video call" if settings.get("meeting_link") else "Phone")
+    location = (location or settings.get("meeting_link") or "")[:140] if mode != "Phone" else (location or "")[:140]
+    meeting = frappe.get_doc({
+        "doctype": "Sales Meeting", "company": prospect.company, "title": f"Demo: {prospect.business_name}"[:140],
+        "status": "Proposed", "prospect": prospect.name, "crm_lead": prospect.crm_lead,
+        "assigned_to": assigned_to or frappe.session.user, "mode": mode, "location": location,
+        "duration_minutes": int(settings.get("meeting_minutes") or 30), "source": "set up by a person",
+        "outcome_notes": (notes or "")[:2000], "slot_options": "[]",
+    }).insert(ignore_permissions=True)
+    book(meeting.name, starts_on)
+    return meeting.name
 
 
 def record_outcome(meeting_name: str, outcome: str, notes: str = "") -> None:
