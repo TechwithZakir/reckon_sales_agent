@@ -462,7 +462,7 @@ class CRMTenancyTests(unittest.TestCase):
     def test_hooks_match_the_tenancy_registry(self):
         sys.path.insert(0, str(APP.parent))
         self.addCleanup(sys.path.remove, str(APP.parent))
-        hooks = {}
+        hooks = {"__file__": str(APP / "hooks.py")}  # hooks.py fingerprints its scripts by file path
         exec((APP / "hooks.py").read_text(encoding="utf-8"), hooks)
         self.assertEqual(set(hooks["_CRM_SCOPED"]), set(self.t.SCOPED_DOCTYPES))
         self.assertEqual(set(hooks["_CRM_CONFIG"]), set(self.t.VENDOR_CONFIG_DOCTYPES))
