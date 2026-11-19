@@ -75,15 +75,32 @@ def ensure_shared_lead_source() -> None:
             ignore_permissions=True)
 
 
-def ensure_workspace_sidebar() -> None:
-    """Frappe v16 left rail, kept in step with the shipped file."""
-    if not frappe.db.exists("DocType", "Workspace Sidebar"):
-        return
+def _sidebar_definition() -> dict:
+    """The shipped sidebar, without links to things that are not installed on this site."""
     definition = json.loads(SIDEBAR_FILE.read_text(encoding="utf-8"))
     definition["items"] = [
         item for item in definition["items"]
         if item["type"] != "Link" or frappe.db.exists(item["link_type"], item["link_to"])
     ]
+    return definition
+
+
+def sync_sidebar_record() -> None:
+    """The menu Desk shows is a ``Sidebar`` record (the file above only seeds it): put the shipped items in it."""
+    if not frappe.db.exists("DocType", "Sidebar") or not frappe.db.exists("Sidebar", WORKSPACE_SIDEBAR):
+        return
+    doc = frappe.get_doc("Sidebar", WORKSPACE_SIDEBAR)
+    doc.set("items", _sidebar_definition()["items"])
+    doc.flags.ignore_permissions = True
+    doc.save()
+    frappe.clear_cache()
+
+
+def ensure_workspace_sidebar() -> None:
+    """Frappe v16 left rail, kept in step with the shipped file."""
+    if not frappe.db.exists("DocType", "Workspace Sidebar"):
+        return
+    definition = _sidebar_definition()
     if frappe.db.exists("Workspace Sidebar", WORKSPACE_SIDEBAR):
         sidebar = frappe.get_doc("Workspace Sidebar", WORKSPACE_SIDEBAR)
         sidebar.set("items", definition["items"])

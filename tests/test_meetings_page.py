@@ -82,5 +82,18 @@ class MeetingsPageTests(unittest.TestCase):
         self.assertNotIn("eval(", SCRIPT.replace('"eval:!doc.agent"', ""))
 
 
+class SidebarRecordTests(unittest.TestCase):
+    """Desk reads the menu from a Sidebar record, so a changed menu file needs a patch that updates that record."""
+
+    def test_a_patch_puts_the_shipped_menu_in_the_sidebar_record(self):
+        patch = (APP / "patches" / "sync_sales_agent_sidebar.py").read_text(encoding="utf-8")
+        self.assertIn("sync_sidebar_record()", patch)
+        self.assertIn("reckon_sales_agent.patches.sync_sales_agent_sidebar", (APP / "patches.txt").read_text(encoding="utf-8"))
+        install = (APP / "install.py").read_text(encoding="utf-8")
+        body = install.split("def sync_sidebar_record(")[1].split("\ndef ")[0]
+        self.assertIn('frappe.get_doc("Sidebar", WORKSPACE_SIDEBAR)', body)
+        self.assertIn('doc.set("items", _sidebar_definition()["items"])', body)
+
+
 if __name__ == "__main__":
     unittest.main()
