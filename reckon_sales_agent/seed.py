@@ -34,8 +34,10 @@ def run_sales_agent_seed(company: str, seed_version: str) -> dict:
         }).insert(ignore_permissions=True).name
         created.append("Sales Qualification Profile")
 
-    for name, kind, enabled in (("Demo data", "fixture", 1), ("CSV import", "manual_import", 0),
-                                ("Google Places", "google_places_api", 0)):
+    sources = [("CSV import", "manual_import", 0), ("Google Places", "google_places_api", 0)]
+    if frappe.conf.get("rsa_allow_demo_source"):
+        sources.insert(0, ("Demo data", "fixture", 1))  # training and test sites only: a live company never gets fictional leads
+    for name, kind, enabled in sources:
         if not frappe.db.exists("Sales Source Connector", {"company": company, "connector_type": kind}):
             frappe.get_doc({
                 "doctype": "Sales Source Connector",

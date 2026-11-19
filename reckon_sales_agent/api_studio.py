@@ -78,6 +78,12 @@ CATALOG = (
      "icon": "spark", "subtitle": "Fictional businesses for training. No network.", "vendor": (), "maps": False},
 )
 CATALOG_TYPES = {item["type"]: item for item in CATALOG}
+DEMO_SOURCE = "fixture"
+
+
+def demo_source_allowed() -> bool:
+    """Demo Data is for training and tests only: a live site never offers it unless its site config says ``rsa_allow_demo_source``."""
+    return bool(frappe.conf.get("rsa_allow_demo_source"))
 
 
 def _payload(value) -> dict:
@@ -133,6 +139,8 @@ def bootstrap() -> dict:
     }
     catalog = []
     for item in CATALOG:
+        if item["type"] == DEMO_SOURCE and not demo_source_allowed():
+            continue
         available, reason = _availability(item, platform)
         row = existing.get(item["type"])
         catalog.append({
@@ -177,7 +185,7 @@ def setup_connector(connector_type: str, confirm_policy: int = 0, start_urls: st
     from reckon_sales_agent.connectors.base import ConnectorError
     from reckon_sales_agent.connectors.registry import build_connector
 
-    if connector_type not in CATALOG_TYPES:
+    if connector_type not in CATALOG_TYPES or (connector_type == DEMO_SOURCE and not demo_source_allowed()):
         frappe.throw(_("Unknown source."))
     if not _can_manage():
         frappe.throw(_("Ask a Sales Agent admin or manager to set up sources."), frappe.PermissionError)
