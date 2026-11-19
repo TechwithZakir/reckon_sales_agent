@@ -2,7 +2,7 @@
 // Wrapped in a closure: Desk evaluates page scripts in the global scope.
 (() => {
 	frappe.pages["sales-analytics"].on_page_load = function (wrapper) {
-		const page = frappe.ui.make_app_page({ parent: wrapper, title: __("Campaign Analytics"), single_column: true });
+		const page = frappe.ui.make_app_page({ parent: wrapper, title: __("Sales Analytics"), single_column: true });
 		page.add_inner_button(__("Agent Studio"), () => frappe.set_route("sales-agent"));
 		wrapper.dashboard = new Dashboard(page);
 	};

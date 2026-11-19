@@ -79,7 +79,7 @@
 		{ title: __("Welcome to your AI sales team"), body: __("This short tour shows where things are. It takes under a minute and you will only see it once.") },
 		{ title: __("Get started"), body: __("The first item in the left menu is a checklist. Most steps are done for you; check them and fix anything marked To do.") },
 		{ title: __("Find customers"), body: __("Say who you sell to. The agent finds businesses, researches them and scores how well they fit. You approve the good ones under “Review new leads”.") },
-		{ title: __("Reach out"), body: __("Campaigns, signup forms and automations send messages. Nothing reaches a customer until a person approves it.") },
+		{ title: __("Campaign"), body: __("Campaigns, signup forms and automations send messages. Nothing reaches a customer until a person approves it.") },
 		{ title: __("Inbox and Meetings"), body: __("Replies from customers land in the Inbox with a suggested answer. Interested people can be booked into Meetings.") },
 		{ title: __("Need help?"), body: __("Press Help at the top of any page for a short guide in plain words. You can replay this tour from there.") },
 	];

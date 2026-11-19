@@ -54,12 +54,12 @@ class RegistrationTests(unittest.TestCase):
     def test_the_sidebar_leads_with_everyday_tasks_and_keeps_the_rest_under_advanced(self):
         items = json.loads(read("workspace_sidebar", "sales_agent.json"))["items"]
         labels = [i["label"] for i in items]
-        reach = labels.index("Reach out")
+        reach = labels.index("Campaign")
         advanced = labels.index("Advanced")
         self.assertEqual((items[reach]["type"], items[advanced]["type"]), ("Section Break", "Section Break"))
         self.assertLess(reach, advanced)
         inside = labels[reach + 1:advanced]
-        for label in ("Campaigns", "Signup forms and lists", "Automations", "Message templates", "Results", "Do-not-contact list"):
+        for label in ("Campaigns", "Signup forms and lists", "Automations", "Message templates", "Messages sent", "Do-not-contact list"):
             self.assertIn(label, inside)
         self.assertEqual(items[advanced]["keep_closed"], 1)  # the technical lists are out of the way
         self.assertEqual(len([i for i in items if i["type"] == "Link" and i["label"] == "Campaigns"]), 1)

@@ -9,6 +9,17 @@
  "items": [
   {
    "type": "Link",
+   "label": "Sales Analytics",
+   "link_to": "sales-analytics",
+   "link_type": "Page",
+   "icon": "bar-chart",
+   "child": 0,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "type": "Link",
    "label": "Get started",
    "link_to": "sales-setup",
    "link_type": "Page",
@@ -96,7 +107,7 @@
   },
   {
    "type": "Section Break",
-   "label": "Reach out",
+   "label": "Campaign",
    "icon": "megaphone",
    "child": 0,
    "indent": 0,
@@ -143,27 +154,6 @@
    "link_to": "sales-templates",
    "link_type": "Page",
    "icon": "file-text",
-   "child": 1,
-   "indent": 0,
-   "collapsible": 1,
-   "show_arrow": 0
-  },
-  {
-   "type": "Section Break",
-   "label": "Results",
-   "icon": "bar-chart",
-   "child": 0,
-   "indent": 0,
-   "collapsible": 1,
-   "keep_closed": 0,
-   "show_arrow": 0
-  },
-  {
-   "type": "Link",
-   "label": "Results",
-   "link_to": "sales-analytics",
-   "link_type": "Page",
-   "icon": "bar-chart",
    "child": 1,
    "indent": 0,
    "collapsible": 1,

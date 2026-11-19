@@ -60,10 +60,10 @@ class SidebarTests(unittest.TestCase):
             self.assertIn(doctype, links, doctype)
 
     def test_the_everyday_groups_come_before_advanced_and_use_everyday_words(self):
-        for label in ("Find customers", "Reach out", "Results", "Connect and settings", "Advanced"):
+        for label in ("Find customers", "Campaign", "Connect and settings", "Advanced"):
             self.assertIn(label, self.LABELS)
-        self.assertLess(self.LABELS.index("Reach out"), self.LABELS.index("Advanced"))
-        self.assertEqual(self.LABELS[:2], ["Get started", "Home"])
+        self.assertLess(self.LABELS.index("Campaign"), self.LABELS.index("Advanced"))
+        self.assertEqual(self.LABELS[:3], ["Sales Analytics", "Get started", "Home"])
 
     def test_technical_names_are_not_in_the_everyday_part(self):
         advanced = self.LABELS.index("Advanced")

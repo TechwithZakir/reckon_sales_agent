@@ -31,7 +31,7 @@
 			steps: [__("Press New automation and start from a ready-made flow."), __("Click a step to change it, or + to add one."), __("Press Simulate to see what happens, then Switch on. Changing it later switches it off until you check it.")] },
 		"sales-templates": { title: __("Message templates"), purpose: __("The wording of your emails, SMS and WhatsApp messages. Write it once, use it in many campaigns."),
 			steps: [__("Start from a template or from blank."), __("Use fields such as the person’s first name; they are filled in for each person."), __("Approve a template before using it.")] },
-		"sales-analytics": { title: __("Results"), purpose: __("How your campaigns are doing and which messages work best."),
+		"sales-analytics": { title: __("Sales Analytics"), purpose: __("How your campaigns are doing and which messages work best."),
 			steps: [__("Pick a period."), __("Open a campaign to see who opened, clicked and replied.")] },
 		"sales-channels": { title: __("Integrations"), purpose: __("Connect the places you talk to customers: email, SMS, WhatsApp, Facebook and more."),
 			steps: [__("Open a tile and follow its steps."), __("A green tile means it is connected."), __("Your technical team can help with keys and web addresses.")] },

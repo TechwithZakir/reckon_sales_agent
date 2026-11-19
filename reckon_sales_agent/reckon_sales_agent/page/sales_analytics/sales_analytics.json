@@ -2,7 +2,7 @@
  "doctype": "Page",
  "name": "sales-analytics",
  "page_name": "sales-analytics",
- "title": "Campaign Analytics",
+ "title": "Sales Analytics",
  "icon": "bar-chart",
  "module": "Reckon Sales Agent",
  "standard": "Yes",

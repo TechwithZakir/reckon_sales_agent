@@ -19,7 +19,8 @@ CHANNELS_PAGE = "sales-channels"
 CAMPAIGN_STUDIO_PAGE = "campaign-studio"
 CAPTURE_STUDIO_PAGE = "capture-studio"
 AUTOMATION_STUDIO_PAGE = "automation-studio"
-HOME_ROUTE = f"/desk/{HOME_PAGE}"
+# Sales Analytics is where people land; the first path segment picks the Sales Agent sidebar.
+HOME_ROUTE = f"/desk/{HOME_PAGE}/{ANALYTICS_PAGE}"
 WORKSPACE_SIDEBAR = "Sales Agent"
 
 ADMIN_ROLE = "Reckon Sales Agent Admin"

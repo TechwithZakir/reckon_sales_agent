@@ -4,7 +4,7 @@
 	frappe.pages["lead-finder"].on_page_load = function (wrapper) {
 		const page = frappe.ui.make_app_page({ parent: wrapper, title: __("Lead Finder Studio"), single_column: true });
 		page.add_inner_button(__("Prospect Review"), () => frappe.set_route("sales-review"));
-		page.add_inner_button(__("Campaign Analytics"), () => frappe.set_route("sales-analytics"));
+		page.add_inner_button(__("Sales Analytics"), () => frappe.set_route("sales-analytics"));
 		wrapper.studio = new LeadFinderStudio(page);
 	};
 

@@ -16,7 +16,7 @@ for new screens.
 
 ## What changed
 
-* **Sidebar:** Get started, Home, Inbox, Meetings; then Find customers, Reach out, Results, Connect and settings. Everything else
+* **Sidebar:** Sales Analytics (the landing page), Get started, Home, Inbox, Meetings; then Find customers, Campaign (with Messages sent and the Do-not-contact list), Connect and settings. Everything else
   (all the technical lists, vendor items) is still there under **Advanced**, closed by default, with plain names ("Do-not-contact
   list", "Lead scores", "Activity log", "Background tasks").
 * **Home:** "Needs you today" comes first; the thirteen agents are one click away under "See what each AI agent is doing". A lead's
