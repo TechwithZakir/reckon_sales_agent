@@ -318,3 +318,8 @@ def _finish(job, campaign, status: str, code: str | None = None, detail: str | N
     })
     log_activity(job.company, f"discovery_{status.lower()}", job, detail or "", actor_type="system")
     frappe.db.commit()
+    if status == "Completed":
+        # Nothing to research (or research switched off): announce now. Otherwise the research jobs announce it when they end.
+        from reckon_sales_agent.agents.capture_notice import safely_notify
+
+        safely_notify(job.company)

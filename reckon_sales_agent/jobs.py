@@ -125,6 +125,12 @@ def research_batch(prospect_names: list[str]) -> None:
             frappe.log_error(title="Sales Agent research failed", reference_doctype="Sales Prospect",
                              reference_name=name)
         frappe.db.commit()
+    # The last batch of a lead capture announces it (an email to the managers).
+    company = frappe.db.get_value("Sales Prospect", prospect_names[0], "company") if prospect_names else None
+    if company:
+        from reckon_sales_agent.agents.capture_notice import safely_notify
+
+        safely_notify(company)
 
 
 def purge_expired_source_data() -> None:
