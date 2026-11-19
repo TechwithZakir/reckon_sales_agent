@@ -196,12 +196,12 @@ def worker_status() -> dict:
         workers = get_workers()
     except Exception:
         return {"known": False, "workers": 0, "long": False}
-    long_queue = False
+    long_workers = 0
     for worker in workers:
         try:
             names = worker.queue_names()
         except Exception:
             names = []
         if any(str(n).split(":")[-1] == "long" for n in names):
-            long_queue = True
-    return {"known": True, "workers": len(workers), "long": long_queue}
+            long_workers += 1
+    return {"known": True, "workers": len(workers), "long": long_workers > 0, "long_workers": long_workers}

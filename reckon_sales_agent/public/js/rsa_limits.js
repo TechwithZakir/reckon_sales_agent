@@ -49,7 +49,7 @@
 				: __("{0} lead(s) are waiting for research: about {1} minute(s) at the current pace.", [num(c.research_waiting), num(c.eta_minutes)]))
 			: __("No research is waiting.");
 		const workers = !c.workers.known ? "" : !c.workers.long ? `<div class="rsl-note bad">${__("No background worker is running, so nothing will finish. Ask your administrator to start the workers.")}</div>`
-			: `<div class="rsl-note">${__("{0} background worker(s) run jobs one at a time, so discovery waits behind research.", [num(c.workers.workers)])}</div>`;
+			: `<div class="rsl-note">${(c.workers.long_workers || 0) > 1 ? __("{0} background workers run long jobs, one each.", [num(c.workers.long_workers)]) : __("One background worker runs discovery and research, one job at a time, so discovery waits behind research.")}</div>`;
 		return group(__("Lead capture"), `${meter(__("Leads this month"), c.leads, __("Your plan's monthly allowance for new leads"))}
 			${meter(__("Websites researched this month"), c.research)}
 			${meter(__("Discovery jobs at once"), { used: c.jobs.active, limit: c.jobs.max }, __("Jobs running or waiting, against what your plan runs at the same time"))}
