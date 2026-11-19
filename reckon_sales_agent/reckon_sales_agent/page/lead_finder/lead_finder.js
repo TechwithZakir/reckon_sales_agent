@@ -579,7 +579,7 @@
 		render_launch(body) {
 			if (this.state.job) return this.render_progress(body);
 			const s = (this.state.campaign = this.state.campaign || this.campaign_defaults());
-			const src = this.data.catalog.find((c) => c.connector === this.state.connector) || {};
+			const src = (this.state.connector && this.data.catalog.find((c) => c.connector === this.state.connector)) || {};
 			const prof = this.data.profiles.find((p) => p.name === this.state.profile) || {};
 			const when = s.mode === "now" ? __("Once, right now")
 				: s.mode === "both" ? __("Now, then {0} at {1}", [__(s.schedule), s.run_at_time]) : __("{0} at {1}", [__(s.schedule), s.run_at_time]);
