@@ -13,7 +13,7 @@ from frappe.utils import add_to_date, now_datetime, nowdate
 from reckon_sales_agent.constants import USAGE_AI, USAGE_DISCOVERY, USAGE_MESSAGE, USAGE_RESEARCH
 from reckon_sales_agent.limits_math import eta_minutes
 from reckon_sales_agent.tenant import current_company
-from reckon_sales_agent.usage import assert_entitled, get_limit, get_settings, get_used
+from reckon_sales_agent.usage import get_limit, get_settings, get_used
 
 RATE_WINDOW_MINUTES = 20
 RESEARCH_ACTIONS = ["research_done", "research_failed", "research_partial", "research_blocked"]
@@ -84,6 +84,5 @@ def _sending(company: str, settings) -> dict:
 def overview() -> dict:
     """Everything the limits panel shows, for the session's Company (no keys, no addresses)."""
     company = current_company()
-    assert_entitled(company)
     settings = get_settings(company)
     return {"capture": _capture(company, settings), "ai": _ai(company), "sending": _sending(company, settings)}

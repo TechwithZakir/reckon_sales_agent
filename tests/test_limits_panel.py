@@ -33,7 +33,7 @@ class EndpointTests(unittest.TestCase):
     def test_it_is_read_only_and_limited_to_the_company(self):
         self.assertIn("@frappe.whitelist()\ndef overview(", self.api)
         self.assertIn("company = current_company()", self.api)
-        self.assertIn("assert_entitled(company)", self.api)
+        self.assertNotIn("current_company(company)", self.api)  # the Company is the session's, never an argument
         for needle in ('"company": company', "company, settings", "meter(company"):
             self.assertIn(needle, self.api)
         self.assertNotIn("password", self.api.lower())  # never a key
