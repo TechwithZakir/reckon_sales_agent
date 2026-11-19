@@ -89,6 +89,8 @@ class SidebarRecordTests(unittest.TestCase):
         patch = (APP / "patches" / "sync_sales_agent_sidebar.py").read_text(encoding="utf-8")
         self.assertIn("sync_sidebar_record()", patch)
         self.assertIn("reckon_sales_agent.patches.sync_sales_agent_sidebar", (APP / "patches.txt").read_text(encoding="utf-8"))
+        self.assertIn("reckon_sales_agent.patches.rename_sales_analytics_page", (APP / "patches.txt").read_text(encoding="utf-8"))
+        self.assertIn('"title", "Sales Analytics"', (APP / "patches" / "rename_sales_analytics_page.py").read_text(encoding="utf-8"))
         install = (APP / "install.py").read_text(encoding="utf-8")
         body = install.split("def sync_sidebar_record(")[1].split("\ndef ")[0]
         self.assertIn('frappe.get_doc("Sidebar", WORKSPACE_SIDEBAR)', body)
