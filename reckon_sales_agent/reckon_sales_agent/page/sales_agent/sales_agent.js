@@ -248,6 +248,7 @@
 				this.$root.html(`<div class="ags-hero"></div>
 					${this.section("pipeline", __("Your pipeline at a glance"), '<div class="ags-funnel"></div>')}
 					<div class="ags-setup"></div>
+					<div class="ags-limits"></div>
 					${this.section("agents", __("See what each AI agent is doing"), '<div class="ags-lanes-host"></div>', "ags-agents")}
 					<div class="ags-cols">
 						<div class="ags-col">${this.section("needs", __("Needs you today"), '<div class="ags-inbox"></div>', "ags-needs")}</div>
@@ -256,6 +257,7 @@
 							${this.section("activity", __("Live activity"), '<div class="ags-feed"></div>', "ags-activity")}
 						</div>
 					</div>`);
+				if (window.rsa_limits) window.rsa_limits.mount(this.$root.find(".ags-limits"), ["capture", "ai", "sending"]);
 				this.$root.on("toggle", "details.ags-sec", (ev) => {
 					try { localStorage.setItem(`ags_open_${ev.currentTarget.dataset.sec}`, ev.currentTarget.open ? "1" : "0"); } catch (err) { /* private window */ }
 				});

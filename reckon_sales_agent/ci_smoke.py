@@ -56,6 +56,7 @@ def run() -> None:
     check("Get started status", api_setup.status)
     check("Campaign Analytics", lambda: api.analytics_dashboard(30))
     check("Channels overview", api_channels.overview)
+    check("Limits panel", lambda: __import__("reckon_sales_agent.api_limits", fromlist=["overview"]).overview())
     check("Conversations list", api_conversations.threads)
     check("Integration panel save", lambda: api_channels.save_settings(
         {"calling_hours": "09:00-20:00", "sms_provider": "BulkSMSBD", "sms_api_key": ""}))

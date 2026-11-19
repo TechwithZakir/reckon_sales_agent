@@ -247,7 +247,8 @@ function social(d, platforms, onText) {
 						<div class="${attention ? "warn" : ""}"><b>${attention}</b><span>${__("need attention")}</span></div>
 						<div><b>${shown.length - connected - attention}</b><span>${__("available")}</span></div></div>
 				</div>
-				${d.vendor ? this.vendor_strip(d.vendor) : ""}
+				<div class="sch-limits"></div>
+					${d.vendor ? this.vendor_strip(d.vendor) : ""}
 				${d.outbound_enabled ? "" : `<div class="sch-note">${icon("shield", 16)}<span>${__("Dry run is on: approved replies are recorded but not delivered. Switch it off in Sales Agent Settings when you are ready.")}</span></div>`}
 				<div class="sch-toolbar">
 					<div class="sch-cats" role="tablist">${(d.is_vendor ? [...CATEGORIES, ["platform", __("System provider")]] : CATEGORIES).map(([k, l]) => `<button role="tab" data-cat="${k}" class="${this.cat === k ? "on" : ""}">${e(l)}</button>`).join("")}</div>
@@ -257,6 +258,7 @@ function social(d, platforms, onText) {
 				<div class="sch-tiles"></div>
 				<div class="sch-drawer" aria-hidden="true"><div class="sch-scrim"></div><aside class="sch-panel" role="dialog" aria-modal="true"></aside></div>`);
 			this.render_tiles();
+			if (window.rsa_limits) window.rsa_limits.mount(this.$root.find(".sch-limits"), ["sending", "ai"]);
 			this.$root.find(".sch-cats button").on("click", (ev) => { this.cat = ev.currentTarget.dataset.cat; this.$root.find(".sch-cats button").removeClass("on"); $(ev.currentTarget).addClass("on"); this.render_tiles(); });
 			this.$root.find(".sch-search input").on("input", (ev) => { this.q = ev.target.value.toLowerCase(); this.render_tiles(); });
 			this.$root.find(".sch-status").on("click", "button", (ev) => { this.status = ev.currentTarget.dataset.status; this.render_tiles(); });

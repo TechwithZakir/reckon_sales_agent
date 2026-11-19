@@ -99,8 +99,10 @@
 					.map((label, i) => `<div class="lfs-step ${i + 1 === this.step ? "active" : i + 1 < this.step ? "done" : ""}" data-step="${i + 1}">
 						<span class="num">${i + 1 < this.step ? lfs_icon("check", 14) : i + 1}</span><span class="label">${e(label)}</span></div>`)
 					.join("")}</div>
+				<div class="lfs-limits"></div>
 				<div class="lfs-body"></div>
 				<div class="lfs-recent"></div>`);
+			if (window.rsa_limits) window.rsa_limits.mount(this.$root.find(".lfs-limits"), ["capture", "ai"]);
 			// Any step can be opened at any time; what is still missing is shown on the step itself.
 			this.$root.find(".lfs-step").attr({ role: "button", tabindex: 0 })
 				.on("click keydown", (ev) => {
