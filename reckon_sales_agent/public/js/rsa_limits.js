@@ -22,8 +22,8 @@
 .rsl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px 22px; margin-top: 10px; }
 .rsl-group h5 { margin: 0 0 8px; font-family: var(--aura-font, inherit); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--aura-muted, var(--text-muted, #6b7280)); }
 .rsl-m { margin-bottom: 9px; }
-.rsl-m .row { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; }
-.rsl-m .row b { font-weight: 600; }
+.rsl-m .rsl-r { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; }
+.rsl-m .rsl-r b { font-weight: 600; }
 .rsl-bar { height: 7px; border-radius: 999px; background: color-mix(in srgb, var(--aura-accent, #6d4cff) 12%, transparent); overflow: hidden; margin-top: 3px; }
 .rsl-bar i { display: block; height: 100%; border-radius: 999px; background: var(--aura-accent, #6d4cff); }
 .rsl-m.warn .rsl-bar i { background: #d97706; } .rsl-m.full .rsl-bar i { background: #dc2626; }
@@ -37,7 +37,7 @@
 		const limit = Number((m || {}).limit || 0), used = Number((m || {}).used || 0);
 		const pct = limit ? Math.min(100, Math.round((100 * used) / limit)) : 0;
 		const cls = limit && used >= limit ? "full" : pct >= 80 ? "warn" : "";
-		return `<div class="rsl-m ${cls}" title="${e(hint || "")}"><div class="row"><span>${e(label)}</span><b>${num(used)}${limit ? ` / ${num(limit)}` : ""}</b></div>
+		return `<div class="rsl-m ${cls}" title="${e(hint || "")}"><div class="rsl-r"><span>${e(label)}</span><b>${num(used)}${limit ? ` / ${num(limit)}` : ""}</b></div>
 			${limit ? `<div class="rsl-bar"><i style="width:${pct}%"></i></div>` : ""}</div>`;
 	};
 
