@@ -31,7 +31,8 @@ def choose_ai(platform: dict, company: dict) -> dict:
                 "openai": platform.get("openai_model") or "",
                 "local": platform.get("local_ai_model") or ""}
     model = (company.get("ai_model_override") if source == "company" else None) or defaults[kind]
-    base_url = {"anthropic": None, "openai": platform.get("openai_base_url") or "https://api.openai.com/v1",
+    base_url = {"anthropic": platform.get("anthropic_base_url") or None,
+                "openai": platform.get("openai_base_url") or "https://api.openai.com/v1",
                 "local": platform.get("local_ai_base_url") or ""}[kind]
     error = ""
     if source == "company" and company.get("ai_base_url_override") and kind != "anthropic":
@@ -105,7 +106,8 @@ def get_llm(company: str):
     if setup["kind"] == "anthropic":
         if not key:
             return None
-        return ClaudeProvider(key, model=setup["model"], effort=platform.ai_effort or "medium", scope=setup["scope"])
+        return ClaudeProvider(key, model=setup["model"], effort=platform.ai_effort or "medium", scope=setup["scope"],
+                              base_url=setup["base_url"])
     if setup["kind"] == "openai" and not key:
         return None
     if setup["custom_endpoint"]:

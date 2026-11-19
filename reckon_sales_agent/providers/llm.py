@@ -47,19 +47,56 @@ class ClaudeProvider:
     kind = "anthropic"
 
     def __init__(self, api_key: str, model: str = "claude-opus-5-5", effort: str = "medium", client=None,
-                 scope: str = "platform:anthropic"):
+                 scope: str = "platform:anthropic", base_url: str | None = None):
+        self.base_url = (base_url or "").rstrip("/") or None
         if client is None:
             import anthropic
 
-            client = anthropic.Anthropic(api_key=api_key, max_retries=2, timeout=120.0)
+            options = {"api_key": api_key, "max_retries": 2, "timeout": 120.0}
+            if self.base_url:
+                options["base_url"] = self.base_url
+            client = anthropic.Anthropic(**options)
         self.client = client
         self.model = model
         self.scope = scope
         self.effort = effort if effort in {"low", "medium", "high"} else "medium"
 
+    def _fail(self, exc):
+        """The person-readable error for a failed request (and a pause when the account itself has the problem)."""
+        import anthropic
+
+        if isinstance(exc, anthropic.RateLimitError):
+            raise LLMError("AI rate limit reached; try again later.") from exc
+        if isinstance(exc, anthropic.APIStatusError):
+            # Live: every call failed with a bare "(400)"; the provider's reason (e.g. a low credit balance or an
+            # unsupported option) is what the person needs to fix it. Keys never appear in these messages.
+            reason = provider_reason(exc)
+            if blocks_account(exc.status_code, reason):
+                _pause_ai(reason, self.scope)
+            raise LLMError(plain_message(exc.status_code, reason), detail=f"AI request failed ({exc.status_code}): {reason}") from exc
+        raise LLMError("AI service unreachable.") from exc
+
+    def _complete_compatible(self, system: str, user: str, schema: dict[str, Any], max_tokens: int) -> dict:
+        """Another service that speaks the Anthropic API: a plain request, the schema in the instructions, the answer checked here."""
+        import anthropic
+
+        instructions = (f"{system}\n\nReply with one JSON object that matches this JSON schema exactly, and nothing else:\n"
+                        f"{json.dumps(schema)}")
+        try:
+            response = self.client.messages.create(model=self.model, max_tokens=max_tokens, system=instructions,
+                                                   messages=[{"role": "user", "content": user}])
+        except (anthropic.APIStatusError, anthropic.APIConnectionError) as exc:
+            self._fail(exc)
+        if getattr(response, "stop_reason", "") == "max_tokens":
+            raise LLMError("The AI response was cut off.")
+        text = "".join(block.text for block in response.content if getattr(block, "type", "") == "text")
+        return parse_json(text)
+
     def complete_json(self, system: str, user: str, schema: dict[str, Any], max_tokens: int = 4000) -> dict:
         import anthropic
 
+        if self.base_url:
+            return self._complete_compatible(system, user, schema, max_tokens)
         try:
             response = self.client.beta.messages.create(
                 model=self.model,

@@ -79,6 +79,29 @@ class ChooseAITests(unittest.TestCase):
         local = choose_ai({"ai_provider": "Local (OpenAI-compatible)", "local_ai_model": "m"}, {"company": "Acme"})
         self.assertIn("No address", local["error"])
 
+    def test_an_anthropic_compatible_address_is_passed_through(self):
+        setup = choose_ai({**PLATFORM, "anthropic_base_url": "https://llm.example/apps/anthropic"}, {"company": "Acme"})
+        self.assertEqual((setup["kind"], setup["base_url"]), ("anthropic", "https://llm.example/apps/anthropic"))
+        self.assertIsNone(choose_ai(PLATFORM, {"company": "Acme"})["base_url"])
+
+    def test_a_compatible_service_gets_a_plain_request_with_the_schema_in_the_instructions(self):
+        from types import SimpleNamespace
+
+        from reckon_sales_agent.providers.llm import ClaudeProvider
+
+        calls = []
+
+        class Messages:
+            def create(self, **kwargs):
+                calls.append(kwargs)
+                return SimpleNamespace(stop_reason="end_turn", content=[SimpleNamespace(type="text", text='noise {"ok": true} noise')])
+
+        client = SimpleNamespace(messages=Messages(), beta=SimpleNamespace(messages=None))
+        provider = ClaudeProvider("k", model="m", client=client, base_url="https://llm.example/apps/anthropic")
+        self.assertEqual(provider.complete_json("sys", "hi", {"type": "object"}), {"ok": True})
+        self.assertIn('"type": "object"', calls[0]["system"])
+        self.assertNotIn("output_config", calls[0])  # structured-output options are Anthropic-only
+
     def test_unknown_provider_falls_back_to_claude(self):
         self.assertEqual(choose_ai({"ai_provider": "Gemini"}, {"company": "Acme"})["kind"], "anthropic")
 

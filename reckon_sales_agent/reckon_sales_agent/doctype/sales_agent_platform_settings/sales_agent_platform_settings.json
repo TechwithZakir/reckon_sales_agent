@@ -22,6 +22,7 @@
   "ai_enabled",
   "ai_provider",
   "anthropic_api_key",
+  "anthropic_base_url",
   "ai_model",
   "ai_effort",
   "openai_section",
@@ -154,6 +155,12 @@
    "fieldname": "anthropic_api_key",
    "fieldtype": "Password",
    "label": "Anthropic API Key"
+  },
+  {
+   "fieldname": "anthropic_base_url",
+   "fieldtype": "Data",
+   "label": "Anthropic-compatible address",
+   "description": "Leave empty for Anthropic itself. Set it to use another service that speaks the Anthropic API (the same address Reckon Aura AI uses, for example)."
   },
   {
    "fieldname": "ai_model",
