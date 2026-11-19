@@ -157,3 +157,10 @@
 .sch-it { margin: 12px 18px 0; padding: 10px 14px; border-radius: 12px; background: var(--sch-soft); border: 1px dashed var(--sch-line); font-size: 13px; }
 .sch-it ul { margin: 6px 0 8px 18px; padding: 0; }
 .sch-it li { margin-bottom: 2px; }
+
+/* Connected / not connected filter between the categories and the search */
+.sch-status { display: flex; gap: 4px; flex-wrap: wrap; background: var(--sch-card); border: 1px solid var(--sch-line); border-radius: 10px; padding: 3px; }
+.sch-status button { border: 0; background: transparent; color: var(--sch-muted); font-size: 12.5px; padding: 5px 11px; border-radius: 7px; }
+.sch-status button b { font-weight: 600; margin-left: 2px; color: var(--sch-text); }
+.sch-status button.on { background: var(--sch-soft); color: var(--sch-accent); font-weight: 600; }
+.sch-status button.on b { color: inherit; }

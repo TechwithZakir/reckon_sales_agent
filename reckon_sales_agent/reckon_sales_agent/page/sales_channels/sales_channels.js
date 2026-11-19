@@ -251,6 +251,7 @@ function social(d, platforms, onText) {
 				${d.outbound_enabled ? "" : `<div class="sch-note">${icon("shield", 16)}<span>${__("Dry run is on: approved replies are recorded but not delivered. Switch it off in Sales Agent Settings when you are ready.")}</span></div>`}
 				<div class="sch-toolbar">
 					<div class="sch-cats" role="tablist">${(d.is_vendor ? [...CATEGORIES, ["platform", __("System provider")]] : CATEGORIES).map(([k, l]) => `<button role="tab" data-cat="${k}" class="${this.cat === k ? "on" : ""}">${e(l)}</button>`).join("")}</div>
+					<div class="sch-status" role="group" aria-label="${__("Connection status")}"></div>
 					<label class="sch-search">${icon("search", 15)}<input placeholder="${__("Search integrations")}" value="${e(this.q)}"></label>
 				</div>
 				<div class="sch-tiles"></div>
@@ -258,6 +259,7 @@ function social(d, platforms, onText) {
 			this.render_tiles();
 			this.$root.find(".sch-cats button").on("click", (ev) => { this.cat = ev.currentTarget.dataset.cat; this.$root.find(".sch-cats button").removeClass("on"); $(ev.currentTarget).addClass("on"); this.render_tiles(); });
 			this.$root.find(".sch-search input").on("input", (ev) => { this.q = ev.target.value.toLowerCase(); this.render_tiles(); });
+			this.$root.find(".sch-status").on("click", "button", (ev) => { this.status = ev.currentTarget.dataset.status; this.render_tiles(); });
 			this.$root.find(".sch-scrim").on("click", () => this.close());
 			this.$root.find(".sch-co").on("change", (ev) => { this.company = ev.target.value; this.openKey = null; this.load(); });
 			this.$root.find(".sch-vendor-strip").on("click", () => this.open("vendor"));
@@ -266,8 +268,16 @@ function social(d, platforms, onText) {
 
 		render_tiles() {
 			const d = this.data;
-			const rows = [...INTEGRATIONS, ...(d.is_vendor ? PLATFORM_TILES : [])].filter((i) => (this.cat === "all" || i.cat === this.cat)
+			const base = [...INTEGRATIONS, ...(d.is_vendor ? PLATFORM_TILES : [])].filter((i) => (this.cat === "all" || i.cat === this.cat)
 				&& (!this.q || `${i.name} ${i.desc}`.toLowerCase().includes(this.q)));
+			// Connected, not connected, needs attention, unavailable: counted over what the category and search show.
+			const status = this.status || "all";
+			const count = (s) => base.filter((i) => i.state(d)[0] === s).length;
+			this.$root.find(".sch-status").html([["all", __("All status"), base.length], ["on", STATE_LABEL.on, count("on")], ["off", STATE_LABEL.off, count("off")],
+				["warn", STATE_LABEL.warn, count("warn")], ["na", STATE_LABEL.na, count("na")]]
+				.filter(([key, , n]) => key === "all" || key === status || n > 0)
+				.map(([key, label, n]) => `<button type="button" data-status="${key}" class="${status === key ? "on" : ""} ${key}" aria-pressed="${status === key}">${e(label)} <b>${n}</b></button>`).join(""));
+			const rows = status === "all" ? base : base.filter((i) => i.state(d)[0] === status);
 			this.$root.find(".sch-tiles").html(rows.map((i) => {
 				const [state, text] = i.state(d);
 				return `<button class="sch-tile ${state}" data-key="${i.key}">
