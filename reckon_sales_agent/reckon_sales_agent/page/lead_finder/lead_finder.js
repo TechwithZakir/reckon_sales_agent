@@ -101,10 +101,66 @@
 					.join("")}</div>
 				<div class="lfs-body"></div>
 				<div class="lfs-recent"></div>`);
-			this.$root.find(".lfs-step.done").on("click", (ev) => this.go(Number(ev.currentTarget.dataset.step)));
+			// Any step can be opened at any time; what is still missing is shown on the step itself.
+			this.$root.find(".lfs-step").attr({ role: "button", tabindex: 0 })
+				.on("click keydown", (ev) => {
+					if (ev.type === "keydown" && ev.key !== "Enter" && ev.key !== " ") return;
+					ev.preventDefault();
+					const to = Number(ev.currentTarget.dataset.step);
+					if (to !== this.step) this.go(to);
+				});
 			const body = this.$root.find(".lfs-body");
 			[null, this.render_business, this.render_source, this.render_targeting, this.render_campaign, this.render_launch][this.step].call(this, body);
 			this.render_recent(this.$root.find(".lfs-recent"));
+			body.children(".lfs-panel").each((i, el) => this.collapsible($(el), `${this.step}_${i}`));
+			this.collapsible(this.$root.find(".lfs-recent"), "recent");
+		}
+
+		// A section folds away by its heading; whether it was left folded is remembered.
+		collapsible($box, key) {
+			const $head = $box.children().first();
+			if (!$head.length || $box.data("lfs-col")) return;
+			$box.data("lfs-col", true).addClass("lfs-collapsible");
+			const $body = $('<div class="lfs-sec-body"></div>');
+			$head.nextAll().appendTo($body);
+			$body.appendTo($box);
+			let closed = false;
+			try { closed = localStorage.getItem(`lfs_closed_${key}`) === "1"; } catch (err) { /* private window */ }
+			$box.toggleClass("closed", closed);
+			$head.addClass("lfs-sec-head").attr({ role: "button", tabindex: 0, "aria-expanded": String(!closed) })
+				.on("click keydown", (ev) => {
+					if (ev.type === "keydown" && ev.key !== "Enter" && ev.key !== " ") return;
+					if ($(ev.target).closest("a, input, select, textarea, .lfs-state").length) return;
+					ev.preventDefault();
+					const shut = !$box.hasClass("closed");
+					$box.toggleClass("closed", shut);
+					$head.attr("aria-expanded", String(!shut));
+					try { localStorage.setItem(`lfs_closed_${key}`, shut ? "1" : "0"); } catch (err) { /* private window */ }
+				});
+		}
+
+		// Pages for a list of rows: ten at a time. The list is rebuilt now and then (progress polling), so call this after each fill.
+		pageify($list, key, size = 10) {
+			this.pg = this.pg || {};
+			const v = (this.pg[key] = this.pg[key] || { page: 1 });
+			let $bar = $list.next(".lfs-pager");
+			if (!$bar.length) {
+				$bar = $('<div class="lfs-pager"><span class="meta lfs-pg-info"></span><span class="lfs-pg-btns"></span></div>').insertAfter($list);
+				$bar.on("click", ".lfs-pg:not([disabled])", (ev) => { v.page = Number(ev.currentTarget.dataset.page); this.pageify($list, key, size); });
+			}
+			const $rows = $list.children(".lfs-row").not(".meta");
+			const pages = Math.max(1, Math.ceil($rows.length / size));
+			v.page = Math.min(Math.max(1, v.page), pages);
+			const from = (v.page - 1) * size;
+			$rows.each((i, el) => $(el).toggle(i >= from && i < from + size));
+			$bar.toggle(pages > 1);
+			$bar.find(".lfs-pg-info").text(__("{0}–{1} of {2}", [from + 1, Math.min(from + size, $rows.length), $rows.length]));
+			const near = [...new Set([1, pages, v.page - 1, v.page, v.page + 1])].filter((n) => n >= 1 && n <= pages).sort((a, b) => a - b);
+			let last = 0;
+			const btn = (label, to, cls = "", off = false) => `<button type="button" class="btn btn-xs btn-default lfs-pg ${cls}" data-page="${to}" ${off ? "disabled" : ""}>${label}</button>`;
+			$bar.find(".lfs-pg-btns").html(btn("‹", v.page - 1, "", v.page === 1)
+				+ near.map((n) => { const gap = n - last > 1 ? '<span class="lfs-gap">…</span>' : ""; last = n; return gap + btn(n, n, n === v.page ? "btn-primary" : ""); }).join("")
+				+ btn("›", v.page + 1, "", v.page === pages));
 		}
 
 		go(step) {
@@ -463,11 +519,7 @@
 
 		// ---------------------------------------------------------------- 3. campaign & schedule
 		render_campaign(body) {
-			const s = (this.state.campaign = this.state.campaign || {
-				campaign_name: (this.data.profiles.find((p) => p.name === this.state.profile) || {}).profile_name || "",
-				target_count: Math.min(50, this.data.max_results_per_job), per_query_limit: 20,
-				auto_research: true, use_ai_planner: false, mode: "now", schedule: "Weekly", run_at_time: "09:00",
-			});
+			const s = (this.state.campaign = this.state.campaign || this.campaign_defaults());
 			const panel = $(`<div class="lfs-panel"><h3>${__("How many leads, and when?")}</h3>
 				<p class="lead">${__("Run once now, keep it running on a schedule, or both.")}</p>
 				<div class="lfs-grid2">
@@ -516,20 +568,34 @@
 		}
 
 		// ---------------------------------------------------------------- 4. launch & progress
+		campaign_defaults() {
+			return {
+				campaign_name: (this.data.profiles.find((p) => p.name === this.state.profile) || {}).profile_name || "",
+				target_count: Math.min(50, this.data.max_results_per_job), per_query_limit: 20,
+				auto_research: true, use_ai_planner: false, mode: "now", schedule: "Weekly", run_at_time: "09:00",
+			};
+		}
+
 		render_launch(body) {
 			if (this.state.job) return this.render_progress(body);
-			const s = this.state.campaign;
+			const s = (this.state.campaign = this.state.campaign || this.campaign_defaults());
 			const src = this.data.catalog.find((c) => c.connector === this.state.connector) || {};
 			const prof = this.data.profiles.find((p) => p.name === this.state.profile) || {};
 			const when = s.mode === "now" ? __("Once, right now")
 				: s.mode === "both" ? __("Now, then {0} at {1}", [__(s.schedule), s.run_at_time]) : __("{0} at {1}", [__(s.schedule), s.run_at_time]);
 			$(`<div class="lfs-panel"><h3>${__("Ready to launch")}</h3><p class="lead">${__("Check the summary, then start.")}</p>
 				<div class="lfs-list">
-					${[[__("Source"), src.title], [__("Targeting"), prof.profile_name], [__("Campaign"), s.campaign_name || __("Lead discovery")],
+					${[[__("Source"), src.title || __("Not chosen yet")], [__("Targeting"), prof.profile_name || __("Not chosen yet")], [__("Campaign"), s.campaign_name || __("Lead discovery")],
 						[__("Leads per run"), s.target_count], [__("When"), when],
 						[__("Research"), s.auto_research ? __("On") : __("Off")]].map(([k, v]) =>
 						`<div class="lfs-row"><span class="meta">${e(k)}</span><div class="main"><div><b>${e(v)}</b></div></div></div>`).join("")}
 				</div></div>`).appendTo(body);
+			const missing = [!this.state.connector && [__("Source"), 2], !this.state.profile && [__("Who to find"), 3]].filter(Boolean);
+			if (missing.length) {
+				$(`<div class="lfs-note warn">${__("Before you can start, finish: {0}.", [missing.map(([l]) => e(l)).join(", ")])}
+					${missing.map(([l, st]) => `<a href="#" class="lfs-jump" data-step="${st}">${e(l)}</a>`).join(" · ")}</div>`).appendTo(body)
+					.find(".lfs-jump").on("click", (ev) => { ev.preventDefault(); this.go(Number(ev.currentTarget.dataset.step)); });
+			}
 			this.actions(body, {
 				back: () => this.go(4), nextIcon: "spark",
 				nextLabel: s.mode === "schedule" ? __("Save schedule") : __("Start discovery"),
@@ -549,7 +615,7 @@
 						})
 						.catch(() => $(ev.currentTarget).prop("disabled", false));
 				},
-			});
+			}).find(".lfs-next").prop("disabled", missing.length > 0);
 		}
 
 		render_progress(body) {
@@ -565,6 +631,7 @@
 				<div class="lfs-two"><div><div class="lfs-group-title">${__("Searches")}</div><div class="lfs-list lfs-searches"></div></div>
 					<div><div class="lfs-group-title">${__("Newest leads")}</div><div class="lfs-list lfs-leads"></div></div></div>
 			</div>`).appendTo(body);
+			panel.find(".lfs-two > div").each((i, el) => this.collapsible($(el), `progress_${i}`));
 			const $a = this.actions(body, { back: null, next: () => frappe.set_route("sales-review"), nextLabel: __("Review leads") });
 			$(`<button class="btn btn-default btn-sm">${__("New search")}</button>`).prependTo($a.find(".right")).on("click", () => this.reset());
 			$(`<button class="btn btn-default btn-sm">${__("Open job")}</button>`).prependTo($a.find(".right"))
@@ -600,12 +667,14 @@
 				panel.find(".lfs-searches").html(r.searches.map((q) => `<div class="lfs-row"><div class="main"><div>${e(q.query_text)}</div>
 					<div class="meta">${q.results != null && q.status === "Done" ? __("{0} results", [q.results]) : ""}</div></div>
 					<span class="lfs-state ${e(q.status)}">${e(__(q.status))}</span></div>`).join("") || `<div class="lfs-row meta">${__("Planning…")}</div>`);
+				this.pageify(panel.find(".lfs-searches"), "searches");
 				panel.find(".lfs-leads").html(r.prospects.map((p) => `<div class="lfs-row"><div class="main">
 					<div><a href="/desk/sales-prospect/${encodeURIComponent(p.name)}">${e(p.business_name)}</a></div>
 					<div class="meta">${e([p.city, p.phone].filter(Boolean).join(" · "))}</div></div>
 					<span class="meta">${p.deal_probability ? e(Math.round(p.deal_probability)) + "%" : e(__(p.research_status || "New"))}</span>
 					<button class="btn btn-xs btn-default lfs-copilot" data-p="${e(p.name)}">${__("Copilot")}</button></div>`).join("")
 					|| `<div class="lfs-row meta">${__("Leads will appear here as they are found.")}</div>`);
+				this.pageify(panel.find(".lfs-leads"), "leads");
 				panel.find(".lfs-copilot").on("click", (ev) => frappe.xcall("reckon_sales_agent.api_conversations.copilot_summary",
 					{ prospect: ev.currentTarget.dataset.p }).then((g) => frappe.msgprint({ title: __("Copilot"), indicator: "blue",
 						message: `<p>${e(g.summary)}</p><p><b>${e(__("Next step"))}:</b> ${e(g.next_step)}</p>` })));
@@ -636,6 +705,7 @@
 				this.step = 5;
 				this.render();
 			});
+			this.pageify(el.find(".lfs-list"), "campaigns");
 		}
 	}
 })();

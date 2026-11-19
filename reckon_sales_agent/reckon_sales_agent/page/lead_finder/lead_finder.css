@@ -122,3 +122,17 @@
 	.lfs-grid2, .lfs-two { grid-template-columns: 1fr; }
 	.lfs-stats { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* Every section folds by its heading; lists page ten at a time; every step is clickable */
+.lfs-step { cursor: pointer; }
+.lfs-step:focus-visible, .lfs-sec-head:focus-visible { outline: 2px solid var(--lfs-accent, #6d4cff); outline-offset: 2px; }
+.lfs-sec-head { cursor: pointer; user-select: none; position: relative; padding-right: 22px; }
+.lfs-sec-head::after { content: "▾"; position: absolute; right: 0; top: 50%; transform: translateY(-50%); color: var(--lfs-muted); font-size: 13px; }
+.lfs-collapsible.closed > .lfs-sec-head::after { content: "▸"; }
+.lfs-collapsible.closed > .lfs-sec-body { display: none; }
+.lfs-collapsible.closed > .lfs-sec-head { margin-bottom: 0; }
+.lfs-panel.lfs-collapsible.closed .lead { display: none; }
+.lfs-pager { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px; font-size: 12px; }
+.lfs-pg-btns { display: inline-flex; gap: 4px; align-items: center; }
+.lfs-gap { color: var(--lfs-muted); }
+.lfs-jump { font-weight: 600; }
