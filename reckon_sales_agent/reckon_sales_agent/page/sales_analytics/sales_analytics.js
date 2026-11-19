@@ -75,6 +75,8 @@
 			this.render_campaigns(this.$root.find(".sad-camp"), d.campaigns);
 			this.$root.find(".sad-advice").html(`<h3>${__("Recommendations")}</h3>
 				<ul class="sad-recs">${(d.recommendations || []).map((r) => `<li>${e(r)}</li>`).join("")}</ul>`);
+			// Every table here is searchable, sortable and paged (ten rows at a time).
+			if (window.rsa_tables) this.$root.find("table.t").each((_, t) => window.rsa_tables.enhance($(t), { size: 10 }));
 		}
 
 		// ------------------------------------------------------------ stat tiles

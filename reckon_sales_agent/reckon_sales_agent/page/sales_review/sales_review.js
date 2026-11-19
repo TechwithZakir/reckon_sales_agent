@@ -89,8 +89,10 @@ class ProspectReview {
 				</tr></thead>
 				<tbody>${body || `<tr><td colspan="10" class="text-muted">${__("Nothing to review")}</td></tr>`}</tbody>
 			</table>`);
+		// Ten at a time, searchable and sortable. "Select all" ticks only the rows on this page, so nothing out of sight is approved by mistake.
+		if (window.rsa_tables) window.rsa_tables.enhance(this.$body.find("table"), { size: 10 });
 		this.$body.find(".review-all").on("change", (ev) =>
-			this.$body.find(".review-select").prop("checked", ev.target.checked)
+			this.$body.find(".review-select:visible").prop("checked", ev.target.checked)
 		);
 	}
 

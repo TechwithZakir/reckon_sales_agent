@@ -156,6 +156,7 @@
 						<span>${pct(r.reply_rate)}</span><span>${pct(r.bounce_rate)}</span><span>${num(r.member_count)}</span></div>`).join("")
 						|| `<div class="cst-empty">${__("No campaigns yet. Make an audience, then start one.")}</div>`}</div>`);
 				this.$body.find(".cst-row.click").on("click", (ev) => this.campaign_detail(ev.currentTarget.dataset.name));
+				this.paged(this.$body.find(".cst-card:has(.cst-row.head)"));
 				this.$body.find(".cst-new-campaign").on("click", () => this.campaign_dialog());
 				this.$body.find(".cst-w-resume").on("click", () => this.campaign_dialog());
 				if (store.get("cst_use_template", "") && can_manage()) this.campaign_dialog();  // "Use in campaign" from the builder
@@ -468,6 +469,11 @@
 			});
 		}
 
+		// Search, sort and pages (ten at a time) for a list of grid rows, with the header row as the sort header.
+		paged($card, search = true) {
+			if (window.rsa_tables) window.rsa_tables.enhance($card, { rows: ".cst-row:not(.head)", head: ".cst-row.head > span", search });
+		}
+
 		// Audiences --------------------------------------------------------------
 
 		tab_audiences() {
@@ -478,7 +484,7 @@
 					${can_manage() ? `<div class="cst-quickstart"><span class="cst-muted">${__("Start from:")}</span>
 						${[["Prospects", __("Lead Finder leads")], ["CRM Leads", __("CRM leads")], ["Customers", __("Customers")], ["CRM Contacts", __("CRM contacts")]]
 							.map(([k, l]) => `<button class="btn btn-default btn-xs cst-qa" data-kind="${k}">${e(l)}</button>`).join("")}</div>` : ""}
-					${rows.map((a) => `<section class="cst-card" data-name="${e(a.name)}"><div class="cst-bar">
+					<div class="cst-aud-list">${rows.map((a) => `<section class="cst-card" data-name="${e(a.name)}"><div class="cst-bar">
 						<div><b>${e(a.audience_name)}</b> <span class="cst-badge">${e(__(a.audience_type))}</span>
 							${a.sms_opt_in || a.whatsapp_opt_in ? `<span class="cst-badge ok">${__("Permission recorded")}</span>` : ""}
 							<div class="cst-muted">${num(a.size)} ${__("people")} · ${num(a.size_email)} ${__("with email")} · ${num(a.size_phone)} ${__("with phone")}
@@ -487,7 +493,8 @@
 							<button class="btn btn-default btn-xs cst-a-edit">${__("Edit")}</button>
 							<button class="btn btn-default btn-xs cst-a-count">${__("Count again")}</button>
 							<button class="btn btn-default btn-xs cst-a-del">${__("Delete")}</button>` : ""}</div></div></section>`).join("")
-						|| `<div class="cst-card cst-empty">${__("No audiences yet.")}</div>`}`);
+						|| `<div class="cst-card cst-empty">${__("No audiences yet.")}</div>`}</div>`);
+				if (window.rsa_tables) window.rsa_tables.enhance(this.$body.find(".cst-aud-list"), { rows: "> .cst-card[data-name]", sort: false });
 				this.$body.find(".cst-new-audience").on("click", () => this.audience_dialog());
 				this.$body.find(".cst-qa").on("click", (ev) => this.audience_dialog(null, null, { kind: ev.currentTarget.dataset.kind }));
 				const name = (ev) => $(ev.currentTarget).closest("[data-name]").data("name");
@@ -695,6 +702,7 @@
 						<span>${p.counts.opened}</span><span>${p.counts.clicked}</span><span>${p.counts.replied}</span><span>${p.campaigns}</span></div>`).join("")
 						|| `<div class="cst-empty">${__("Nobody found.")}</div>`}`);
 				list.find(".cst-person").on("click", (ev) => this.timeline_dialog(ev.currentTarget.dataset.prospect));
+				this.paged(list, false);
 			});
 			let timer = null;
 			this.$body.find(".cst-search").on("input", () => { clearTimeout(timer); timer = setTimeout(run, 350); });
