@@ -8,6 +8,8 @@ lang: en
 
 # AI Sales Agent for Frappe CRM: Lead Discovery, Scoring and Approved Follow-Up
 
+![Banner](banner.svg)
+
 Sales teams in Bangladesh spend hours finding prospects, checking their websites and writing follow-ups. **Reckon Sales AI Agent**, the engine behind Reckon SalesPilot from Reckon Technologies Ltd., automates the research and the paperwork while a person approves what gets sent. It is a Python-first agent for Frappe CRM, sold as a module of the Reckon SaaS Platform.
 
 ## Detailed features
